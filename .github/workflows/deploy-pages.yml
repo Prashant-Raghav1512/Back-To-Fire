@@ -38,6 +38,10 @@ jobs:
           # contact form. Deliberately baked into the public JS bundle —
           # see src/lib/contact.ts for why.
           VITE_NEON_CONTACT_URL: ${{ secrets.VITE_NEON_CONTACT_URL }}
+          # Groq API key used directly from the browser by the chatbot.
+          # Deliberately baked into the public JS bundle — see
+          # src/lib/groqChat.ts for why.
+          VITE_GROQ_API_KEY: ${{ secrets.VITE_GROQ_API_KEY }}
           VITE_BASE_PATH: /${{ github.event.repository.name }}/
         run: npm run build
 

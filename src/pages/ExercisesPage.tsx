@@ -1,8 +1,9 @@
 import { useMemo, useState } from 'react';
-import { Search, X, ArrowRight, Dumbbell, Target } from 'lucide-react';
+import { Search, X, ArrowRight, Target } from 'lucide-react';
 import { DifficultyBadge } from '@/components/DifficultyBadge';
+import { ExerciseModal } from '@/components/ExerciseModal';
 import { exercises } from '@/data/content';
-import type { Difficulty } from '@/data/types';
+import type { Difficulty, Exercise } from '@/data/types';
 import { useReveal } from '@/lib/useReveal';
 
 type DiffFilter = 'All' | Difficulty;
@@ -11,6 +12,7 @@ export function ExercisesPage() {
   const [query, setQuery] = useState('');
   const [diff, setDiff] = useState<DiffFilter>('All');
   const [muscle, setMuscle] = useState('All');
+  const [selected, setSelected] = useState<Exercise | null>(null);
   const ref = useReveal<HTMLDivElement>();
 
   const muscleGroups = useMemo(
@@ -131,7 +133,11 @@ export function ExercisesPage() {
 
           <div className="mt-4 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {filtered.map((ex) => (
-              <div key={ex.id} className="card card-hover group overflow-hidden">
+              <button
+                key={ex.id}
+                onClick={() => setSelected(ex)}
+                className="card card-hover group w-full overflow-hidden text-left"
+              >
                 <div className="relative h-52 overflow-hidden">
                   <img
                     src={ex.image}
@@ -151,26 +157,19 @@ export function ExercisesPage() {
                     <Target className="h-4 w-4 text-orange-500" />
                     {ex.muscleGroup}
                   </div>
-                  <p className="mt-3 text-sm leading-relaxed text-gray-600 dark:text-gray-400">
+                  <p className="mt-3 line-clamp-2 text-sm leading-relaxed text-gray-600 dark:text-gray-400">
                     {ex.description}
                   </p>
-                  <div className="mt-4 rounded-2xl bg-gray-50 p-4 dark:bg-gray-700/50">
-                    <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                      <Dumbbell className="h-3.5 w-3.5" /> How to perform
-                    </p>
-                    <ol className="mt-2 space-y-1.5">
-                      {ex.steps.map((step, i) => (
-                        <li key={i} className="flex gap-2 text-sm text-gray-700 dark:text-gray-300">
-                          <span className="font-bold text-green-500">{i + 1}.</span>
-                          {step}
-                        </li>
-                      ))}
-                    </ol>
-                  </div>
+                  <p className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-green-600 transition-colors group-hover:text-green-700 dark:text-green-400">
+                    View full guide
+                    <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
+                  </p>
                 </div>
-              </div>
+              </button>
             ))}
           </div>
+
+          {selected && <ExerciseModal exercise={selected} onClose={() => setSelected(null)} />}
 
           {filtered.length === 0 && (
             <div className="mt-12 text-center">

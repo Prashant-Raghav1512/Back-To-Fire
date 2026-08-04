@@ -1,12 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
-import { MessageCircle, Send, Sparkles } from 'lucide-react';
-import { searchKnowledgeBase } from '@/lib/search';
+import { MessageCircle, Send } from 'lucide-react';
+import { generateChatResponse, type ChatTurn } from '@/lib/groqChat';
 
 interface ChatMessage {
   id: string;
   role: 'user' | 'bot';
   text: string;
-  sourceTitle?: string;
 }
 
 const SUGGESTIONS = [
@@ -16,8 +15,7 @@ const SUGGESTIONS = [
   'Is this safe for seniors?',
 ];
 
-const FALLBACK_MESSAGE =
-  "I couldn't find a confident answer to that in what I know. Try rephrasing, or use the contact form above and we'll get back to you personally.";
+const ERROR_PREFIX = "Sorry, I couldn't reach the chat service just now.";
 
 export function ChatBot() {
   const [messages, setMessages] = useState<ChatMessage[]>([
@@ -28,32 +26,37 @@ export function ChatBot() {
     },
   ]);
   const [input, setInput] = useState('');
+  const [sending, setSending] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
-  }, [messages]);
+  }, [messages, sending]);
 
-  const ask = (question: string) => {
+  const ask = async (question: string) => {
     const trimmed = question.trim();
-    if (!trimmed) return;
+    if (!trimmed || sending) return;
 
-    const [result] = searchKnowledgeBase(trimmed, 1);
-    const botMessage: ChatMessage = result
-      ? {
-          id: crypto.randomUUID(),
-          role: 'bot',
-          text: result.chunk.text,
-          sourceTitle: result.chunk.title,
-        }
-      : { id: crypto.randomUUID(), role: 'bot', text: FALLBACK_MESSAGE };
+    const history: ChatTurn[] = messages
+      .filter((m) => m.id !== 'greeting')
+      .map((m) => ({ role: m.role === 'user' ? 'user' : 'assistant', content: m.text }));
 
-    setMessages((prev) => [
-      ...prev,
-      { id: crypto.randomUUID(), role: 'user', text: trimmed },
-      botMessage,
-    ]);
+    setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: 'user', text: trimmed }]);
     setInput('');
+    setSending(true);
+
+    try {
+      const reply = await generateChatResponse(trimmed, history);
+      setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: 'bot', text: reply }]);
+    } catch (err) {
+      const detail = err instanceof Error ? err.message : 'Please try again in a moment.';
+      setMessages((prev) => [
+        ...prev,
+        { id: crypto.randomUUID(), role: 'bot', text: `${ERROR_PREFIX} ${detail}` },
+      ]);
+    } finally {
+      setSending(false);
+    }
   };
 
   const handleSubmit = (ev: React.FormEvent) => {
@@ -72,7 +75,7 @@ export function ChatBot() {
             Ask Born to Fire
           </h3>
           <p className="text-xs text-gray-500 dark:text-gray-400">
-            Instant answers from our knowledge base
+            AI answers grounded in our knowledge base
           </p>
         </div>
       </div>
@@ -87,15 +90,23 @@ export function ChatBot() {
                   : 'bg-gray-100 text-gray-700 dark:bg-gray-700/50 dark:text-gray-300'
               }`}
             >
-              {m.role === 'bot' && m.sourceTitle && (
-                <p className="mb-1 flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-green-600 dark:text-green-400">
-                  <Sparkles className="h-3 w-3" /> {m.sourceTitle}
-                </p>
-              )}
               {m.text}
             </div>
           </div>
         ))}
+        {sending && (
+          <div className="flex justify-start">
+            <div className="flex items-center gap-1.5 rounded-2xl bg-gray-100 px-4 py-3 dark:bg-gray-700/50">
+              {[0, 1, 2].map((i) => (
+                <span
+                  key={i}
+                  className="h-1.5 w-1.5 animate-bounce rounded-full bg-gray-400 dark:bg-gray-400"
+                  style={{ animationDelay: `${i * 0.15}s` }}
+                />
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {messages.length === 1 && (
@@ -118,11 +129,12 @@ export function ChatBot() {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Ask a question..."
-          className="flex-1 rounded-full border-0 bg-gray-100 px-4 py-3 text-sm text-gray-900 outline-none ring-1 ring-transparent transition focus:ring-green-500 dark:bg-gray-700 dark:text-white"
+          disabled={sending}
+          className="flex-1 rounded-full border-0 bg-gray-100 px-4 py-3 text-sm text-gray-900 outline-none ring-1 ring-transparent transition focus:ring-green-500 disabled:opacity-60 dark:bg-gray-700 dark:text-white"
         />
         <button
           type="submit"
-          disabled={!input.trim()}
+          disabled={!input.trim() || sending}
           className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-green-500 text-white transition-all duration-300 hover:bg-green-600 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
           aria-label="Send"
         >
