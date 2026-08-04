@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Mail, Phone, MapPin, Send, Instagram, Youtube, Facebook, Twitter, Check, Calculator, AlertCircle } from 'lucide-react';
 import { useReveal } from '@/lib/useReveal';
 import { submitContact } from '@/lib/contact';
+import { ChatBot } from '@/components/ChatBot';
 
 interface FormState {
   name: string;
@@ -232,6 +233,11 @@ export function ContactPage() {
                 </form>
               </div>
             </div>
+          </div>
+
+          {/* Chatbot */}
+          <div className="mt-12">
+            <ChatBot />
           </div>
 
           {/* BMI Calculator */}
