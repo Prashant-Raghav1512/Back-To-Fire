@@ -1,0 +1,91 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --btf-green: #22C55E;
+    --btf-gray: #1F2937;
+    --btf-orange: #F59E0B;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    @apply bg-white text-gray-900 antialiased transition-colors duration-300;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Poppins', system-ui, sans-serif;
+  }
+
+  .dark body {
+    @apply bg-gray-900 text-gray-100;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-green-500 px-6 py-3 font-semibold text-white shadow-lg shadow-green-500/30 transition-all duration-300 hover:bg-green-600 hover:shadow-green-500/40 active:scale-95;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-gray-800 px-6 py-3 font-semibold text-white transition-all duration-300 hover:bg-gray-900 active:scale-95 dark:bg-gray-700 dark:hover:bg-gray-600;
+  }
+
+  .btn-outline {
+    @apply inline-flex items-center justify-center gap-2 rounded-full border-2 border-green-500 px-6 py-3 font-semibold text-green-600 transition-all duration-300 hover:bg-green-500 hover:text-white active:scale-95 dark:text-green-400 dark:hover:text-white;
+  }
+
+  .card {
+    @apply rounded-3xl bg-white shadow-sm ring-1 ring-gray-100 transition-all duration-300 dark:bg-gray-800 dark:ring-gray-700;
+  }
+
+  .card-hover {
+    @apply hover:-translate-y-1.5 hover:shadow-xl hover:shadow-green-500/10;
+  }
+
+  .badge {
+    @apply inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold;
+  }
+
+  .section-pad {
+    @apply px-5 py-16 sm:px-8 sm:py-20 lg:py-24;
+  }
+
+  .container-x {
+    @apply mx-auto max-w-7xl;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 10px; }
+::-webkit-scrollbar-track { @apply bg-gray-100 dark:bg-gray-800; }
+::-webkit-scrollbar-thumb { @apply bg-green-400 rounded-full; }
+::-webkit-scrollbar-thumb:hover { @apply bg-green-500; }
+
+/* Reveal animation */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.reveal {
+  opacity: 0;
+}
+.reveal.in-view {
+  animation: fadeUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Hero gradient pulse */
+@keyframes glow {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.7; }
+}
+.hero-glow {
+  animation: glow 6s ease-in-out infinite;
+}

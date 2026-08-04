@@ -1,0 +1,372 @@
+export type { Difficulty, Program, Exercise } from '@/data/types';
+import type { Program, Exercise } from '@/data/types';
+
+export const programs: Program[] = [
+  {
+    id: 'beginner',
+    title: 'Foundation Starter',
+    duration: '4 Weeks',
+    difficulty: 'Beginner',
+    description:
+      'Build a solid base with fundamental movements. Perfect for first-timers who want to build confidence, mobility, and basic strength from the comfort of home.',
+    features: [
+      '3 sessions per week (20-30 min)',
+      'Wall push-ups, assisted squats, glute bridges',
+      'Mobility & warm-up routines',
+      'Form coaching videos',
+    ],
+    icon: 'Sprout',
+  },
+  {
+    id: 'intermediate',
+    title: 'Strength Builder',
+    duration: '8 Weeks',
+    difficulty: 'Intermediate',
+    description:
+      'Level up with full bodyweight movements. Develop real pushing, pulling, and core strength while improving control and endurance.',
+    features: [
+      '4 sessions per week (30-45 min)',
+      'Pull-ups, dips, pistol squat progressions',
+      'Core & skill work',
+      'Weekly progress tracking',
+    ],
+    icon: 'Flame',
+  },
+  {
+    id: 'advanced',
+    title: 'Calisthenics Mastery',
+    duration: '12 Weeks',
+    difficulty: 'Advanced',
+    description:
+      'Master impressive skills and elite strength. Train toward the planche, front lever, muscle-up, and handstand push-up with structured progressions.',
+    features: [
+      '5 sessions per week (45-60 min)',
+      'Planche, front lever, muscle-up progressions',
+      'Dynamic & explosive power work',
+      'Personalised skill roadmap',
+    ],
+    icon: 'Zap',
+  },
+];
+
+export const exercises: Exercise[] = [
+  {
+    id: 'push-ups',
+    name: 'Push-ups',
+    difficulty: 'Beginner',
+    muscleGroup: 'Chest, Shoulders, Triceps',
+    description:
+      'The king of upper-body bodyweight moves. Builds pressing strength and shoulder stability with zero equipment.',
+    image:
+      'https://images.pexels.com/photos/6496124/pexels-photo-6496124.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+    steps: [
+      'Place hands shoulder-width apart on the floor',
+      'Keep your body in a straight line from head to heels',
+      'Lower your chest toward the floor by bending elbows',
+      'Press back up powerfully to full extension',
+    ],
+  },
+  {
+    id: 'pull-ups',
+    name: 'Pull-ups',
+    difficulty: 'Advanced',
+    muscleGroup: 'Back, Biceps, Forearms',
+    description:
+      'A true test of relative strength. Pull-ups build a strong back and grip using just a bar — find one at a park or doorway.',
+    image:
+      'https://images.pexels.com/photos/4803667/pexels-photo-4803667.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+    steps: [
+      'Hang from a bar with palms facing away',
+      'Engage your back and pull shoulder blades down',
+      'Pull your chin above the bar',
+      'Lower with control to a full hang',
+    ],
+  },
+  {
+    id: 'squats',
+    name: 'Squats',
+    difficulty: 'Beginner',
+    muscleGroup: 'Quads, Glutes, Hamstrings',
+    description:
+      'The foundational lower-body movement. Builds leg strength, hip mobility, and balance — the base for every advanced leg skill.',
+    image:
+      'https://images.pexels.com/photos/8173430/pexels-photo-8173430.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+    steps: [
+      'Stand with feet shoulder-width apart',
+      'Push hips back and bend knees',
+      'Keep chest tall and knees tracking over toes',
+      'Drive through heels to stand back up',
+    ],
+  },
+  {
+    id: 'lunges',
+    name: 'Lunges',
+    difficulty: 'Beginner',
+    muscleGroup: 'Quads, Glutes, Core',
+    description:
+      'Unilateral leg work that improves balance, coordination, and single-leg strength. Great for fixing strength imbalances.',
+    image:
+      'https://images.pexels.com/photos/8770407/pexels-photo-8770407.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+    steps: [
+      'Step forward with one leg',
+      'Lower until both knees are at 90 degrees',
+      'Keep your torso upright and core tight',
+      'Push through the front heel to return',
+    ],
+  },
+  {
+    id: 'plank',
+    name: 'Plank',
+    difficulty: 'Beginner',
+    muscleGroup: 'Core, Shoulders',
+    description:
+      'An isometric core exercise that builds total-body tension and stability. The foundation of all advanced calisthenics holds.',
+    image:
+      'https://images.pexels.com/photos/9376270/pexels-photo-9376270.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+    steps: [
+      'Rest on forearms with elbows under shoulders',
+      'Extend legs back, body in a straight line',
+      'Brace your abs and squeeze glutes',
+      'Hold steady, breathing normally',
+    ],
+  },
+  {
+    id: 'dips',
+    name: 'Dips',
+    difficulty: 'Intermediate',
+    muscleGroup: 'Chest, Triceps, Shoulders',
+    description:
+      'A powerful pressing movement that builds the lower chest and triceps. Use parallel bars, chairs, or a bench to get started.',
+    image:
+      'https://images.pexels.com/photos/4803664/pexels-photo-4803664.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+    steps: [
+      'Support yourself on parallel bars or chairs',
+      'Lower your body by bending elbows',
+      'Keep shoulders away from the ears',
+      'Press back up to full lockout',
+    ],
+  },
+  {
+    id: 'pike-push-ups',
+    name: 'Pike Push-ups',
+    difficulty: 'Intermediate',
+    muscleGroup: 'Shoulders, Triceps',
+    description:
+      'A vertical pressing move that shifts load onto the shoulders. The natural stepping stone toward handstand push-ups.',
+    image:
+      'https://images.pexels.com/photos/6740819/pexels-photo-6740819.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+    steps: [
+      'Start in a downward-dog position, hips high',
+      'Bend elbows to lower your head toward the floor',
+      'Keep hips stacked over shoulders throughout',
+      'Press back up to the starting position',
+    ],
+  },
+  {
+    id: 'diamond-push-ups',
+    name: 'Diamond Push-ups',
+    difficulty: 'Intermediate',
+    muscleGroup: 'Triceps, Chest',
+    description:
+      'A close-grip push-up variation that shifts emphasis onto the triceps for serious arm and pressing strength.',
+    image:
+      'https://images.pexels.com/photos/4498362/pexels-photo-4498362.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+    steps: [
+      'Form a diamond shape with thumbs and index fingers on the floor',
+      'Keep elbows tucked close to your body',
+      'Lower your chest to your hands',
+      'Press back up to full extension',
+    ],
+  },
+  {
+    id: 'burpees',
+    name: 'Burpees',
+    difficulty: 'Intermediate',
+    muscleGroup: 'Full Body, Cardio',
+    description:
+      'A full-body conditioning move that combines a squat, plank, push-up, and jump. Builds explosive power and cardio capacity.',
+    image:
+      'https://images.pexels.com/photos/4720236/pexels-photo-4720236.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+    steps: [
+      'Drop into a squat and place hands on the floor',
+      'Kick feet back into a plank and perform a push-up',
+      'Jump feet back up to your hands',
+      'Explode upward into a jump, arms overhead',
+    ],
+  },
+  {
+    id: 'mountain-climbers',
+    name: 'Mountain Climbers',
+    difficulty: 'Beginner',
+    muscleGroup: 'Core, Cardio',
+    description:
+      'A dynamic core and cardio move that drives the heart rate up while training hip flexor speed and core stability.',
+    image:
+      'https://images.pexels.com/photos/3823039/pexels-photo-3823039.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+    steps: [
+      'Start in a high plank with hands under shoulders',
+      'Drive one knee toward your chest',
+      'Quickly switch legs in a running motion',
+      'Keep hips low and core braced throughout',
+    ],
+  },
+  {
+    id: 'glute-bridges',
+    name: 'Glute Bridges',
+    difficulty: 'Beginner',
+    muscleGroup: 'Glutes, Hamstrings',
+    description:
+      'A foundational hip-hinge move that builds glute strength and protects the lower back — great for beginners and warm-ups alike.',
+    image:
+      'https://images.pexels.com/photos/3768916/pexels-photo-3768916.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+    steps: [
+      'Lie on your back with knees bent, feet flat',
+      'Drive through your heels to lift your hips',
+      'Squeeze your glutes at the top',
+      'Lower with control back to the floor',
+    ],
+  },
+  {
+    id: 'superman',
+    name: 'Superman Hold',
+    difficulty: 'Beginner',
+    muscleGroup: 'Lower Back, Core',
+    description:
+      'An isometric posterior-chain exercise that strengthens the lower back and glutes, balancing out all the pressing work.',
+    image:
+      'https://images.pexels.com/photos/3839046/pexels-photo-3839046.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+    steps: [
+      'Lie face down with arms extended overhead',
+      'Simultaneously lift arms, chest, and legs off the floor',
+      'Hold, squeezing glutes and back muscles',
+      'Lower with control and repeat',
+    ],
+  },
+  {
+    id: 'bulgarian-split-squats',
+    name: 'Bulgarian Split Squats',
+    difficulty: 'Intermediate',
+    muscleGroup: 'Quads, Glutes',
+    description:
+      'A single-leg squat variation with the rear foot elevated. Builds serious leg strength while exposing and fixing imbalances.',
+    image:
+      'https://images.pexels.com/photos/1552242/pexels-photo-1552242.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+    steps: [
+      'Rest the top of one foot on a bench behind you',
+      'Lower your back knee toward the floor',
+      'Keep most of your weight on the front heel',
+      'Drive through the front leg to stand back up',
+    ],
+  },
+  {
+    id: 'hanging-leg-raises',
+    name: 'Hanging Leg Raises',
+    difficulty: 'Advanced',
+    muscleGroup: 'Core, Hip Flexors',
+    description:
+      'A demanding core exercise performed from a dead hang. Builds the raw core strength needed for front levers and the L-sit.',
+    image:
+      'https://images.pexels.com/photos/4761792/pexels-photo-4761792.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+    steps: [
+      'Hang from a bar with arms fully extended',
+      'Keep legs straight and raise them to hip height or higher',
+      'Avoid swinging — control the movement with your core',
+      'Lower with control back to a full hang',
+    ],
+  },
+  {
+    id: 'handstand-push-ups',
+    name: 'Handstand Push-ups',
+    difficulty: 'Advanced',
+    muscleGroup: 'Shoulders, Triceps',
+    description:
+      'An elite vertical pressing skill performed against a wall. Builds shoulder strength and body control few other moves can match.',
+    image:
+      'https://images.pexels.com/photos/2247179/pexels-photo-2247179.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+    steps: [
+      'Kick up into a handstand against a wall',
+      'Lower your head slowly toward the floor',
+      'Keep your core tight and body in a straight line',
+      'Press back up to full lockout',
+    ],
+  },
+  {
+    id: 'muscle-ups',
+    name: 'Muscle-ups',
+    difficulty: 'Advanced',
+    muscleGroup: 'Back, Chest, Triceps',
+    description:
+      'The ultimate pulling-to-pushing transition — combining a pull-up with a dip in one fluid motion over the bar.',
+    image:
+      'https://images.pexels.com/photos/3822622/pexels-photo-3822622.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+    steps: [
+      'Start with an explosive pull-up, pulling the bar toward your hips',
+      'Transition your wrists over the bar as you rise',
+      'Press up out of the dip position to full lockout',
+      'Lower with control back to a hang',
+    ],
+  },
+  {
+    id: 'pistol-squats',
+    name: 'Pistol Squats',
+    difficulty: 'Advanced',
+    muscleGroup: 'Quads, Glutes, Balance',
+    description:
+      'A single-leg squat to full depth. Demands and builds serious leg strength, balance, and ankle mobility.',
+    image:
+      'https://images.pexels.com/photos/6551144/pexels-photo-6551144.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+    steps: [
+      'Stand on one leg, extending the other straight in front of you',
+      'Lower yourself down on the standing leg as deep as possible',
+      'Keep your extended leg off the floor throughout',
+      'Drive through your heel to return to standing',
+    ],
+  },
+  {
+    id: 'inverted-rows',
+    name: 'Inverted Rows',
+    difficulty: 'Intermediate',
+    muscleGroup: 'Back, Biceps',
+    description:
+      'A horizontal pulling move under a low bar or table. Builds the back strength needed to progress toward pull-ups.',
+    image:
+      'https://images.pexels.com/photos/6740823/pexels-photo-6740823.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+    steps: [
+      'Lie under a low bar and grab it with an overhand grip',
+      'Keep your body in a straight line, heels on the floor',
+      'Pull your chest up to the bar',
+      'Lower with control to a full arm extension',
+    ],
+  },
+];
+
+export const benefits = [
+  {
+    icon: 'Dumbbell',
+    title: 'No Equipment Needed',
+    text: 'Your body is the only machine you need. Train anywhere — home, park, or hostel room.',
+  },
+  {
+    icon: 'Activity',
+    title: 'Builds Strength & Mobility',
+    text: 'Develop real-world strength, joint health, and full range of motion at the same time.',
+  },
+  {
+    icon: 'Calendar',
+    title: 'Flexible Scheduling',
+    text: 'No gym hours, no commute. Work out on your schedule, whether 6 AM or midnight.',
+  },
+  {
+    icon: 'Move',
+    title: 'Improves Body Control',
+    text: 'Master your own bodyweight and unlock impressive skills like handstands and levers.',
+  },
+];
+
+export const navLinks = [
+  { label: 'Home', path: '/' },
+  { label: 'About', path: '/about' },
+  { label: 'Programs', path: '/programs' },
+  { label: 'Exercises', path: '/exercises' },
+  { label: 'Contact', path: '/contact' },
+];
