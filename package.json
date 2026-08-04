@@ -7,6 +7,7 @@
     "dev": "vite",
     "prebuild": "node scripts/fetch-content.mjs",
     "build": "vite build",
+    "postbuild": "node scripts/copy-404.mjs",
     "fetch-content": "node scripts/fetch-content.mjs",
     "lint": "eslint .",
     "preview": "vite preview",
