@@ -1,4 +1,4 @@
-import { Client } from '@neondatabase/serverless';
+import { neon } from '@neondatabase/serverless';
 import { writeFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
@@ -13,19 +13,18 @@ if (!connectionString) {
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const dataDir = join(__dirname, '..', 'src', 'data');
 
-const client = new Client(connectionString);
-await client.connect();
+// Neon's HTTP driver (plain fetch) rather than the WebSocket-based Client —
+// GitHub Actions' Node runner has no global WebSocket, only fetch.
+const sql = neon(connectionString);
 
-const { rows: exercises } = await client.query(
-  `SELECT id, name, difficulty, muscle_group AS "muscleGroup", description, image, steps
-   FROM exercises ORDER BY sort_order ASC`
-);
-const { rows: programs } = await client.query(
-  `SELECT id, title, duration, difficulty, description, features, icon
-   FROM programs ORDER BY sort_order ASC`
-);
-
-await client.end();
+const exercises = await sql`
+  SELECT id, name, difficulty, muscle_group AS "muscleGroup", description, image, steps
+  FROM exercises ORDER BY sort_order ASC
+`;
+const programs = await sql`
+  SELECT id, title, duration, difficulty, description, features, icon
+  FROM programs ORDER BY sort_order ASC
+`;
 
 writeFileSync(join(dataDir, 'exercises.json'), JSON.stringify(exercises, null, 2) + '\n');
 writeFileSync(join(dataDir, 'programs.json'), JSON.stringify(programs, null, 2) + '\n');
