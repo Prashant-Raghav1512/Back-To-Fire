@@ -34,6 +34,10 @@ jobs:
           # shipped to the browser. Set as a repository secret (Settings ->
           # Secrets and variables -> Actions -> Secrets).
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          # Neon connection string used directly from the browser by the
+          # contact form. Deliberately baked into the public JS bundle —
+          # see src/lib/contact.ts for why.
+          VITE_NEON_CONTACT_URL: ${{ secrets.VITE_NEON_CONTACT_URL }}
           VITE_BASE_PATH: /${{ github.event.repository.name }}/
         run: npm run build
 
