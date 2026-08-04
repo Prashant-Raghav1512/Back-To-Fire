@@ -29,9 +29,11 @@ jobs:
 
       - name: Build
         env:
-          # Public URL of the Vercel-deployed API. Set this as a repository
-          # variable (Settings -> Secrets and variables -> Actions -> Variables).
-          VITE_API_URL: ${{ vars.VITE_API_URL }}
+          # Neon connection string, used only at build time by
+          # scripts/fetch-content.mjs to refresh src/data/*.json. Never
+          # shipped to the browser. Set as a repository secret (Settings ->
+          # Secrets and variables -> Actions -> Secrets).
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
           VITE_BASE_PATH: /${{ github.event.repository.name }}/
         run: npm run build
 

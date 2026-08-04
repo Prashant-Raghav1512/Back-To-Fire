@@ -1,7 +1,6 @@
 import { useState } from 'react';
-import { Mail, Phone, MapPin, Send, Instagram, Youtube, Facebook, Twitter, Check, Calculator, AlertCircle } from 'lucide-react';
+import { Mail, Phone, MapPin, Send, Instagram, Youtube, Facebook, Twitter, Check, Calculator } from 'lucide-react';
 import { useReveal } from '@/lib/useReveal';
-import { submitContact } from '@/lib/api';
 
 interface FormState {
   name: string;
@@ -20,8 +19,6 @@ export function ContactPage() {
   const [form, setForm] = useState<FormState>({ name: '', email: '', message: '' });
   const [errors, setErrors] = useState<FormErrors>({});
   const [sent, setSent] = useState(false);
-  const [sending, setSending] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
 
   // BMI calculator state
   const [height, setHeight] = useState('');
@@ -38,23 +35,12 @@ export function ContactPage() {
     return Object.keys(e).length === 0;
   };
 
-  const handleSubmit = async (ev: React.FormEvent) => {
+  const handleSubmit = (ev: React.FormEvent) => {
     ev.preventDefault();
-    if (!validate()) return;
-
-    setSending(true);
-    setSubmitError(null);
-    try {
-      await submitContact(form);
+    if (validate()) {
       setSent(true);
       setForm({ name: '', email: '', message: '' });
       setTimeout(() => setSent(false), 5000);
-    } catch (err) {
-      setSubmitError(
-        err instanceof Error ? err.message : 'Something went wrong. Please try again.'
-      );
-    } finally {
-      setSending(false);
     }
   };
 
@@ -165,21 +151,6 @@ export function ContactPage() {
                   </div>
                 )}
 
-                {submitError && (
-                  <div className="mt-5 flex items-center gap-3 rounded-2xl bg-red-50 p-4 text-red-700 dark:bg-red-500/10 dark:text-red-300">
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-red-500 text-white">
-                      <AlertCircle className="h-5 w-5" />
-                    </span>
-                    <p className="text-sm font-medium">
-                      {submitError} You can also email us directly at{' '}
-                      <a href="mailto:hello@borntofire.in" className="underline">
-                        hello@borntofire.in
-                      </a>
-                      .
-                    </p>
-                  </div>
-                )}
-
                 <form onSubmit={handleSubmit} className="mt-6 space-y-5" noValidate>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -226,8 +197,8 @@ export function ContactPage() {
                     />
                     {errors.message && <p className="mt-1 text-xs text-red-500">{errors.message}</p>}
                   </div>
-                  <button type="submit" disabled={sending} className="btn-primary w-full disabled:cursor-not-allowed disabled:opacity-60">
-                    {sending ? 'Sending...' : 'Send message'} <Send className="h-4 w-4" />
+                  <button type="submit" className="btn-primary w-full">
+                    Send message <Send className="h-4 w-4" />
                   </button>
                 </form>
               </div>

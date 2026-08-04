@@ -1,0 +1,44 @@
+[
+  {
+    "id": "beginner",
+    "title": "Foundation Starter",
+    "duration": "4 Weeks",
+    "difficulty": "Beginner",
+    "description": "Build a solid base with fundamental movements. Perfect for first-timers who want to build confidence, mobility, and basic strength from the comfort of home.",
+    "features": [
+      "3 sessions per week (20-30 min)",
+      "Wall push-ups, assisted squats, glute bridges",
+      "Mobility & warm-up routines",
+      "Form coaching videos"
+    ],
+    "icon": "Sprout"
+  },
+  {
+    "id": "intermediate",
+    "title": "Strength Builder",
+    "duration": "8 Weeks",
+    "difficulty": "Intermediate",
+    "description": "Level up with full bodyweight movements. Develop real pushing, pulling, and core strength while improving control and endurance.",
+    "features": [
+      "4 sessions per week (30-45 min)",
+      "Pull-ups, dips, pistol squat progressions",
+      "Core & skill work",
+      "Weekly progress tracking"
+    ],
+    "icon": "Flame"
+  },
+  {
+    "id": "advanced",
+    "title": "Calisthenics Mastery",
+    "duration": "12 Weeks",
+    "difficulty": "Advanced",
+    "description": "Master impressive skills and elite strength. Train toward the planche, front lever, muscle-up, and handstand push-up with structured progressions.",
+    "features": [
+      "5 sessions per week (45-60 min)",
+      "Planche, front lever, muscle-up progressions",
+      "Dynamic & explosive power work",
+      "Personalised skill roadmap"
+    ],
+    "icon": "Zap"
+  }
+]

@@ -1,9 +1,7 @@
-import { useEffect, useState } from 'react';
 import { Sprout, Flame, Zap, Check, ArrowRight, Clock, BarChart3 } from 'lucide-react';
 import { SectionHeading } from '@/components/SectionHeading';
 import { DifficultyBadge } from '@/components/DifficultyBadge';
-import { fetchPrograms } from '@/lib/api';
-import type { Program } from '@/data/types';
+import { programs } from '@/data/content';
 import { useReveal } from '@/lib/useReveal';
 import { useRouter } from '@/lib/router';
 
@@ -12,17 +10,6 @@ const iconMap = { Sprout, Flame, Zap } as const;
 export function ProgramsPage() {
   const { navigate } = useRouter();
   const ref = useReveal<HTMLDivElement>();
-  const [programs, setPrograms] = useState<Program[]>([]);
-
-  useEffect(() => {
-    let cancelled = false;
-    fetchPrograms().then((data) => {
-      if (!cancelled) setPrograms(data);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   return (
     <div className="pt-16 sm:pt-20">

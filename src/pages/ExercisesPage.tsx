@@ -1,36 +1,21 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Search, X, ArrowRight, Dumbbell, Target } from 'lucide-react';
 import { DifficultyBadge } from '@/components/DifficultyBadge';
-import { fetchExercises } from '@/lib/api';
-import type { Difficulty, Exercise } from '@/data/types';
+import { exercises } from '@/data/content';
+import type { Difficulty } from '@/data/types';
 import { useReveal } from '@/lib/useReveal';
 
 type DiffFilter = 'All' | Difficulty;
 
 export function ExercisesPage() {
-  const [exercises, setExercises] = useState<Exercise[]>([]);
-  const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState('');
   const [diff, setDiff] = useState<DiffFilter>('All');
   const [muscle, setMuscle] = useState('All');
   const ref = useReveal<HTMLDivElement>();
 
-  useEffect(() => {
-    let cancelled = false;
-    fetchExercises().then((data) => {
-      if (!cancelled) {
-        setExercises(data);
-        setLoading(false);
-      }
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
   const muscleGroups = useMemo(
     () => ['All', ...Array.from(new Set(exercises.map((e) => e.muscleGroup)))],
-    [exercises]
+    []
   );
 
   const filtered = useMemo(() => {
@@ -43,7 +28,7 @@ export function ExercisesPage() {
       const matchesMuscle = muscle === 'All' || e.muscleGroup === muscle;
       return matchesQuery && matchesDiff && matchesMuscle;
     });
-  }, [exercises, query, diff, muscle]);
+  }, [query, diff, muscle]);
 
   const diffFilters: DiffFilter[] = ['All', 'Beginner', 'Intermediate', 'Advanced'];
 
@@ -141,7 +126,7 @@ export function ExercisesPage() {
 
           {/* Results */}
           <p className="mt-6 text-sm text-gray-500 dark:text-gray-400">
-            {loading ? 'Loading exercises...' : `Showing ${filtered.length} of ${exercises.length} exercises`}
+            Showing {filtered.length} of {exercises.length} exercises
           </p>
 
           <div className="mt-4 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -187,7 +172,7 @@ export function ExercisesPage() {
             ))}
           </div>
 
-          {!loading && filtered.length === 0 && (
+          {filtered.length === 0 && (
             <div className="mt-12 text-center">
               <p className="text-gray-500 dark:text-gray-400">
                 No exercises match your filters. Try resetting them.

@@ -1,10 +1,7 @@
-import { useEffect, useState } from 'react';
 import { ArrowRight, Dumbbell, Activity, Calendar, Move, Check, Star, Users, Clock } from 'lucide-react';
 import { SectionHeading } from '@/components/SectionHeading';
 import { DifficultyBadge } from '@/components/DifficultyBadge';
-import { benefits } from '@/data/content';
-import { fetchPrograms } from '@/lib/api';
-import type { Program } from '@/data/types';
+import { benefits, programs } from '@/data/content';
 import { useRouter } from '@/lib/router';
 import { useReveal } from '@/lib/useReveal';
 
@@ -17,17 +14,6 @@ export function HomePage() {
   const benefitsRef = useReveal<HTMLDivElement>();
   const programsRef = useReveal<HTMLDivElement>();
   const ctaRef = useReveal<HTMLDivElement>();
-  const [programs, setPrograms] = useState<Program[]>([]);
-
-  useEffect(() => {
-    let cancelled = false;
-    fetchPrograms().then((data) => {
-      if (!cancelled) setPrograms(data);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   return (
     <div>
