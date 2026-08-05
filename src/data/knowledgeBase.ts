@@ -1,3 +1,5 @@
+import { getEventKnowledgeChunks } from '@/lib/events';
+
 export interface KnowledgeChunk {
   id: string;
   title: string;
@@ -7,7 +9,7 @@ export interface KnowledgeChunk {
 // Source content for the Contact page's FAQ search. Kept as structured
 // chunks (rather than parsed from raw text) so each has a clean title and
 // clean punctuation for display in chat bubbles.
-export const knowledgeBase: KnowledgeChunk[] = [
+const staticKnowledgeBase: KnowledgeChunk[] = [
   {
     id: 'brand-overview',
     title: 'About Born to Fire',
@@ -175,3 +177,7 @@ Easier variation: bench dips with knees bent and feet close to the body. Harder 
     text: `You can reach Born to Fire by email at hello@borntofire.in, by phone at +91 98765 43210, or visit our address, located in Indiranagar, Bengaluru, Karnataka. You can also use the contact form on this page to send a message directly.`,
   },
 ];
+
+// Event chunks are generated, not hand-written like the array above — see
+// the comment on getEventKnowledgeChunks in src/lib/events.ts for why.
+export const knowledgeBase: KnowledgeChunk[] = [...staticKnowledgeBase, ...getEventKnowledgeChunks()];

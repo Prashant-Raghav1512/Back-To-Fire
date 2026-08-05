@@ -35,5 +35,6 @@ export const navLinks = [
   { label: 'About', path: '/about' },
   { label: 'Programs', path: '/programs' },
   { label: 'Exercises', path: '/exercises' },
+  { label: 'Events', path: '/events' },
   { label: 'Contact', path: '/contact' },
 ];

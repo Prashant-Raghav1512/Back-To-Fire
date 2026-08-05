@@ -1,15 +1,16 @@
 import { Sprout, Flame, Zap, Check, ArrowRight, Clock, BarChart3 } from 'lucide-react';
 import { SectionHeading } from '@/components/SectionHeading';
 import { DifficultyBadge } from '@/components/DifficultyBadge';
+import { EnrollButton } from '@/components/EnrollButton';
 import { programs } from '@/data/content';
+import { useMyEnrollments } from '@/lib/enrollments';
 import { useReveal } from '@/lib/useReveal';
-import { useRouter } from '@/lib/router';
 
 const iconMap = { Sprout, Flame, Zap } as const;
 
 export function ProgramsPage() {
-  const { navigate } = useRouter();
   const ref = useReveal<HTMLDivElement>();
+  const { isEnrolledIn, refresh } = useMyEnrollments();
 
   return (
     <div className="pt-16 sm:pt-20">
@@ -86,14 +87,16 @@ export function ProgramsPage() {
                       </li>
                     ))}
                   </ul>
-                  <button
-                    onClick={() => navigate('/contact')}
-                    className={`mt-6 w-full ${
-                      featured ? 'btn-primary' : 'btn-outline'
-                    }`}
-                  >
-                    Start {p.title} <ArrowRight className="h-4 w-4" />
-                  </button>
+                  <EnrollButton
+                    itemType="program"
+                    itemId={p.id}
+                    itemTitle={p.title}
+                    itemDetail={`${p.difficulty} · ${p.duration}`}
+                    enrolled={isEnrolledIn('program', p.id)}
+                    onEnrolled={refresh}
+                    label={`Start ${p.title}`}
+                    className={`mt-6 w-full ${featured ? 'btn-primary' : 'btn-outline'}`}
+                  />
                 </div>
               );
             })}

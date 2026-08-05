@@ -1,9 +1,15 @@
-import { ArrowRight, Dumbbell, Activity, Calendar, Move, Check, Star, Users, Clock } from 'lucide-react';
+import { useState } from 'react';
+import { ArrowRight, Dumbbell, Activity, Calendar, Move, Check, Star, Users, Clock, MapPin } from 'lucide-react';
 import { SectionHeading } from '@/components/SectionHeading';
 import { DifficultyBadge } from '@/components/DifficultyBadge';
+import { EventStatusBadge } from '@/components/EventStatusBadge';
+import { EventModal } from '@/components/EventModal';
 import { benefits, programs } from '@/data/content';
+import { groupEventsByStatus, formatEventDateRange, getEventStatus } from '@/lib/events';
+import { useMyEnrollments } from '@/lib/enrollments';
 import { useRouter } from '@/lib/router';
 import { useReveal } from '@/lib/useReveal';
+import type { FitnessEvent } from '@/data/types';
 
 const iconMap = { Dumbbell, Activity, Calendar, Move } as const;
 
@@ -13,7 +19,13 @@ export function HomePage() {
   const introRef = useReveal<HTMLDivElement>();
   const benefitsRef = useReveal<HTMLDivElement>();
   const programsRef = useReveal<HTMLDivElement>();
+  const eventsRef = useReveal<HTMLDivElement>();
   const ctaRef = useReveal<HTMLDivElement>();
+  const { isEnrolledIn, refresh } = useMyEnrollments();
+
+  const { ongoing, upcoming } = groupEventsByStatus();
+  const spotlightEvents = [...ongoing, ...upcoming].slice(0, 3);
+  const [selectedEvent, setSelectedEvent] = useState<FitnessEvent | null>(null);
 
   return (
     <div>
@@ -186,6 +198,61 @@ export function HomePage() {
         </div>
       </section>
 
+      {/* EVENTS SPOTLIGHT */}
+      {spotlightEvents.length > 0 && (
+        <section className="section-pad bg-white dark:bg-gray-900">
+          <div ref={eventsRef} className="reveal container-x mx-auto">
+            <SectionHeading
+              eyebrow="Community"
+              title="Train with others, not just alone"
+              subtitle="Live challenges, workshops, and in-person meetups happening now and coming up."
+            />
+            <div className="mt-12 grid gap-6 md:grid-cols-3">
+              {spotlightEvents.map((e) => (
+                <div
+                  key={e.id}
+                  onClick={() => setSelectedEvent(e)}
+                  onKeyDown={(ev) => {
+                    if (ev.key === 'Enter' || ev.key === ' ') {
+                      ev.preventDefault();
+                      setSelectedEvent(e);
+                    }
+                  }}
+                  role="button"
+                  tabIndex={0}
+                  className="card card-hover flex cursor-pointer flex-col p-6 text-left"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <EventStatusBadge status={getEventStatus(e)} />
+                  </div>
+                  <h3 className="mt-4 font-display text-lg font-bold text-gray-900 dark:text-white">
+                    {e.title}
+                  </h3>
+                  <div className="mt-2 space-y-1 text-sm text-gray-500 dark:text-gray-400">
+                    <span className="flex items-center gap-1.5">
+                      <Calendar className="h-3.5 w-3.5 shrink-0" />
+                      {formatEventDateRange(e)}
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                      <MapPin className="h-3.5 w-3.5 shrink-0" />
+                      {e.location}
+                    </span>
+                  </div>
+                  <p className="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-green-600 transition-colors dark:text-green-400">
+                    View details <ArrowRight className="h-4 w-4" />
+                  </p>
+                </div>
+              ))}
+            </div>
+            <div className="mt-10 text-center">
+              <button onClick={() => navigate('/events')} className="btn-outline">
+                View all events <ArrowRight className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* TESTIMONIALS */}
       <section className="section-pad bg-gray-50 dark:bg-gray-950">
         <div className="container-x mx-auto">
@@ -256,6 +323,15 @@ export function HomePage() {
           </div>
         </div>
       </section>
+
+      {selectedEvent && (
+        <EventModal
+          event={selectedEvent}
+          enrolled={isEnrolledIn('event', selectedEvent.id)}
+          onEnrolled={refresh}
+          onClose={() => setSelectedEvent(null)}
+        />
+      )}
     </div>
   );
 }

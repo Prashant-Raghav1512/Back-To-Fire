@@ -19,3 +19,42 @@ export interface Exercise {
   image: string;
   steps: string[];
 }
+
+// Not stored — always derived from `startDate`/`endDate` vs. the current
+// date (see src/lib/events.ts's getEventStatus), so it's never possible for
+// the displayed status to drift out of sync with reality.
+export type EventStatus = 'upcoming' | 'ongoing' | 'ended';
+
+export type EventType = 'Workshop' | 'Bootcamp' | 'Challenge' | 'Meetup' | 'Webinar';
+
+// An ordered step of an event's plan. `date` carries the real day it falls
+// on (so multi-week events like a challenge can mix past and future items);
+// `time` is just a display label for same-day items, e.g. a single
+// afternoon's schedule — see src/lib/events.ts's getAgendaItemStatus for how
+// the two combine to decide "already happened" vs "still to come".
+export interface EventAgendaItem {
+  /** ISO date (YYYY-MM-DD) this item falls on. */
+  date: string;
+  /** Display time, e.g. "9:00 AM". Omit for whole-day/week items. */
+  time?: string;
+  title: string;
+  description: string;
+}
+
+export interface FitnessEvent {
+  id: string;
+  title: string;
+  type: EventType;
+  format: 'Online' | 'In-person';
+  description: string;
+  /** ISO date (YYYY-MM-DD). */
+  startDate: string;
+  /** ISO date (YYYY-MM-DD), inclusive — same as startDate for single-day events. */
+  endDate: string;
+  location: string;
+  icon: string;
+  /** Ordered plan for the event — what happens/happened, step by step. */
+  agenda: EventAgendaItem[];
+  /** A short outcome summary, shown once the event has ended. */
+  recap?: string;
+}

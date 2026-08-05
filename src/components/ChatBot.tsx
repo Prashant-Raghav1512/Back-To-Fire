@@ -13,6 +13,7 @@ const SUGGESTIONS = [
   'How often should I train?',
   'Tell me about pull-ups',
   'Is this safe for seniors?',
+  'What events are coming up?',
 ];
 
 const ERROR_PREFIX = "Sorry, I couldn't reach the chat service just now.";
@@ -22,7 +23,7 @@ export function ChatBot() {
     {
       id: 'greeting',
       role: 'bot',
-      text: 'Hi! Ask me anything about Born to Fire — programs, exercises, or general questions.',
+      text: 'Hi! Ask me anything about Born to Fire — programs, exercises, upcoming events, or general questions.',
     },
   ]);
   const [input, setInput] = useState('');

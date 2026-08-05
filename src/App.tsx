@@ -5,6 +5,8 @@ import { HomePage } from '@/pages/HomePage';
 import { AboutPage } from '@/pages/AboutPage';
 import { ProgramsPage } from '@/pages/ProgramsPage';
 import { ExercisesPage } from '@/pages/ExercisesPage';
+import { EventsPage } from '@/pages/EventsPage';
+import { ProfilePage } from '@/pages/ProfilePage';
 import { ContactPage } from '@/pages/ContactPage';
 
 function Routes() {
@@ -20,6 +22,10 @@ function Routes() {
         return <ProgramsPage />;
       case '/exercises':
         return <ExercisesPage />;
+      case '/events':
+        return <EventsPage />;
+      case '/profile':
+        return <ProfilePage />;
       case '/contact':
         return <ContactPage />;
       default:

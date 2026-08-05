@@ -32,6 +32,26 @@ CREATE TABLE IF NOT EXISTS contact_submissions (
   created_at timestamptz NOT NULL DEFAULT now()
 );
 
+-- One row per (user, program-or-event) enrollment. `clerk_user_id` is
+-- Clerk's stable user id (see src/lib/enrollments.ts) — not a foreign key
+-- to any table here, since users live in Clerk, not Neon. `item_title` and
+-- `item_detail` are a snapshot of the program/event at enrollment time, so a
+-- user's history still reads sensibly even if that program/event is later
+-- edited or removed from src/data/*.
+CREATE TABLE IF NOT EXISTS enrollments (
+  id bigserial PRIMARY KEY,
+  clerk_user_id text NOT NULL,
+  user_email text NOT NULL,
+  item_type text NOT NULL CHECK (item_type IN ('program', 'event')),
+  item_id text NOT NULL,
+  item_title text NOT NULL,
+  item_detail text,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (clerk_user_id, item_type, item_id)
+);
+
+CREATE INDEX IF NOT EXISTS enrollments_clerk_user_id_idx ON enrollments (clerk_user_id);
+
 -- Programs -------------------------------------------------------------
 
 INSERT INTO programs (id, title, duration, difficulty, description, features, icon, sort_order) VALUES
