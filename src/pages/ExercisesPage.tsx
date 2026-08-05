@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { Search, X, ArrowRight, Target } from 'lucide-react';
 import { DifficultyBadge } from '@/components/DifficultyBadge';
 import { ExerciseModal } from '@/components/ExerciseModal';
+import { ExerciseDemo } from '@/components/ExerciseDemo';
 import { exercises } from '@/data/content';
 import type { Difficulty, Exercise } from '@/data/types';
 import { useReveal } from '@/lib/useReveal';
@@ -57,6 +58,13 @@ export function ExercisesPage() {
             Browse our library of bodyweight exercises. Filter by difficulty or muscle group to
             find exactly what you need.
           </p>
+        </div>
+      </section>
+
+      {/* Interactive demo */}
+      <section className="section-pad bg-white dark:bg-gray-900">
+        <div className="container-x mx-auto">
+          <ExerciseDemo />
         </div>
       </section>
 
