@@ -1,0 +1,237 @@
+/* Scoped styles for the 3D exercise visualizer (src/components/ExerciseDemo.tsx
+   + src/lib/exerciseVisualizer.ts). Everything here is prefixed `viz-` and
+   scoped under `.viz-root` so it can't collide with the site's Tailwind
+   utility classes or the shared `.card`/`.badge`/`.btn-*` components.
+   `.viz-root` is a fixed-height, `position: relative` box the panels below
+   are positioned within — unlike the original standalone-page prototype
+   this was ported from, nothing here is `position: fixed` to the viewport. */
+
+.viz-root {
+  position: relative;
+  overflow: hidden;
+  background: #0b0e11;
+  color: #e7ecf1;
+  font-family: 'Inter', sans-serif;
+  isolation: isolate;
+}
+
+.viz-canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+}
+
+.viz-topbar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 5;
+  padding: 18px 18px 12px;
+  background: linear-gradient(180deg, rgba(11, 14, 17, 0.95) 10%, rgba(11, 14, 17, 0) 100%);
+  pointer-events: none;
+}
+.viz-topbar > * {
+  pointer-events: auto;
+}
+.viz-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Space Grotesk', 'Poppins', sans-serif;
+  font-weight: 600;
+  font-size: 12.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #9aa5b1;
+  margin-bottom: 12px;
+}
+.viz-brand .viz-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 10px rgba(34, 197, 94, 0.35);
+}
+.viz-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  max-width: 100%;
+}
+.viz-pill {
+  font-family: 'Space Grotesk', 'Poppins', sans-serif;
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 7px 13px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: #1a2028;
+  color: #8b96a3;
+  cursor: pointer;
+  transition: transform 0.15s ease, color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+  white-space: nowrap;
+  user-select: none;
+}
+.viz-pill:hover {
+  color: #e7ecf1;
+  border-color: rgba(255, 255, 255, 0.18);
+}
+.viz-pill.viz-active {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  color: #08130c;
+  border-color: transparent;
+  box-shadow: 0 0 20px rgba(34, 197, 94, 0.35);
+  transform: translateY(-1px);
+}
+
+.viz-info-card {
+  position: absolute;
+  left: 18px;
+  bottom: 18px;
+  width: 300px;
+  max-width: calc(100% - 36px);
+  background: rgba(18, 22, 28, 0.86);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 16px;
+  padding: 16px 18px;
+  z-index: 5;
+}
+.viz-info-card h3 {
+  margin: 0 0 5px;
+  font-family: 'Space Grotesk', 'Poppins', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+}
+.viz-info-card p {
+  margin: 0 0 10px;
+  color: #9aa5b1;
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+.viz-muscle-tags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.viz-muscle-tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #22c55e;
+  background: rgba(34, 197, 94, 0.12);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+.viz-controls-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.viz-btn-icon {
+  width: 34px;
+  height: 34px;
+  flex: none;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: #1a2028;
+  color: #e7ecf1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.viz-btn-icon:hover {
+  border-color: #22c55e;
+}
+.viz-speed-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.viz-speed-wrap span {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: #9aa5b1;
+}
+.viz-speed-wrap input[type='range'] {
+  flex: 1;
+  accent-color: #22c55e;
+}
+
+.viz-stat-card {
+  position: absolute;
+  right: 18px;
+  bottom: 18px;
+  z-index: 5;
+  background: rgba(18, 22, 28, 0.86);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 16px;
+  padding: 12px 20px;
+  text-align: center;
+  min-width: 100px;
+}
+.viz-stat-card .viz-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 28px;
+  font-weight: 700;
+  color: #22c55e;
+  line-height: 1;
+}
+.viz-stat-card .viz-lbl {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: #9aa5b1;
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+
+.viz-cam-presets {
+  position: absolute;
+  right: 18px;
+  top: 18px;
+  display: flex;
+  gap: 6px;
+  z-index: 5;
+}
+.viz-cam-btn {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: #1a2028;
+  color: #9aa5b1;
+  cursor: pointer;
+}
+.viz-cam-btn:hover,
+.viz-cam-btn.viz-active {
+  color: #e7ecf1;
+  border-color: #22c55e;
+}
+
+@media (max-width: 640px) {
+  .viz-info-card {
+    width: calc(100% - 36px);
+  }
+  .viz-stat-card {
+    left: 18px;
+    right: 18px;
+    bottom: calc(18px + 150px);
+    width: calc(100% - 36px);
+    min-width: 0;
+  }
+  .viz-cam-presets {
+    display: none;
+  }
+}

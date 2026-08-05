@@ -3,7 +3,6 @@ import { createRoot } from 'react-dom/client';
 import { ClerkProvider } from '@clerk/clerk-react';
 import App from './App.tsx';
 import './index.css';
-import './styles/character.css';
 
 // Clerk's publishable key, unlike VITE_NEON_CONTACT_URL / VITE_GROQ_API_KEY
 // elsewhere in this app, is *meant* to ship to the browser — see CLAUDE.md's

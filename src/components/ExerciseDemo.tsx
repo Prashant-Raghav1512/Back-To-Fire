@@ -1,54 +1,148 @@
-import { useState } from 'react';
-import { Sparkles } from 'lucide-react';
-import { CalisthenicsCharacter } from '@/components/CalisthenicsCharacter';
-import { DifficultyBadge } from '@/components/DifficultyBadge';
-import { exercises } from '@/data/content';
+import { useEffect, useRef, useState } from 'react';
+import { Sparkles, Play, Pause } from 'lucide-react';
+import {
+  createExerciseVisualizer,
+  EXERCISE_LIST,
+  type CameraPreset,
+  type VisualizerHandle,
+  type VisualizerState,
+} from '@/lib/exerciseVisualizer';
+import '@/styles/visualizer.css';
+
+const CAMERAS: { id: CameraPreset; label: string }[] = [
+  { id: 'angle', label: '3/4' },
+  { id: 'front', label: 'Front' },
+  { id: 'side', label: 'Side' },
+];
 
 export function ExerciseDemo() {
-  const [selectedId, setSelectedId] = useState(exercises[0].id);
-  const selected = exercises.find((e) => e.id === selectedId) ?? exercises[0];
+  const containerRef = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const handleRef = useRef<VisualizerHandle | null>(null);
+
+  const [state, setState] = useState<VisualizerState>({ exerciseId: 'push-ups', reps: 0, isHold: false });
+  const [playing, setPlaying] = useState(true);
+  const [speed, setSpeed] = useState(1);
+  const [camera, setCamera] = useState<CameraPreset>('angle');
+
+  // Mount the three.js scene once. A fresh <canvas> per mount (React key
+  // never changes here) plus full disposal in the cleanup keeps this safe
+  // under StrictMode's dev-only double-invoke.
+  useEffect(() => {
+    const container = containerRef.current;
+    const canvas = canvasRef.current;
+    if (!container || !canvas) return;
+
+    const { clientWidth, clientHeight } = container;
+    const handle = createExerciseVisualizer(canvas, clientWidth || 800, clientHeight || 520);
+    handleRef.current = handle;
+
+    const unsubscribe = handle.subscribe(setState);
+
+    const resizeObserver = new ResizeObserver((entries) => {
+      const entry = entries[0];
+      if (!entry) return;
+      const { width, height } = entry.contentRect;
+      handle.resize(width, height);
+    });
+    resizeObserver.observe(container);
+
+    return () => {
+      unsubscribe();
+      resizeObserver.disconnect();
+      handle.dispose();
+      handleRef.current = null;
+    };
+  }, []);
+
+  useEffect(() => {
+    handleRef.current?.setPlaying(playing);
+  }, [playing]);
+
+  useEffect(() => {
+    handleRef.current?.setSpeed(speed);
+  }, [speed]);
+
+  useEffect(() => {
+    handleRef.current?.setCamera(camera);
+  }, [camera]);
+
+  const activeExercise = EXERCISE_LIST.find((e) => e.id === state.exerciseId) ?? EXERCISE_LIST[0];
 
   return (
     <div className="card overflow-hidden">
-      <div className="grid gap-0 lg:grid-cols-5">
-        <div className="relative flex items-center justify-center bg-gradient-to-br from-gray-900 to-green-950 p-8 sm:p-10 lg:col-span-2">
-          <span className="absolute left-5 top-5 inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-green-300 ring-1 ring-white/15">
-            <Sparkles className="h-3 w-3" /> Interactive demo
-          </span>
-          <div className="h-56 w-56 sm:h-64 sm:w-64">
-            <CalisthenicsCharacter key={selected.id} exerciseId={selected.id} />
-          </div>
-        </div>
+      <div
+        ref={containerRef}
+        className="viz-root h-[480px] sm:h-[560px] lg:h-[640px]"
+      >
+        <canvas ref={canvasRef} className="viz-canvas" />
 
-        <div className="p-6 sm:p-8 lg:col-span-3">
-          <div className="flex items-center gap-2">
-            <DifficultyBadge level={selected.difficulty} />
+        <div className="viz-topbar">
+          <div className="viz-brand">
+            <span className="viz-dot" />
+            <Sparkles className="h-3.5 w-3.5" /> Interactive 3D demo
           </div>
-          <h3 className="mt-3 font-display text-2xl font-bold text-gray-900 dark:text-white">
-            {selected.name}
-          </h3>
-          <p className="mt-2 text-sm leading-relaxed text-gray-600 dark:text-gray-400">
-            {selected.description}
-          </p>
-
-          <p className="mt-5 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
-            Choose an exercise
-          </p>
-          <div className="mt-3 flex max-h-48 flex-wrap gap-2 overflow-y-auto pr-1">
-            {exercises.map((ex) => (
+          <div className="viz-pills">
+            {EXERCISE_LIST.map((ex) => (
               <button
                 key={ex.id}
-                onClick={() => setSelectedId(ex.id)}
-                className={`rounded-full px-4 py-2 text-sm font-medium transition-all duration-200 ${
-                  ex.id === selectedId
-                    ? 'bg-green-500 text-white shadow-md shadow-green-500/30'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
-                }`}
+                className={`viz-pill ${ex.id === state.exerciseId ? 'viz-active' : ''}`}
+                onClick={() => handleRef.current?.selectExercise(ex.id)}
               >
-                {ex.name}
+                {ex.label}
               </button>
             ))}
           </div>
+        </div>
+
+        <div className="viz-cam-presets">
+          {CAMERAS.map((c) => (
+            <button
+              key={c.id}
+              className={`viz-cam-btn ${camera === c.id ? 'viz-active' : ''}`}
+              onClick={() => setCamera(c.id)}
+            >
+              {c.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="viz-info-card">
+          <h3>{activeExercise.label}</h3>
+          <p>{activeExercise.description}</p>
+          <div className="viz-muscle-tags">
+            {activeExercise.muscles.map((m) => (
+              <span key={m} className="viz-muscle-tag">
+                {m}
+              </span>
+            ))}
+          </div>
+          <div className="viz-controls-row">
+            <button
+              className="viz-btn-icon"
+              onClick={() => setPlaying((p) => !p)}
+              aria-label={playing ? 'Pause' : 'Play'}
+            >
+              {playing ? <Pause className="h-3.5 w-3.5" /> : <Play className="h-3.5 w-3.5" />}
+            </button>
+            <div className="viz-speed-wrap">
+              <span>SPEED</span>
+              <input
+                type="range"
+                min={0.3}
+                max={2}
+                step={0.1}
+                value={speed}
+                onChange={(e) => setSpeed(parseFloat(e.target.value))}
+              />
+              <span>{speed.toFixed(1)}&times;</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="viz-stat-card">
+          <div className="viz-num">{state.reps}</div>
+          <div className="viz-lbl">{state.isHold ? 'Seconds Held' : 'Reps'}</div>
         </div>
       </div>
     </div>
