@@ -13,6 +13,14 @@ interface ImportMetaEnv {
    * Also intentionally public — see src/lib/groqChat.ts.
    */
   readonly VITE_GROQ_API_KEY?: string;
+
+  /**
+   * Clerk publishable key. Unlike the other VITE_ vars above, this one is
+   * *meant* to be public by Clerk's own design (it only identifies which
+   * Clerk app to talk to; it grants no privileges on its own) — see
+   * src/main.tsx.
+   */
+  readonly VITE_CLERK_PUBLISHABLE_KEY?: string;
 }
 
 interface ImportMeta {

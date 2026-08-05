@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Menu, X, Moon, Sun } from 'lucide-react';
+import { Menu, X, Moon, Sun, ClipboardList } from 'lucide-react';
+import { SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/clerk-react';
 import { Logo } from './Logo';
 import { navLinks } from '@/data/content';
 import { useRouter } from '@/lib/router';
@@ -77,6 +78,24 @@ export function Navbar() {
           >
             Start Training
           </button>
+          <SignedOut>
+            <SignInButton mode="modal">
+              <button className="hidden rounded-full px-4 py-2 text-sm font-medium text-gray-600 transition-colors hover:text-gray-900 dark:text-gray-300 dark:hover:text-white sm:inline-flex">
+                Sign In
+              </button>
+            </SignInButton>
+          </SignedOut>
+          <SignedIn>
+            <UserButton afterSignOutUrl={window.location.pathname}>
+              <UserButton.MenuItems>
+                <UserButton.Action
+                  label="My Enrollments"
+                  labelIcon={<ClipboardList className="h-4 w-4" />}
+                  onClick={() => navigate('/profile')}
+                />
+              </UserButton.MenuItems>
+            </UserButton>
+          </SignedIn>
           <button
             onClick={() => setOpen((o) => !o)}
             aria-label="Toggle menu"
@@ -113,6 +132,16 @@ export function Navbar() {
           <button onClick={() => go('/programs')} className="btn-primary mt-3 w-full">
             Start Training
           </button>
+          <SignedOut>
+            <SignInButton mode="modal">
+              <button
+                onClick={() => setOpen(false)}
+                className="mt-2 w-full rounded-2xl px-4 py-3 text-center text-base font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-700/50"
+              >
+                Sign In
+              </button>
+            </SignInButton>
+          </SignedOut>
         </div>
       </div>
     </header>

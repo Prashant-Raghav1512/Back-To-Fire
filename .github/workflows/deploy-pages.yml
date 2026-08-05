@@ -42,6 +42,9 @@ jobs:
           # Deliberately baked into the public JS bundle — see
           # src/lib/groqChat.ts for why.
           VITE_GROQ_API_KEY: ${{ secrets.VITE_GROQ_API_KEY }}
+          # Clerk publishable key powering sign-in/sign-up. Public by
+          # design — see src/main.tsx.
+          VITE_CLERK_PUBLISHABLE_KEY: ${{ secrets.VITE_CLERK_PUBLISHABLE_KEY }}
           VITE_BASE_PATH: /${{ github.event.repository.name }}/
         run: npm run build
 

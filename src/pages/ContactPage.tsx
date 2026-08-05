@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Mail, Phone, MapPin, Send, Instagram, Youtube, Facebook, Twitter, Check, Calculator, AlertCircle } from 'lucide-react';
+import { Mail, Phone, MapPin, Send, Instagram, Youtube, Facebook, Twitter, Check, Calculator, AlertCircle, Lock } from 'lucide-react';
+import { useUser, useClerk } from '@clerk/clerk-react';
 import { useReveal } from '@/lib/useReveal';
 import { submitContact } from '@/lib/contact';
 import { ChatBot } from '@/components/ChatBot';
@@ -18,6 +19,8 @@ interface FormErrors {
 
 export function ContactPage() {
   const ref = useReveal<HTMLDivElement>();
+  const { isSignedIn } = useUser();
+  const { openSignIn } = useClerk();
   const [form, setForm] = useState<FormState>({ name: '', email: '', message: '' });
   const [errors, setErrors] = useState<FormErrors>({});
   const [sent, setSent] = useState(false);
@@ -41,6 +44,10 @@ export function ContactPage() {
 
   const handleSubmit = async (ev: React.FormEvent) => {
     ev.preventDefault();
+    if (!isSignedIn) {
+      openSignIn();
+      return;
+    }
     if (!validate()) return;
 
     setSending(true);
@@ -166,6 +173,17 @@ export function ContactPage() {
                   </div>
                 )}
 
+                {!isSignedIn && !sent && (
+                  <div className="mt-5 flex items-center gap-3 rounded-2xl bg-gray-100 p-4 text-gray-700 dark:bg-gray-700/50 dark:text-gray-300">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gray-300 text-gray-700 dark:bg-gray-600 dark:text-gray-200">
+                      <Lock className="h-4 w-4" />
+                    </span>
+                    <p className="text-sm font-medium">
+                      Sign in to send a message — it only takes a moment.
+                    </p>
+                  </div>
+                )}
+
                 {submitError && (
                   <div className="mt-5 flex items-center gap-3 rounded-2xl bg-red-50 p-4 text-red-700 dark:bg-red-500/10 dark:text-red-300">
                     <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-red-500 text-white">
@@ -228,7 +246,13 @@ export function ContactPage() {
                     {errors.message && <p className="mt-1 text-xs text-red-500">{errors.message}</p>}
                   </div>
                   <button type="submit" disabled={sending} className="btn-primary w-full disabled:cursor-not-allowed disabled:opacity-60">
-                    {sending ? 'Sending...' : 'Send message'} <Send className="h-4 w-4" />
+                    {!isSignedIn ? (
+                      <>Sign in to send <Lock className="h-4 w-4" /></>
+                    ) : sending ? (
+                      'Sending...'
+                    ) : (
+                      <>Send message <Send className="h-4 w-4" /></>
+                    )}
                   </button>
                 </form>
               </div>
