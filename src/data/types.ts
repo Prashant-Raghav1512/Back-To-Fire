@@ -58,3 +58,43 @@ export interface FitnessEvent {
   /** A short outcome summary, shown once the event has ended. */
   recap?: string;
 }
+
+export type AgeGroupId = 'youth' | 'adults' | 'seniors';
+
+export interface AgeGroupInfo {
+  id: AgeGroupId;
+  label: string;
+  ageRange: string;
+  description: string;
+}
+
+export type PlanTier = 'Basic' | 'Standard' | 'Premium';
+
+// A paid coaching membership — distinct from the free `Program` tiers above.
+// Every tier includes calisthenics lessons, gym branch access, and a diet
+// plan; only `tier === 'Premium'` additionally includes a personal trainer
+// (see PaidPlansSection.hasPersonalTrainer usage) — that split is a
+// deliberate product decision, not an oversight, so don't add a trainer to
+// Basic/Standard without checking with product intent first.
+export interface PaidPlan {
+  id: string;
+  ageGroup: AgeGroupId;
+  tier: PlanTier;
+  title: string;
+  /** Monthly price in INR. */
+  price: number;
+  description: string;
+  features: string[];
+  hasPersonalTrainer: boolean;
+}
+
+export interface GymBranch {
+  id: string;
+  name: string;
+  locality: string;
+  address: string;
+  phone: string;
+  hours: string;
+  lat: number;
+  lng: number;
+}

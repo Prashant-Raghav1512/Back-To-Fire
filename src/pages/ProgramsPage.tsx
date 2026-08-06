@@ -2,6 +2,8 @@ import { Sprout, Flame, Zap, Check, ArrowRight, Clock, BarChart3 } from 'lucide-
 import { SectionHeading } from '@/components/SectionHeading';
 import { DifficultyBadge } from '@/components/DifficultyBadge';
 import { EnrollButton } from '@/components/EnrollButton';
+import { MembershipPlans } from '@/components/MembershipPlans';
+import { GymBranchLocator } from '@/components/GymBranchLocator';
 import { programs } from '@/data/content';
 import { useMyEnrollments } from '@/lib/enrollments';
 import { useReveal } from '@/lib/useReveal';
@@ -100,6 +102,16 @@ export function ProgramsPage() {
                 </div>
               );
             })}
+          </div>
+
+          {/* Paid membership plans */}
+          <div className="mt-20">
+            <MembershipPlans />
+          </div>
+
+          {/* Gym branch locator */}
+          <div className="mt-20">
+            <GymBranchLocator />
           </div>
 
           {/* How it works */}

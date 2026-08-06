@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { MessageCircle, Send } from 'lucide-react';
+import { Send } from 'lucide-react';
 import { generateChatResponse, type ChatTurn } from '@/lib/groqChat';
 
 interface ChatMessage {
@@ -18,13 +18,16 @@ const SUGGESTIONS = [
 
 const ERROR_PREFIX = "Sorry, I couldn't reach the chat service just now.";
 
+const GREETING =
+  'RAM RAM BHAI SAREYANE! 🙏 Main Ankit Baiyanpuria, tera calisthenics wala saathi. Ask me anything about Born to Fire — programs, exercises, events, or general questions.';
+
+// Body only — no card chrome or header of its own. Mounted inside the
+// floating window frame in src/components/ChatWidget.tsx, which owns the
+// bot's name/avatar/close button; this just fills whatever height it's
+// given (h-full flex flex-col).
 export function ChatBot() {
   const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      id: 'greeting',
-      role: 'bot',
-      text: 'Hi! Ask me anything about Born to Fire — programs, exercises, upcoming events, or general questions.',
-    },
+    { id: 'greeting', role: 'bot', text: GREETING },
   ]);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
@@ -66,22 +69,8 @@ export function ChatBot() {
   };
 
   return (
-    <div className="card p-6 sm:p-8">
-      <div className="flex items-center gap-3">
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-green-100 text-green-600 dark:bg-green-500/15 dark:text-green-400">
-          <MessageCircle className="h-5 w-5" />
-        </span>
-        <div>
-          <h3 className="font-display text-xl font-bold text-gray-900 dark:text-white">
-            Ask Born to Fire
-          </h3>
-          <p className="text-xs text-gray-500 dark:text-gray-400">
-            AI answers grounded in our knowledge base
-          </p>
-        </div>
-      </div>
-
-      <div ref={scrollRef} className="mt-5 max-h-80 space-y-3 overflow-y-auto pr-1">
+    <div className="flex h-full flex-col">
+      <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto p-4">
         {messages.map((m) => (
           <div key={m.id} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
             <div
@@ -111,7 +100,7 @@ export function ChatBot() {
       </div>
 
       {messages.length === 1 && (
-        <div className="mt-4 flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 px-4 pb-2">
           {SUGGESTIONS.map((s) => (
             <button
               key={s}
@@ -124,19 +113,19 @@ export function ChatBot() {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="mt-5 flex gap-2">
+      <form onSubmit={handleSubmit} className="flex gap-2 border-t border-gray-100 p-3 dark:border-gray-700">
         <input
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Ask a question..."
           disabled={sending}
-          className="flex-1 rounded-full border-0 bg-gray-100 px-4 py-3 text-sm text-gray-900 outline-none ring-1 ring-transparent transition focus:ring-green-500 disabled:opacity-60 dark:bg-gray-700 dark:text-white"
+          className="flex-1 rounded-full border-0 bg-gray-100 px-4 py-2.5 text-sm text-gray-900 outline-none ring-1 ring-transparent transition focus:ring-green-500 disabled:opacity-60 dark:bg-gray-700 dark:text-white"
         />
         <button
           type="submit"
           disabled={!input.trim() || sending}
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-green-500 text-white transition-all duration-300 hover:bg-green-600 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-green-500 text-white transition-all duration-300 hover:bg-green-600 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
           aria-label="Send"
         >
           <Send className="h-4 w-4" />

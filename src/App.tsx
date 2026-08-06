@@ -1,5 +1,6 @@
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
+import { ChatWidget } from '@/components/ChatWidget';
 import { RouterProvider, useRouter } from '@/lib/router';
 import { HomePage } from '@/pages/HomePage';
 import { AboutPage } from '@/pages/AboutPage';
@@ -38,6 +39,7 @@ function Routes() {
       <Navbar />
       <main className="flex-1">{page}</main>
       <Footer />
+      <ChatWidget />
     </div>
   );
 }
