@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
+import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 
 // A from-scratch 3D IK rig + exercise-pose library rendered with three.js.
 // Framework-agnostic on purpose — createExerciseVisualizer() takes a plain
@@ -88,6 +89,15 @@ function armIK(target: Target, rootY: number, rootZ: number, rotX: number, torso
   return { x: t1, elX: t2 };
 }
 
+// Ankle angle that keeps the sole flat against the ground plane no matter
+// how the body is rotated (rotX) or how much the hip/knee are bent — since
+// every joint in this rig turns on the same local X axis, their rotations
+// simply sum, so cancelling that sum out holds the foot's world orientation
+// fixed at "flat" (its orientation when every angle is 0, i.e. standing).
+function flatAnkle(rotX: number, hipX: number, kneeX: number): number {
+  return clamp(-rotX - hipX - kneeX, -1.9, 1.3);
+}
+
 /* Fixed world-space contact points (ground / bar), reused across exercises */
 const ANCHOR = {
   standFoot: { y: 0.03, z: 0.05 },
@@ -97,8 +107,12 @@ const ANCHOR = {
   pikeFoot: { y: 0.05, z: 0.62 },
   barHand: { y: 2.15, z: 0.03 },
   dipHand: { y: 0.94, z: 0.0 },
-  lowbarHand: { y: 0.95, z: 0.18 },
+  // Hands actually grip the low bar here — the previous z:0.18 placed them
+  // off the bar's real position.
+  lowbarHand: { y: 0.95, z: 0.0 },
   bridgeFoot: { y: 0.05, z: -0.34 },
+  // Rear foot resting on the Bulgarian split squat bench.
+  benchFoot: { y: 0.28, z: 0.42 },
 };
 const HANG_BASE_Y = STAND_H + 0.3;
 
@@ -118,8 +132,10 @@ interface Pose {
   rElbow: JointAngle;
   lHip: JointAngle;
   lKnee: JointAngle;
+  lAnkle: JointAngle;
   rHip: JointAngle;
   rKnee: JointAngle;
+  rAnkle: JointAngle;
   rootY: number;
   rootZ: number;
 }
@@ -134,8 +150,10 @@ function basePose(): Pose {
     rElbow: { x: 0.05 },
     lHip: { x: 0, z: 0 },
     lKnee: { x: 0 },
+    lAnkle: { x: -0.2 },
     rHip: { x: 0, z: 0 },
     rKnee: { x: 0 },
+    rAnkle: { x: -0.2 },
     rootY: 0,
     rootZ: 0,
   };
@@ -144,12 +162,17 @@ function S(phase: number) {
   return Math.sin(phase * Math.PI);
 }
 
+// apply IK results (same target -> same angles for symmetric L/R) to a pose,
+// keeping both planted feet flat against whatever surface they're on
 function applyLegsSym(p: Pose, target: Target, rootY: number, rootZ: number, rotX: number, bend = 1) {
   const r = legIK(target, rootY, rootZ, rotX, bend);
   p.lHip.x = r.x;
   p.lKnee.x = r.kneeX;
   p.rHip.x = r.x;
   p.rKnee.x = r.kneeX;
+  const a = flatAnkle(rotX, r.x, r.kneeX);
+  p.lAnkle.x = a;
+  p.rAnkle.x = a;
 }
 function applyArmsSym(
   p: Pose,
@@ -236,6 +259,8 @@ const EXERCISES: Record<string, ExerciseDef> = {
       p.rHip.x = p.lHip.x;
       p.lKnee.x = 0.4 + 0.25 * s;
       p.rKnee.x = p.lKnee.x;
+      p.lAnkle.x = -0.3;
+      p.rAnkle.x = -0.3;
       p.rootY = rootY;
       p.rootZ = rootZ;
       return p;
@@ -286,16 +311,22 @@ const EXERCISES: Record<string, ExerciseDef> = {
       const back = { y: 0.03, z: 0.26 };
       const frontR = legIK(front, rootY, rootZ, 0, 1);
       const backR = legIK(back, rootY, rootZ, 0, -1);
+      const frontA = flatAnkle(0, frontR.x, frontR.kneeX);
+      const backA = flatAnkle(0, backR.x, backR.kneeX);
       if (half) {
         p.lHip.x = frontR.x;
         p.lKnee.x = frontR.kneeX;
+        p.lAnkle.x = frontA;
         p.rHip.x = backR.x;
         p.rKnee.x = backR.kneeX;
+        p.rAnkle.x = backA;
       } else {
         p.rHip.x = frontR.x;
         p.rKnee.x = frontR.kneeX;
+        p.rAnkle.x = frontA;
         p.lHip.x = backR.x;
         p.lKnee.x = backR.kneeX;
+        p.lAnkle.x = backA;
       }
       p.torso.x = -0.15 * s;
       p.lShoulder.x = 0.2 * s;
@@ -350,6 +381,8 @@ const EXERCISES: Record<string, ExerciseDef> = {
       p.rHip.x = -0.35;
       p.lKnee.x = 1.3;
       p.rKnee.x = 1.3;
+      p.lAnkle.x = -0.25;
+      p.rAnkle.x = -0.25;
       p.rootY = rootY;
       p.rootZ = rootZ;
       return p;
@@ -396,6 +429,11 @@ const EXERCISES: Record<string, ExerciseDef> = {
       const rootZ = 0;
       applyArmsSym(p, ANCHOR.proneHand, rootY, rootZ, rotX, 0, 1);
       applyLegsSym(p, ANCHOR.proneFoot, rootY, rootZ, rotX, 1);
+      // draw the hands in toward the midline (the defining "diamond" hand
+      // shape) — a cosmetic adduction on top of the IK solve above, since
+      // the elbows tuck in close to the ribs rather than flaring.
+      p.lShoulder.z = 0.32;
+      p.rShoulder.z = -0.32;
       p.head.x = -0.1 * s;
       p.rootY = rootY;
       p.rootZ = rootZ;
@@ -442,6 +480,9 @@ const EXERCISES: Record<string, ExerciseDef> = {
         p.rShoulder.x = p.lShoulder.x;
         p.lElbow.x = -0.2;
         p.rElbow.x = -0.2;
+        const a = flatAnkle(rotX, p.lHip.x, p.lKnee.x);
+        p.lAnkle.x = a;
+        p.rAnkle.x = a;
       } else if (phase < 0.55) {
         const s = S((phase - 0.35) / 0.2);
         rotX = -Math.PI / 2;
@@ -459,6 +500,9 @@ const EXERCISES: Record<string, ExerciseDef> = {
         p.lKnee.x = lerp(0.0, 1.7, s);
         p.rKnee.x = p.lKnee.x;
         p.torso.x = lerp(0, -0.5, s);
+        const a = flatAnkle(rotX, p.lHip.x, p.lKnee.x);
+        p.lAnkle.x = a;
+        p.rAnkle.x = a;
       } else if (phase < 0.9) {
         const s = (phase - 0.75) / 0.15;
         rotX = 0;
@@ -470,6 +514,9 @@ const EXERCISES: Record<string, ExerciseDef> = {
         p.torso.x = lerp(-0.5, 0, s);
         p.lShoulder.x = lerp(0.6, -2.6, s);
         p.rShoulder.x = p.lShoulder.x;
+        const a = flatAnkle(0, p.lHip.x, p.lKnee.x);
+        p.lAnkle.x = a;
+        p.rAnkle.x = a;
       } else {
         const s = (phase - 0.9) / 0.1;
         rotX = 0;
@@ -499,16 +546,21 @@ const EXERCISES: Record<string, ExerciseDef> = {
       const sub = half ? phase * 2 : (phase - 0.5) * 2;
       const s = S(sub);
       const stillLeg = legIK(ANCHOR.proneFoot, rootY, rootZ, rotX, 1);
+      const stillAnkle = flatAnkle(rotX, stillLeg.x, stillLeg.kneeX);
       if (half) {
         p.lHip.x = -1.5 * s;
         p.lKnee.x = 1.7 * s;
+        p.lAnkle.x = -0.3;
         p.rHip.x = stillLeg.x;
         p.rKnee.x = stillLeg.kneeX;
+        p.rAnkle.x = stillAnkle;
       } else {
         p.rHip.x = -1.5 * s;
         p.rKnee.x = 1.7 * s;
+        p.rAnkle.x = -0.3;
         p.lHip.x = stillLeg.x;
         p.lKnee.x = stillLeg.kneeX;
+        p.lAnkle.x = stillAnkle;
       }
       p.rootY = rootY;
       p.rootZ = rootZ;
@@ -557,6 +609,8 @@ const EXERCISES: Record<string, ExerciseDef> = {
       p.torso.x = 0.35 + 0.05 * Math.sin(t);
       p.lHip.x = -0.4 - 0.05 * Math.sin(t);
       p.rHip.x = p.lHip.x;
+      p.lAnkle.x = -0.35;
+      p.rAnkle.x = -0.35;
       p.lShoulder.x = -2.6;
       p.lElbow.x = -0.1;
       p.rShoulder.x = -2.6;
@@ -585,8 +639,11 @@ const EXERCISES: Record<string, ExerciseDef> = {
       const r = legIK(front, rootY, rootZ, 0, 1);
       p.rHip.x = r.x;
       p.rKnee.x = r.kneeX;
-      p.lHip.x = -1.0;
-      p.lKnee.x = 1.5;
+      p.rAnkle.x = flatAnkle(0, r.x, r.kneeX);
+      const rear = legIK(ANCHOR.benchFoot, rootY, rootZ, 0, -1);
+      p.lHip.x = rear.x;
+      p.lKnee.x = rear.kneeX;
+      p.lAnkle.x = flatAnkle(0, rear.x, rear.kneeX);
       p.torso.x = -0.2 * s;
       p.lShoulder.x = 0.2 * s;
       p.rShoulder.x = 0.2 * s;
@@ -614,6 +671,8 @@ const EXERCISES: Record<string, ExerciseDef> = {
       p.rHip.x = 1.6 * s;
       p.lKnee.x = 0.3;
       p.rKnee.x = 0.3;
+      p.lAnkle.x = -0.35;
+      p.rAnkle.x = -0.35;
       p.torso.x = 0.12 * s;
       p.rootY = rootY;
       p.rootZ = rootZ;
@@ -640,8 +699,10 @@ const EXERCISES: Record<string, ExerciseDef> = {
       p.rHip.x = 0.05;
       p.lKnee.x = 0.05;
       p.rKnee.x = 0.05;
+      p.lAnkle.x = -0.4;
+      p.rAnkle.x = -0.4;
       p.rootY = 1.05 - 0.12 * s;
-      p.rootZ = 0;
+      p.rootZ = -0.56;
       return p;
     },
   },
@@ -649,53 +710,58 @@ const EXERCISES: Record<string, ExerciseDef> = {
   'muscle-ups': {
     id: 'muscle-ups',
     label: 'Muscle-ups',
-    repDuration: 2.6,
+    repDuration: 3.0,
     prop: 'highbar',
     muscles: ['back', 'arms', 'chest'],
-    description: 'Pull up explosively, transition over the bar, then press up into a dip.',
+    description: 'Pull up explosively, roll your shoulders over the bar, then press out to a straight-arm lockout.',
     custom: true,
     orient: () => 0,
     customFn(phase) {
       const p = basePose();
-      const rotX = 0;
       const baseY = HANG_BASE_Y;
-      let rootY: number;
-      if (phase < 0.4) {
-        const s = Math.sin((phase / 0.4) * (Math.PI / 2));
-        rootY = baseY + 0.3 * s;
-        applyArmsSym(p, ANCHOR.barHand, rootY, 0, 0, 0, 1);
-        p.lKnee.x = 0.3;
-        p.rKnee.x = 0.3;
-      } else if (phase < 0.6) {
-        const s = (phase - 0.4) / 0.2;
-        rootY = baseY + 0.3 + 0.05 * Math.sin(s * Math.PI);
-        p.torso.x = lerp(0, -0.5, s);
-        p.lShoulder.x = lerp(-2.9, 1.4, s);
-        p.rShoulder.x = p.lShoulder.x;
-        p.lElbow.x = lerp(-2.15, -1.8, s);
-        p.rElbow.x = p.lElbow.x;
-        p.lKnee.x = 0.3;
-        p.rKnee.x = 0.3;
-      } else if (phase < 0.85) {
-        const s = S((phase - 0.6) / 0.25);
-        rootY = baseY + 0.3 - 0.15 * s;
-        p.torso.x = -0.5;
-        p.lShoulder.x = 1.4;
-        p.rShoulder.x = 1.4;
-        p.lElbow.x = -1.8 + 1.6 * s;
-        p.rElbow.x = -1.8 + 1.6 * s;
-        p.lKnee.x = 0.3;
-        p.rKnee.x = 0.3;
-      } else {
-        const s = (phase - 0.85) / 0.15;
-        rootY = lerp(baseY + 0.3, baseY, s);
-        p.torso.x = lerp(-0.5, 0, s);
-        p.lShoulder.x = lerp(1.4, -2.9, s);
-        p.rShoulder.x = p.lShoulder.x;
-        p.lElbow.x = lerp(0.2, -0.05, s);
-        p.rElbow.x = p.lElbow.x;
+      // Keyframed like an actual muscle-up: pull -> hips drive up & forward
+      // to roll over the bar (the hard "transition") -> settle into a dip
+      // at the bottom -> press to a straight-arm support/lockout -> drop
+      // back to the hang. sh/el angles at the two hang/pull keys are the
+      // exact armIK solution for ANCHOR.barHand so the hands read as truly
+      // gripping the bar there; the transition/dip/lockout keys are FK,
+      // since rolling the wrist over the bar isn't something this
+      // single-axis rig's IK can solve for.
+      const KEYS: MuscleUpKey[] = [
+        { t: 0.0, y: baseY, z: 0, torso: 0, sh: -3.07, el: -0.04, hip: 0.05, knee: 0.3 },
+        { t: 0.3, y: baseY + 0.32, z: 0, torso: -0.05, sh: -1.93, el: -2.3, hip: 0.05, knee: 0.3 },
+        { t: 0.45, y: baseY + 0.4, z: -0.12, torso: -0.95, sh: -0.9, el: -2.25, hip: -0.15, knee: 0.2 },
+        { t: 0.58, y: baseY + 0.36, z: -0.14, torso: -0.65, sh: 0.3, el: -2.15, hip: -0.05, knee: 0.15 },
+        { t: 0.72, y: baseY + 0.3, z: -0.08, torso: -0.15, sh: 1.3, el: -1.9, hip: 0.0, knee: 0.15 },
+        { t: 0.9, y: baseY + 0.46, z: -0.02, torso: -0.02, sh: 0.85, el: -0.1, hip: 0.0, knee: 0.1 },
+        { t: 1.0, y: baseY, z: 0, torso: 0, sh: -3.07, el: -0.04, hip: 0.05, knee: 0.3 },
+      ];
+      let a = KEYS[0];
+      let b = KEYS[1];
+      let e = 0;
+      for (let i = 0; i < KEYS.length - 1; i++) {
+        if (phase <= KEYS[i + 1].t) {
+          a = KEYS[i];
+          b = KEYS[i + 1];
+          const span = b.t - a.t;
+          const local = span > 0 ? clamp((phase - a.t) / span, 0, 1) : 0;
+          e = local * local * (3 - 2 * local); // smoothstep, so each phase eases in/out
+          break;
+        }
       }
-      return { rotX, y: rootY, z: 0, pose: p };
+      const mix = (k: Exclude<keyof MuscleUpKey, 't'>) => lerp(a[k], b[k], e);
+      p.torso.x = mix('torso');
+      p.lShoulder.x = mix('sh');
+      p.rShoulder.x = p.lShoulder.x;
+      p.lElbow.x = mix('el');
+      p.rElbow.x = p.lElbow.x;
+      p.lHip.x = mix('hip');
+      p.rHip.x = p.lHip.x;
+      p.lKnee.x = mix('knee');
+      p.rKnee.x = p.lKnee.x;
+      p.lAnkle.x = -0.25;
+      p.rAnkle.x = -0.25;
+      return { rotX: 0, y: mix('y'), z: mix('z'), pose: p };
     },
   },
 
@@ -715,8 +781,10 @@ const EXERCISES: Record<string, ExerciseDef> = {
       const stand = legIK(ANCHOR.standFoot, rootY, rootZ, 0, 1);
       p.lHip.x = stand.x;
       p.lKnee.x = stand.kneeX;
+      p.lAnkle.x = flatAnkle(0, stand.x, stand.kneeX);
       p.rHip.x = 1.3 * s;
       p.rKnee.x = 0.15 * s;
+      p.rAnkle.x = -0.3 * s;
       p.torso.x = -0.3 * s;
       p.lShoulder.x = 0.9 * s;
       p.rShoulder.x = 0.9 * s;
@@ -745,12 +813,26 @@ const EXERCISES: Record<string, ExerciseDef> = {
       applyArmsSym(p, ANCHOR.lowbarHand, rootY, rootZ, rotX, 0, -1);
       p.lHip.x = 0.02;
       p.rHip.x = 0.02;
+      const a = flatAnkle(rotX, 0.02, 0);
+      p.lAnkle.x = a;
+      p.rAnkle.x = a;
       p.rootY = rootY;
       p.rootZ = rootZ;
       return p;
     },
   },
 };
+
+interface MuscleUpKey {
+  t: number;
+  y: number;
+  z: number;
+  torso: number;
+  sh: number;
+  el: number;
+  hip: number;
+  knee: number;
+}
 
 export const EXERCISE_ORDER = [
   'push-ups',
@@ -794,6 +876,8 @@ function lerpPose(cur: Pose, tgt: Pose, d: number) {
   cur.rHip.z = lerp(cur.rHip.z ?? 0, tgt.rHip.z ?? 0, d);
   cur.lKnee.x = lerp(cur.lKnee.x, tgt.lKnee.x, d);
   cur.rKnee.x = lerp(cur.rKnee.x, tgt.rKnee.x, d);
+  cur.lAnkle.x = lerp(cur.lAnkle.x, tgt.lAnkle.x, d);
+  cur.rAnkle.x = lerp(cur.rAnkle.x, tgt.rAnkle.x, d);
 }
 
 export type CameraPreset = 'angle' | 'front' | 'side';
@@ -915,15 +999,39 @@ export function createExerciseVisualizer(canvas: HTMLCanvasElement, width: numbe
   contactShadow.position.y = 0.004;
   scene.add(contactShadow);
 
-  /* Character rig */
-  const matTorso = new THREE.MeshPhysicalMaterial({ color: 0x2a323c, roughness: 0.5, metalness: 0.1, clearcoat: 0.15, clearcoatRoughness: 0.6 });
-  const matHips = new THREE.MeshPhysicalMaterial({ color: 0x232b33, roughness: 0.5, metalness: 0.1, clearcoat: 0.15, clearcoatRoughness: 0.6 });
-  const matUpperArm = new THREE.MeshStandardMaterial({ color: 0x5b6b7a, roughness: 0.45, metalness: 0.12 });
-  const matForearm = new THREE.MeshStandardMaterial({ color: 0x4a5866, roughness: 0.45, metalness: 0.12 });
-  const matThigh = new THREE.MeshStandardMaterial({ color: 0x5b6b7a, roughness: 0.45, metalness: 0.12 });
-  const matShin = new THREE.MeshStandardMaterial({ color: 0x4a5866, roughness: 0.45, metalness: 0.12 });
-  const matHead = new THREE.MeshPhysicalMaterial({ color: 0xe0b48c, roughness: 0.45, clearcoat: 0.25, clearcoatRoughness: 0.4 });
-  const matShoe = new THREE.MeshStandardMaterial({ color: 0x14181d, roughness: 0.55, metalness: 0.2 });
+  /* =======================================================================
+     CHARACTER RIG (pure single-axis hinge joints — this is what makes the
+     IK above exact: every joint bends on one axis only, and lateral stance
+     width comes from fixed joint offsets rather than an animated abduction
+     rotation, so there's no coupling between the two.)
+     ======================================================================= */
+  const SKIN = 0xe3b58f;
+  const matTorso = new THREE.MeshPhysicalMaterial({ color: 0x232a33, roughness: 0.45, metalness: 0.1, clearcoat: 0.25, clearcoatRoughness: 0.5 });
+  const matHips = new THREE.MeshPhysicalMaterial({ color: 0x1f262d, roughness: 0.45, metalness: 0.1, clearcoat: 0.25, clearcoatRoughness: 0.5 });
+  const matTrim = new THREE.MeshStandardMaterial({ color: 0x22c55e, roughness: 0.4, metalness: 0.25, emissive: 0x0c3a1f, emissiveIntensity: 0.4 });
+  const skinMat = () =>
+    new THREE.MeshPhysicalMaterial({
+      color: SKIN,
+      roughness: 0.4,
+      clearcoat: 0.35,
+      clearcoatRoughness: 0.35,
+      sheen: 1,
+      sheenColor: new THREE.Color(0xe8996b),
+      sheenRoughness: 0.6,
+    });
+  const matUpperArmL = skinMat();
+  const matUpperArmR = skinMat();
+  const matForearmL = skinMat();
+  const matForearmR = skinMat();
+  const matThighL = skinMat();
+  const matThighR = skinMat();
+  const matShinL = skinMat();
+  const matShinR = skinMat();
+  const matHead = new THREE.MeshPhysicalMaterial({ color: SKIN, roughness: 0.38, clearcoat: 0.4, clearcoatRoughness: 0.3, sheen: 1, sheenColor: new THREE.Color(0xe8996b), sheenRoughness: 0.5 });
+  const matHair = new THREE.MeshStandardMaterial({ color: 0x2b211c, roughness: 0.55, metalness: 0.05 });
+  const matEye = new THREE.MeshStandardMaterial({ color: 0x14181d, roughness: 0.3, metalness: 0.1 });
+  const matShoe = new THREE.MeshStandardMaterial({ color: 0x14181d, roughness: 0.5, metalness: 0.2 });
+  const matSole = new THREE.MeshStandardMaterial({ color: 0xe7ecf1, roughness: 0.7, metalness: 0.05 });
 
   function addBone(parent: THREE.Object3D, length: number, radius: number, mat: THREE.Material, tags: string[], dir: number) {
     const h = Math.max(length - 2 * radius, 0.02);
@@ -944,37 +1052,84 @@ export function createExerciseVisualizer(canvas: HTMLCanvasElement, width: numbe
 
   const hips = new THREE.Group();
   character.add(hips);
-  const hipsMesh = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.16, 0.19), matHips);
+  const hipsMesh = new THREE.Mesh(new RoundedBoxGeometry(0.28, 0.17, 0.19, 3, 0.045), matHips);
   hipsMesh.userData.tags = ['core', 'glutes'];
   hipsMesh.castShadow = hipsMesh.receiveShadow = true;
   hips.add(hipsMesh);
+  // waistband trim — a thin accent band so the "shorts" read as apparel, not a block
+  const waistband = new THREE.Mesh(new RoundedBoxGeometry(0.285, 0.03, 0.195, 3, 0.014), matTrim);
+  waistband.position.set(0, 0.075, 0);
+  hips.add(waistband);
 
   const torsoPivot = new THREE.Group();
   hips.add(torsoPivot);
-  const torsoMesh = new THREE.Mesh(new THREE.BoxGeometry(0.3, L.torsoLen, 0.17), matTorso);
-  torsoMesh.position.set(0, L.torsoLen / 2, 0);
+  // torso tapers slightly (broader chest/shoulders, narrower waist) via two
+  // stacked rounded segments rather than one flat box
+  const torsoMesh = new THREE.Mesh(new RoundedBoxGeometry(0.3, L.torsoLen * 0.62, 0.19, 3, 0.05), matTorso);
+  torsoMesh.position.set(0, L.torsoLen * 0.31, 0);
   torsoMesh.castShadow = torsoMesh.receiveShadow = true;
   torsoMesh.userData.tags = ['chest', 'back', 'core'];
   torsoPivot.add(torsoMesh);
+  const chestMesh = new THREE.Mesh(new RoundedBoxGeometry(0.335, L.torsoLen * 0.42, 0.205, 3, 0.055), matTorso);
+  chestMesh.position.set(0, L.torsoLen * 0.72, 0);
+  chestMesh.castShadow = chestMesh.receiveShadow = true;
+  chestMesh.userData.tags = ['chest', 'back', 'core'];
+  torsoPivot.add(chestMesh);
+  const collarTrim = new THREE.Mesh(new THREE.TorusGeometry(0.115, 0.011, 8, 20, Math.PI * 1.5), matTrim);
+  collarTrim.position.set(0, L.torsoLen * 0.97, 0.03);
+  collarTrim.rotation.set(Math.PI / 2, 0, Math.PI * 0.25);
+  torsoPivot.add(collarTrim);
   const torsoEnd = new THREE.Group();
   torsoEnd.position.set(0, L.torsoLen, 0);
   torsoPivot.add(torsoEnd);
 
+  // short neck cylinder so the head doesn't look like it's floating on the shoulders
+  const neckMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.052, 0.062, 0.09, 14), matHead);
+  neckMesh.position.set(0, 0.045, 0);
+  neckMesh.castShadow = true;
+  torsoEnd.add(neckMesh);
+
   const headJoint = new THREE.Group();
+  headJoint.position.set(0, 0.09, 0);
   torsoEnd.add(headJoint);
-  const headMesh = new THREE.Mesh(new THREE.SphereGeometry(L.headR, 20, 16), matHead);
-  headMesh.position.set(0, L.headR + 0.045, 0);
+  const headMesh = new THREE.Mesh(new THREE.SphereGeometry(L.headR, 24, 18), matHead);
+  headMesh.position.set(0, L.headR, 0);
+  headMesh.scale.set(0.92, 1, 0.96);
   headMesh.castShadow = true;
   headJoint.add(headMesh);
 
+  // hair — a flattened, off-center sphere cap sitting on the crown/back of the head
+  const hairMesh = new THREE.Mesh(new THREE.SphereGeometry(L.headR * 1.05, 18, 14, 0, Math.PI * 2, 0, Math.PI * 0.62), matHair);
+  hairMesh.position.set(0, L.headR + 0.012, -0.006);
+  hairMesh.castShadow = true;
+  headJoint.add(hairMesh);
+
+  // simple friendly eyes + brows so the figure reads as a person, not a mannequin
+  ([-1, 1] as const).forEach((sign) => {
+    const eye = new THREE.Mesh(new THREE.SphereGeometry(0.013, 10, 8), matEye);
+    eye.position.set(sign * 0.05, L.headR + 0.01, -L.headR * 0.9);
+    headJoint.add(eye);
+    const brow = new THREE.Mesh(new RoundedBoxGeometry(0.045, 0.011, 0.012, 1, 0.005), matHair);
+    brow.position.set(sign * 0.05, L.headR + 0.045, -L.headR * 0.88);
+    brow.rotation.z = -sign * 0.12;
+    headJoint.add(brow);
+  });
+
   function makeArm(sign: number) {
+    const matUp = sign > 0 ? matUpperArmL : matUpperArmR;
+    const matFo = sign > 0 ? matForearmL : matForearmR;
     const shoulder = new THREE.Group();
     shoulder.position.set(sign * L.shW, -0.04, 0);
     torsoEnd.add(shoulder);
-    const upperArm = addBone(shoulder, L.upArm, 0.058, matUpperArm, ['arms', 'shoulders'], -1);
-    const forearm = addBone(upperArm.end, L.foArm, 0.05, matForearm, ['arms'], -1);
-    const hand = new THREE.Mesh(new THREE.SphereGeometry(0.052, 12, 10), matHead);
-    hand.position.set(0, -0.04, 0);
+    const sleeve = new THREE.Mesh(new THREE.TorusGeometry(0.062, 0.009, 8, 16), matTrim);
+    sleeve.position.set(0, -0.025, 0);
+    sleeve.rotation.x = Math.PI / 2;
+    shoulder.add(sleeve);
+    const upperArm = addBone(shoulder, L.upArm, 0.055, matUp, ['arms', 'shoulders'], -1);
+    const forearm = addBone(upperArm.end, L.foArm, 0.046, matFo, ['arms'], -1);
+    const hand = new THREE.Mesh(new THREE.SphereGeometry(0.048, 14, 12), matFo);
+    hand.scale.set(0.85, 1, 1.15);
+    hand.position.set(0, -0.035, 0);
     hand.castShadow = true;
     forearm.end.add(hand);
     return { shoulder, elbow: upperArm.end, upperArmMesh: upperArm.mesh, forearmMesh: forearm.mesh };
@@ -982,17 +1137,44 @@ export function createExerciseVisualizer(canvas: HTMLCanvasElement, width: numbe
   const armL = makeArm(1);
   const armR = makeArm(-1);
 
+  // Foot + ankle: a rounded shoe (upper + contrasting sole) hung off its own
+  // hinge so it can be kept flush with the ground/bar as the leg moves —
+  // see flatAnkle() above.
+  function makeFoot() {
+    const g = new THREE.Group();
+    const upper = new THREE.Mesh(new RoundedBoxGeometry(0.09, 0.075, L.footLen, 3, 0.028), matShoe);
+    upper.position.set(0, 0.014, L.footLen * 0.3);
+    upper.castShadow = upper.receiveShadow = true;
+    g.add(upper);
+    const sole = new THREE.Mesh(new RoundedBoxGeometry(0.096, 0.026, L.footLen + 0.02, 3, 0.012), matSole);
+    sole.position.set(0, -0.026, L.footLen * 0.3);
+    sole.castShadow = sole.receiveShadow = true;
+    g.add(sole);
+    return g;
+  }
   function makeLeg(sign: number) {
+    const matTh = sign > 0 ? matThighL : matThighR;
+    const matSh = sign > 0 ? matShinL : matShinR;
     const hipJ = new THREE.Group();
     hipJ.position.set(sign * L.hipW, -0.06, 0);
     hips.add(hipJ);
-    const thigh = addBone(hipJ, L.thigh, 0.082, matThigh, ['legs', 'glutes'], -1);
-    const shin = addBone(thigh.end, L.shin, 0.066, matShin, ['legs'], -1);
-    const foot = new THREE.Mesh(new THREE.BoxGeometry(0.095, 0.055, L.footLen), matShoe);
-    foot.position.set(0, -0.03, L.footLen * 0.32);
-    foot.castShadow = foot.receiveShadow = true;
-    shin.end.add(foot);
-    return { hipJ, kneeEnd: thigh.end, thighMesh: thigh.mesh, shinMesh: shin.mesh };
+    const shortsCuff = new THREE.Mesh(new RoundedBoxGeometry(0.135, 0.1, 0.135, 2, 0.03), matHips);
+    shortsCuff.position.set(0, -0.05, 0);
+    shortsCuff.castShadow = shortsCuff.receiveShadow = true;
+    hipJ.add(shortsCuff);
+    const thigh = addBone(hipJ, L.thigh, 0.078, matTh, ['legs', 'glutes'], -1);
+    const shin = addBone(thigh.end, L.shin, 0.058, matSh, ['legs'], -1);
+    const sock = new THREE.Mesh(new THREE.CylinderGeometry(0.062, 0.05, 0.09, 12), matSole);
+    sock.position.set(0, -L.shin + 0.075, 0);
+    sock.castShadow = sock.receiveShadow = true;
+    thigh.end.add(sock);
+    const ankleJ = new THREE.Group();
+    ankleJ.position.set(0, -0.01, 0);
+    shin.end.add(ankleJ);
+    const foot = makeFoot();
+    foot.position.set(0, -0.015, 0);
+    ankleJ.add(foot);
+    return { hipJ, kneeEnd: thigh.end, ankleJ, thighMesh: thigh.mesh, shinMesh: shin.mesh };
   }
   const legL = makeLeg(1);
   const legR = makeLeg(-1);
@@ -1006,12 +1188,15 @@ export function createExerciseVisualizer(canvas: HTMLCanvasElement, width: numbe
     rElbow: armR.elbow,
     lHip: legL.hipJ,
     lKnee: legL.kneeEnd,
+    lAnkle: legL.ankleJ,
     rHip: legR.hipJ,
     rKnee: legR.kneeEnd,
+    rAnkle: legR.ankleJ,
   };
 
   const taggedMeshes = [
     torsoMesh,
+    chestMesh,
     hipsMesh,
     armL.upperArmMesh,
     armL.forearmMesh,
@@ -1070,11 +1255,11 @@ export function createExerciseVisualizer(canvas: HTMLCanvasElement, width: numbe
   function makeBench() {
     const mat = new THREE.MeshStandardMaterial({ color: 0x2a323c, roughness: 0.55 });
     const g = new THREE.Group();
-    const top = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.06, 0.85), mat);
+    const top = new THREE.Mesh(new THREE.BoxGeometry(0.44, 0.06, 0.85), mat);
     top.position.set(0, 0.24, 0.55);
     top.castShadow = top.receiveShadow = true;
     g.add(top);
-    ([[-0.13, 0.28], [0.13, 0.28], [-0.13, 0.82], [0.13, 0.82]] as [number, number][]).forEach(([x, z]) => {
+    ([[-0.17, 0.28], [0.17, 0.28], [-0.17, 0.82], [0.17, 0.82]] as [number, number][]).forEach(([x, z]) => {
       const leg = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.24, 0.05), mat);
       leg.position.set(x, 0.11, z);
       g.add(leg);
@@ -1116,6 +1301,8 @@ export function createExerciseVisualizer(canvas: HTMLCanvasElement, width: numbe
     joints.rHip.rotation.set(p.rHip.x, 0, p.rHip.z ?? 0);
     joints.lKnee.rotation.set(p.lKnee.x, 0, 0);
     joints.rKnee.rotation.set(p.rKnee.x, 0, 0);
+    joints.lAnkle.rotation.set(p.lAnkle.x, 0, 0);
+    joints.rAnkle.rotation.set(p.rAnkle.x, 0, 0);
   }
 
   const ACCENT_GLOW = new THREE.Color(0x22c55e);
