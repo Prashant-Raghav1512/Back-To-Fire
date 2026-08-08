@@ -53,8 +53,8 @@ export function AboutPage() {
             <div className="relative order-2 lg:order-1">
               <div className="absolute -inset-3 rounded-[2rem] bg-gradient-to-br from-orange-400/30 to-green-400/20 blur-xl" />
               <img
-                src="https://images.pexels.com/photos/10506382/pexels-photo-10506382.jpeg?auto=compress&cs=tinysrgb&h=700&w=900"
-                alt="Young man balancing on playground bars"
+                src={`${import.meta.env.BASE_URL}about-calisthenics.jpg`}
+                alt="Athlete performing a bodyweight bar move outdoors"
                 className="relative w-full rounded-[2rem] object-cover shadow-2xl"
               />
             </div>

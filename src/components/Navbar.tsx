@@ -40,7 +40,7 @@ export function Navbar() {
       }`}
     >
       <nav className="container-x mx-auto flex h-16 items-center justify-between px-5 sm:h-20 sm:px-8">
-        <Logo onClick={() => go('/')} onHero={!scrolled} />
+        <Logo onClick={() => go('/')} onHero={path === '/' && !scrolled} />
 
         <div className="hidden items-center gap-1 md:flex">
           {navLinks.map((link) => {

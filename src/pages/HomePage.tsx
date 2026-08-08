@@ -129,11 +129,10 @@ export function HomePage() {
               </button>
             </div>
             <div className="relative">
-              <div className="absolute -inset-3 rounded-[2rem] bg-gradient-to-br from-green-400/30 to-orange-400/20 blur-xl" />
               <img
-                src="https://images.pexels.com/photos/6496124/pexels-photo-6496124.jpeg?auto=compress&cs=tinysrgb&h=700&w=900"
+                src={`${import.meta.env.BASE_URL}pushup-home.jpg`}
                 alt="Person doing push-ups at home"
-                className="relative w-full rounded-[2rem] object-cover shadow-2xl"
+                className="w-full"
               />
             </div>
           </div>

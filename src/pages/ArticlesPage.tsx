@@ -1,0 +1,131 @@
+import { useMemo, useState } from 'react';
+import { Clock, Sunrise, Flame, Sparkles, Zap, Dumbbell, Apple, Salad, Utensils, ArrowRight } from 'lucide-react';
+import { SectionHeading } from '@/components/SectionHeading';
+import { ArticleModal } from '@/components/ArticleModal';
+import { articles } from '@/data/articles';
+import { useReveal } from '@/lib/useReveal';
+import { useTilt } from '@/lib/useTilt';
+import { useParallax } from '@/lib/useParallax';
+import type { Article, ArticleCategory } from '@/data/types';
+
+const iconMap = { Sunrise, Flame, Sparkles, Zap, Dumbbell, Apple, Salad, Utensils } as const;
+
+const categoryStyles: Record<ArticleCategory, string> = {
+  Motivation: 'bg-orange-100 text-orange-700 dark:bg-orange-500/15 dark:text-orange-400',
+  Training: 'bg-green-100 text-green-700 dark:bg-green-500/15 dark:text-green-400',
+  Nutrition: 'bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-400',
+};
+
+const filters: Array<ArticleCategory | 'All'> = ['All', 'Motivation', 'Training', 'Nutrition'];
+
+function ArticleCard({ article, onSelect }: { article: Article; onSelect: (a: Article) => void }) {
+  const Icon = iconMap[article.icon as keyof typeof iconMap];
+  const tiltRef = useTilt<HTMLDivElement>();
+
+  return (
+    <div
+      ref={tiltRef}
+      onClick={() => onSelect(article)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onSelect(article);
+        }
+      }}
+      role="button"
+      tabIndex={0}
+      className="card card-hover tilt-glow flex cursor-pointer flex-col p-6 text-left"
+    >
+      <div className="flex items-start justify-between gap-3">
+        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-green-100 text-green-600 dark:bg-green-500/15 dark:text-green-400">
+          <Icon className="h-6 w-6" />
+        </span>
+        <span className={`badge ${categoryStyles[article.category]}`}>{article.category}</span>
+      </div>
+
+      <h3 className="mt-4 font-display text-lg font-bold text-gray-900 dark:text-white">{article.title}</h3>
+      <p className="mt-2 flex-1 text-sm leading-relaxed text-gray-600 dark:text-gray-400">{article.summary}</p>
+
+      <div className="mt-4 flex items-center justify-between gap-3">
+        <span className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
+          <Clock className="h-3.5 w-3.5" />
+          {article.readTime}
+        </span>
+        <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-green-600 dark:text-green-400">
+          Read <ArrowRight className="h-4 w-4" />
+        </span>
+      </div>
+    </div>
+  );
+}
+
+export function ArticlesPage() {
+  const ref = useReveal<HTMLDivElement>();
+  const heroImgRef = useParallax<HTMLImageElement>();
+  const [filter, setFilter] = useState<ArticleCategory | 'All'>('All');
+  const [selected, setSelected] = useState<Article | null>(null);
+
+  const filtered = useMemo(
+    () => (filter === 'All' ? articles : articles.filter((a) => a.category === filter)),
+    [filter]
+  );
+
+  return (
+    <div className="pt-16 sm:pt-20">
+      {/* Hero */}
+      <section className="relative overflow-hidden bg-gray-900 py-20 sm:py-28">
+        <div className="absolute inset-0">
+          <img
+            ref={heroImgRef}
+            src="https://images.pexels.com/photos/6111616/pexels-photo-6111616.jpeg?auto=compress&cs=tinysrgb&h=900&w=1600"
+            alt="Person reading and planning a fitness routine"
+            className="h-full w-full object-cover opacity-25"
+          />
+          <div className="absolute inset-0 bg-gradient-to-br from-gray-900/95 via-gray-900/85 to-green-900/60" />
+        </div>
+        <div className="relative container-x mx-auto px-5 text-center sm:px-8">
+          <span className="inline-block rounded-full bg-green-500/15 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-green-300 ring-1 ring-green-500/20">
+            Articles
+          </span>
+          <h1 className="mx-auto mt-5 max-w-3xl font-display text-4xl font-extrabold leading-tight text-white sm:text-6xl">
+            Read something that gets you moving
+          </h1>
+          <p className="mx-auto mt-5 max-w-2xl text-lg text-gray-300">
+            Motivation to keep showing up, training approaches worth trying, and diet guidance you can
+            actually stick to - no fads, no hype.
+          </p>
+        </div>
+      </section>
+
+      <section className="section-pad bg-gray-50 dark:bg-gray-950">
+        <div ref={ref} className="reveal container-x mx-auto">
+          <SectionHeading eyebrow="Browse" title="All articles" center={false} />
+
+          <div className="mt-6 flex flex-wrap gap-2">
+            {filters.map((f) => (
+              <button
+                key={f}
+                onClick={() => setFilter(f)}
+                className={`rounded-full px-4 py-2 text-sm font-medium transition-colors duration-200 ${
+                  f === filter
+                    ? 'bg-green-500 text-white shadow-md shadow-green-500/30'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
+                }`}
+              >
+                {f}
+              </button>
+            ))}
+          </div>
+
+          <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {filtered.map((article) => (
+              <ArticleCard key={article.id} article={article} onSelect={setSelected} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {selected && <ArticleModal article={selected} onClose={() => setSelected(null)} />}
+    </div>
+  );
+}

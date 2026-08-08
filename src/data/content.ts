@@ -5,7 +5,16 @@ import exercisesData from '@/data/exercises.json';
 
 // Generated at build time from Neon by scripts/fetch-content.mjs — see db/schema.sql for the source tables.
 export const programs = programsData as Program[];
-export const exercises = exercisesData as Exercise[];
+
+// exercises.json stores each exercise's `image` as a path relative to
+// public/ (e.g. "exercises/push-ups.jpg"), not a full URL — resolved here,
+// once, against the app's actual base path (`/` locally, `/Back-To-Fire/`
+// on GitHub Pages) rather than in every component that renders one, so a
+// future consumer can't forget the prefix and 404 on the deployed site.
+export const exercises = (exercisesData as Exercise[]).map((ex) => ({
+  ...ex,
+  image: `${import.meta.env.BASE_URL}${ex.image}`,
+}));
 
 export const benefits = [
   {
@@ -36,5 +45,7 @@ export const navLinks = [
   { label: 'Programs', path: '/programs' },
   { label: 'Exercises', path: '/exercises' },
   { label: 'Events', path: '/events' },
+  { label: 'Articles', path: '/articles' },
+  { label: 'Tools', path: '/tools' },
   { label: 'Contact', path: '/contact' },
 ];

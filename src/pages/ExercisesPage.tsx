@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { Search, X, ArrowRight, Target } from 'lucide-react';
 import { DifficultyBadge } from '@/components/DifficultyBadge';
 import { ExerciseModal } from '@/components/ExerciseModal';
-import { ExerciseDemo } from '@/components/ExerciseDemo';
+import { ExerciseGuide } from '@/components/ExerciseGuide';
 import { exercises } from '@/data/content';
 import type { Difficulty, Exercise } from '@/data/types';
 import { useReveal } from '@/lib/useReveal';
@@ -104,10 +104,10 @@ export function ExercisesPage() {
         </div>
       </section>
 
-      {/* Interactive demo */}
+      {/* Exercise guide */}
       <section className="section-pad bg-white dark:bg-gray-900">
         <div className="container-x mx-auto">
-          <ExerciseDemo />
+          <ExerciseGuide />
         </div>
       </section>
 

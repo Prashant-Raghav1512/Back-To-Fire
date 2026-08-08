@@ -88,6 +88,20 @@ export interface PaidPlan {
   hasPersonalTrainer: boolean;
 }
 
+export type ArticleCategory = 'Motivation' | 'Training' | 'Nutrition';
+
+export interface Article {
+  id: string;
+  title: string;
+  category: ArticleCategory;
+  /** One-line teaser shown on the card. */
+  summary: string;
+  readTime: string;
+  icon: string;
+  /** Ordered paragraphs making up the full article, shown in ArticleModal. */
+  content: string[];
+}
+
 export interface GymBranch {
   id: string;
   name: string;

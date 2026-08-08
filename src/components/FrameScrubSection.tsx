@@ -42,25 +42,49 @@ export function FrameScrubSection() {
     handle.ready.then(() => {
       if (cancelled) return;
 
-      const updateProgress = () => {
-        rafId = 0;
-        if (reducedMotion) return;
+      if (reducedMotion) {
+        handle.setProgress(REDUCED_MOTION_PROGRESS);
+        return;
+      }
+
+      // Eases the rendered frame toward the scroll-derived target instead of
+      // snapping straight to it — a fast trackpad flick or wheel jump would
+      // otherwise jump several frames in a single tick, reading as a stutter
+      // even though each individual frame transition is crossfaded. Lerping
+      // here spreads that jump across a few animation frames so it reads as
+      // fast-but-fluid motion rather than a hitch.
+      let current = 0;
+      let target = 0;
+
+      const readTarget = () => {
         const rect = section.getBoundingClientRect();
         const scrollableHeight = rect.height - window.innerHeight;
         const progress = scrollableHeight > 0 ? -rect.top / scrollableHeight : 0;
-        handle.setProgress(Math.min(Math.max(progress, 0), 1));
-      };
-      const onScroll = () => {
-        if (rafId) return;
-        rafId = requestAnimationFrame(updateProgress);
+        target = Math.min(Math.max(progress, 0), 1);
       };
 
-      if (reducedMotion) {
-        handle.setProgress(REDUCED_MOTION_PROGRESS);
-      } else {
-        updateProgress();
-        window.addEventListener('scroll', onScroll, { passive: true });
-      }
+      const step = () => {
+        const diff = target - current;
+        if (Math.abs(diff) < 0.0008) {
+          current = target;
+          handle.setProgress(current);
+          rafId = 0;
+          return;
+        }
+        current += diff * 0.18;
+        handle.setProgress(current);
+        rafId = requestAnimationFrame(step);
+      };
+
+      const onScroll = () => {
+        readTarget();
+        if (!rafId) rafId = requestAnimationFrame(step);
+      };
+
+      readTarget();
+      current = target;
+      handle.setProgress(current);
+      window.addEventListener('scroll', onScroll, { passive: true });
       cleanupScroll = () => window.removeEventListener('scroll', onScroll);
     });
 
