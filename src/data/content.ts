@@ -11,7 +11,7 @@ export const benefits = [
   {
     icon: 'Dumbbell',
     title: 'No Equipment Needed',
-    text: 'Your body is the only machine you need. Train anywhere — home, park, or hostel room.',
+    text: 'Your body is the only machine you need. Train anywhere - home, park, or hostel room.',
   },
   {
     icon: 'Activity',

@@ -18,7 +18,7 @@
     "name": "Pull-ups",
     "difficulty": "Advanced",
     "muscleGroup": "Back, Biceps, Forearms",
-    "description": "A true test of relative strength. Pull-ups build a strong back and grip using just a bar — find one at a park or doorway.",
+    "description": "A true test of relative strength. Pull-ups build a strong back and grip using just a bar - find one at a park or doorway.",
     "image": "https://images.pexels.com/photos/4803667/pexels-photo-4803667.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
     "steps": [
       "Hang from a bar with palms facing away",
@@ -32,7 +32,7 @@
     "name": "Squats",
     "difficulty": "Beginner",
     "muscleGroup": "Quads, Glutes, Hamstrings",
-    "description": "The foundational lower-body movement. Builds leg strength, hip mobility, and balance — the base for every advanced leg skill.",
+    "description": "The foundational lower-body movement. Builds leg strength, hip mobility, and balance - the base for every advanced leg skill.",
     "image": "https://images.pexels.com/photos/8173430/pexels-photo-8173430.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
     "steps": [
       "Stand with feet shoulder-width apart",
@@ -144,7 +144,7 @@
     "name": "Glute Bridges",
     "difficulty": "Beginner",
     "muscleGroup": "Glutes, Hamstrings",
-    "description": "A foundational hip-hinge move that builds glute strength and protects the lower back — great for beginners and warm-ups alike.",
+    "description": "A foundational hip-hinge move that builds glute strength and protects the lower back - great for beginners and warm-ups alike.",
     "image": "https://images.pexels.com/photos/3768916/pexels-photo-3768916.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
     "steps": [
       "Lie on your back with knees bent, feet flat",
@@ -191,7 +191,7 @@
     "steps": [
       "Hang from a bar with arms fully extended",
       "Keep legs straight and raise them to hip height or higher",
-      "Avoid swinging — control the movement with your core",
+      "Avoid swinging - control the movement with your core",
       "Lower with control back to a full hang"
     ]
   },
@@ -214,7 +214,7 @@
     "name": "Muscle-ups",
     "difficulty": "Advanced",
     "muscleGroup": "Back, Chest, Triceps",
-    "description": "The ultimate pulling-to-pushing transition — combining a pull-up with a dip in one fluid motion over the bar.",
+    "description": "The ultimate pulling-to-pushing transition - combining a pull-up with a dip in one fluid motion over the bar.",
     "image": "https://images.pexels.com/photos/3822622/pexels-photo-3822622.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
     "steps": [
       "Start with an explosive pull-up, pulling the bar toward your hips",

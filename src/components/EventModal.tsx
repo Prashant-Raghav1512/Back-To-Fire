@@ -15,7 +15,7 @@ interface EventModalProps {
 
 function AgendaList({ items, done }: { items: EventAgendaItem[]; done: boolean }) {
   if (items.length === 0) {
-    return <p className="mt-2 text-sm text-gray-400 dark:text-gray-500">Nothing here yet — check back soon.</p>;
+    return <p className="mt-2 text-sm text-gray-400 dark:text-gray-500">Nothing here yet - check back soon.</p>;
   }
   return (
     <ol className="mt-3 space-y-3">
@@ -28,7 +28,7 @@ function AgendaList({ items, done }: { items: EventAgendaItem[]; done: boolean }
           )}
           <div>
             <p className={`font-semibold ${done ? 'text-gray-500 dark:text-gray-400' : 'text-gray-900 dark:text-white'}`}>
-              {item.time ? `${item.time} — ` : ''}
+              {item.time ? `${item.time} - ` : ''}
               {item.title}
             </p>
             <p className="text-gray-500 dark:text-gray-400">{item.description}</p>

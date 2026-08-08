@@ -12,6 +12,8 @@ interface EnrollButtonProps {
   onEnrolled: () => void;
   className?: string;
   label?: string;
+  /** Blocks submission without touching the sign-in gate — e.g. a required choice (payment method) hasn't been made yet. */
+  disabled?: boolean;
 }
 
 export function EnrollButton({
@@ -23,6 +25,7 @@ export function EnrollButton({
   onEnrolled,
   className,
   label,
+  disabled,
 }: EnrollButtonProps) {
   const { user, isSignedIn } = useUser();
   const { openSignIn } = useClerk();
@@ -35,7 +38,7 @@ export function EnrollButton({
       openSignIn();
       return;
     }
-    if (enrolled || submitting) return;
+    if (enrolled || submitting || disabled) return;
 
     setSubmitting(true);
     setError(null);
@@ -60,7 +63,7 @@ export function EnrollButton({
     <div>
       <button
         onClick={handleClick}
-        disabled={submitting || enrolled}
+        disabled={submitting || enrolled || (isSignedIn && disabled)}
         className={className ?? 'btn-primary w-full disabled:cursor-not-allowed disabled:opacity-70'}
       >
         {enrolled ? (

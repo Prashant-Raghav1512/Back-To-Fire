@@ -119,7 +119,7 @@ export function getEventKnowledgeChunks(now: Date = new Date()): { id: string; t
     }
     if (status === 'ongoing') {
       const next = event.agenda.find((item) => getAgendaItemStatus(item, now) === 'upcoming');
-      return next ? `Coming up next: ${next.title} — ${next.description}` : '';
+      return next ? `Coming up next: ${next.title} - ${next.description}` : '';
     }
     if (event.agenda.length) {
       return `Planned agenda: ${event.agenda.map((item) => item.title).join(', ')}.`;
@@ -148,7 +148,7 @@ export function getEventKnowledgeChunks(now: Date = new Date()): { id: string; t
         ]
           .filter(Boolean)
           .join(' ')
-      : 'Born to Fire has no events scheduled right now — check back soon or ask us directly.',
+      : 'Born to Fire has no events scheduled right now - check back soon or ask us directly.',
   };
 
   return [summaryChunk, ...eventChunks];

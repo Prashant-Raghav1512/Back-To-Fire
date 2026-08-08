@@ -11,11 +11,9 @@ export function Footer() {
         <div className="grid gap-10 md:grid-cols-4">
           <div className="md:col-span-1">
             <div className="flex items-center gap-2.5">
-              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-green-500 to-green-600 shadow-lg shadow-green-500/30">
-                <Flame className="h-6 w-6 text-white" strokeWidth={2.5} />
-              </span>
+              <img src={`${import.meta.env.BASE_URL}logo.png`} alt="Born to Fire" className="h-10 w-auto shrink-0" />
               <span className="font-display text-lg font-extrabold text-white">
-                born to <span className="text-green-500">fire</span>
+                Born to <span className="text-green-500">fire</span>
               </span>
             </div>
             <p className="mt-4 text-sm leading-relaxed text-gray-400">

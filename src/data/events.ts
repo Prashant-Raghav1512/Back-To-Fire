@@ -19,27 +19,27 @@ export const events: FitnessEvent[] = [
     agenda: [
       {
         date: '2026-06-15',
-        title: 'Week 1 — Foundations',
+        title: 'Week 1 - Foundations',
         description: 'Live kickoff call, form-check for squats and push-ups, and the first at-home routine.',
       },
       {
         date: '2026-06-22',
-        title: 'Week 2 — Building the habit',
+        title: 'Week 2 - Building the habit',
         description: 'Added lunges and planks, plus daily accountability check-ins in the group chat.',
       },
       {
         date: '2026-06-29',
-        title: 'Week 3 — Raising intensity',
+        title: 'Week 3 - Raising intensity',
         description: 'Introduced supersets and progressive overload, with mid-program 1:1 form-check calls.',
       },
       {
         date: '2026-07-06',
-        title: 'Week 4 — Pushing further',
+        title: 'Week 4 - Pushing further',
         description: 'Longer sessions and harder variations unlocked for anyone ready to progress.',
       },
       {
         date: '2026-07-13',
-        title: 'Week 5 — Wrap-up',
+        title: 'Week 5 - Wrap-up',
         description: 'Final live session, individual progress reviews, and the closing celebration call.',
       },
     ],
@@ -48,11 +48,11 @@ export const events: FitnessEvent[] = [
   },
   {
     id: 'world-bodyweight-day-bengaluru',
-    title: 'World Bodyweight Day Meetup — Bengaluru',
+    title: 'World Bodyweight Day Meetup - Bengaluru',
     type: 'Meetup',
     format: 'In-person',
     description:
-      'A free morning meetup in the park to celebrate World Bodyweight Day — partner drills, a beginner-friendly circuit, and coffee afterward.',
+      'A free morning meetup in the park to celebrate World Bodyweight Day - partner drills, a beginner-friendly circuit, and coffee afterward.',
     startDate: '2026-07-25',
     endDate: '2026-07-25',
     location: 'Cubbon Park, Bengaluru',
@@ -72,17 +72,17 @@ export const events: FitnessEvent[] = [
     type: 'Challenge',
     format: 'Online',
     description:
-      'Train at least 20 days this month and log it in the community group to unlock a free 1:1 form-check call. Any program counts — beginner to advanced.',
+      'Train at least 20 days this month and log it in the community group to unlock a free 1:1 form-check call. Any program counts - beginner to advanced.',
     startDate: '2026-08-01',
     endDate: '2026-08-31',
-    location: 'Anywhere — track from home',
+    location: 'Anywhere - track from home',
     icon: 'Trophy',
     agenda: [
-      { date: '2026-08-01', title: 'Week 1 — Kickoff', description: 'Challenge opens: log your first session in the community group to get on the board.' },
-      { date: '2026-08-08', title: 'Week 2 — Halfway check-in', description: 'Post a progress check-in in the group — share your day count so far.' },
-      { date: '2026-08-15', title: 'Week 3 — Push through', description: 'The toughest week to stay consistent — extra reminders and a bonus mobility session get posted.' },
-      { date: '2026-08-22', title: 'Week 4 — Final stretch', description: 'Last full week to bank your 20 days before the challenge closes.' },
-      { date: '2026-08-31', title: 'Results & rewards', description: 'Logs close at midnight — everyone who hit 20+ days gets their free 1:1 form-check call booked.' },
+      { date: '2026-08-01', title: 'Week 1 - Kickoff', description: 'Challenge opens: log your first session in the community group to get on the board.' },
+      { date: '2026-08-08', title: 'Week 2 - Halfway check-in', description: 'Post a progress check-in in the group - share your day count so far.' },
+      { date: '2026-08-15', title: 'Week 3 - Push through', description: 'The toughest week to stay consistent - extra reminders and a bonus mobility session get posted.' },
+      { date: '2026-08-22', title: 'Week 4 - Final stretch', description: 'Last full week to bank your 20 days before the challenge closes.' },
+      { date: '2026-08-31', title: 'Results & rewards', description: 'Logs close at midnight - everyone who hit 20+ days gets their free 1:1 form-check call booked.' },
     ],
   },
   {
@@ -91,7 +91,7 @@ export const events: FitnessEvent[] = [
     type: 'Meetup',
     format: 'In-person',
     description:
-      'An open-air group workout to mark Independence Day — a guided warm-up, a partner-based circuit, and a casual skills jam (handstands, pull-up bar tricks) for anyone who wants to try.',
+      'An open-air group workout to mark Independence Day - a guided warm-up, a partner-based circuit, and a casual skills jam (handstands, pull-up bar tricks) for anyone who wants to try.',
     startDate: '2026-08-15',
     endDate: '2026-08-15',
     location: 'Cubbon Park, Bengaluru',
@@ -109,7 +109,7 @@ export const events: FitnessEvent[] = [
     type: 'Workshop',
     format: 'Online',
     description:
-      'A focused 60-minute live session on the exact progressions — negatives, band-assisted reps, scapular pulls — to go from zero pull-ups to your first clean rep.',
+      'A focused 60-minute live session on the exact progressions - negatives, band-assisted reps, scapular pulls - to go from zero pull-ups to your first clean rep.',
     startDate: '2026-09-05',
     endDate: '2026-09-05',
     location: 'Live over Zoom',
@@ -117,7 +117,7 @@ export const events: FitnessEvent[] = [
     agenda: [
       { date: '2026-09-05', time: '7:00 PM', title: 'Why pull-ups feel impossible', description: 'The biomechanics behind why pull-ups are hard, and the 3 progressions that fix it.' },
       { date: '2026-09-05', time: '7:15 PM', title: 'Live progression walkthrough', description: 'Negatives, band-assisted reps, and scapular pulls, demonstrated live.' },
-      { date: '2026-09-05', time: '7:45 PM', title: 'Form review & Q&A', description: 'Send a video or ask live — open Q&A for the last 15 minutes.' },
+      { date: '2026-09-05', time: '7:45 PM', title: 'Form review & Q&A', description: 'Send a video or ask live - open Q&A for the last 15 minutes.' },
     ],
   },
   {
@@ -126,7 +126,7 @@ export const events: FitnessEvent[] = [
     type: 'Webinar',
     format: 'Online',
     description:
-      'A live walkthrough of the Strength Builder program before the next cohort starts — what a week looks like, how supersets work, and a Q&A for anyone deciding if it is the right fit.',
+      'A live walkthrough of the Strength Builder program before the next cohort starts - what a week looks like, how supersets work, and a Q&A for anyone deciding if it is the right fit.',
     startDate: '2026-09-20',
     endDate: '2026-09-20',
     location: 'Live over Zoom',
@@ -143,14 +143,14 @@ export const events: FitnessEvent[] = [
     type: 'Meetup',
     format: 'In-person',
     description:
-      "Our community's biggest in-person gathering of the year — a full morning of group workouts, beginner-friendly stations, prizes, and meeting fellow members in person.",
+      "Our community's biggest in-person gathering of the year - a full morning of group workouts, beginner-friendly stations, prizes, and meeting fellow members in person.",
     startDate: '2026-11-14',
     endDate: '2026-11-14',
     location: 'Indiranagar, Bengaluru',
     icon: 'PartyPopper',
     agenda: [
       { date: '2026-11-14', time: '8:00 AM', title: 'Registration & warm-up', description: 'Check in, grab a T-shirt, and join the group warm-up.' },
-      { date: '2026-11-14', time: '8:30 AM', title: 'Group workout stations', description: 'Beginner-friendly stations rotating every 10 minutes — something for every level.' },
+      { date: '2026-11-14', time: '8:30 AM', title: 'Group workout stations', description: 'Beginner-friendly stations rotating every 10 minutes - something for every level.' },
       { date: '2026-11-14', time: '10:00 AM', title: 'Prizes & shoutouts', description: 'Recognizing the year\'s biggest progress stories from the community.' },
       { date: '2026-11-14', time: '10:30 AM', title: 'Community brunch', description: 'Wind down with food and conversation with fellow members.' },
     ],

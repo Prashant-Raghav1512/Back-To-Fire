@@ -1,7 +1,10 @@
 import { useState } from 'react';
+import type { ComponentType, SVGProps } from 'react';
 import { Mail, Phone, MapPin, Send, Instagram, Youtube, Facebook, Twitter, Check, Calculator, AlertCircle, Lock, Beef } from 'lucide-react';
 import { useUser, useClerk } from '@clerk/clerk-react';
 import { useReveal } from '@/lib/useReveal';
+import { useTilt } from '@/lib/useTilt';
+import { useParallax } from '@/lib/useParallax';
 import { submitContact } from '@/lib/contact';
 
 interface FormState {
@@ -16,8 +19,31 @@ interface FormErrors {
   message?: string;
 }
 
+interface ContactInfoCardProps {
+  Icon: ComponentType<SVGProps<SVGSVGElement>>;
+  label: string;
+  value: string;
+  href: string;
+}
+
+function ContactInfoCard({ Icon, label, value, href }: ContactInfoCardProps) {
+  const tiltRef = useTilt<HTMLAnchorElement>();
+  return (
+    <a ref={tiltRef} href={href} className="card card-hover tilt-glow flex items-start gap-4 p-5">
+      <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-green-100 text-green-600 dark:bg-green-500/15 dark:text-green-400">
+        <Icon className="h-6 w-6" />
+      </span>
+      <div>
+        <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">{label}</p>
+        <p className="mt-1 font-medium text-gray-900 dark:text-white">{value}</p>
+      </div>
+    </a>
+  );
+}
+
 export function ContactPage() {
   const ref = useReveal<HTMLDivElement>();
+  const heroImgRef = useParallax<HTMLImageElement>();
   const { isSignedIn } = useUser();
   const { openSignIn } = useClerk();
   const [form, setForm] = useState<FormState>({ name: '', email: '', message: '' });
@@ -109,6 +135,7 @@ export function ContactPage() {
       <section className="relative overflow-hidden bg-gray-900 py-20 sm:py-28">
         <div className="absolute inset-0">
           <img
+            ref={heroImgRef}
             src="https://images.pexels.com/photos/10476460/pexels-photo-10476460.jpeg?auto=compress&cs=tinysrgb&h=900&w=1600"
             alt="Two men exercising on outdoor bars"
             className="h-full w-full object-cover opacity-25"
@@ -123,7 +150,7 @@ export function ContactPage() {
             We would love to hear from you
           </h1>
           <p className="mx-auto mt-5 max-w-2xl text-lg text-gray-300">
-            Questions about a program, partnership ideas, or just want to say hello? Reach out —
+            Questions about a program, partnership ideas, or just want to say hello? Reach out - 
             we usually reply within a day.
           </p>
         </div>
@@ -139,21 +166,7 @@ export function ContactPage() {
                 { Icon: Phone, label: 'Phone', value: '+91 98765 43210', href: 'tel:+919876543210' },
                 { Icon: MapPin, label: 'Address', value: 'Indiranagar, Bengaluru, Karnataka 560038', href: '#' },
               ].map((c) => (
-                <a
-                  key={c.label}
-                  href={c.href}
-                  className="card card-hover flex items-start gap-4 p-5"
-                >
-                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-green-100 text-green-600 dark:bg-green-500/15 dark:text-green-400">
-                    <c.Icon className="h-6 w-6" />
-                  </span>
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">
-                      {c.label}
-                    </p>
-                    <p className="mt-1 font-medium text-gray-900 dark:text-white">{c.value}</p>
-                  </div>
-                </a>
+                <ContactInfoCard key={c.label} Icon={c.Icon} label={c.label} value={c.value} href={c.href} />
               ))}
 
               <div className="card p-5">
@@ -190,7 +203,7 @@ export function ContactPage() {
                       <Check className="h-5 w-5" />
                     </span>
                     <p className="text-sm font-medium">
-                      Thanks! Your message has been recorded — we will be in touch soon.
+                      Thanks! Your message has been recorded - we will be in touch soon.
                     </p>
                   </div>
                 )}
@@ -201,7 +214,7 @@ export function ContactPage() {
                       <Lock className="h-4 w-4" />
                     </span>
                     <p className="text-sm font-medium">
-                      Sign in to send a message — it only takes a moment.
+                      Sign in to send a message - it only takes a moment.
                     </p>
                   </div>
                 )}
@@ -292,7 +305,7 @@ export function ContactPage() {
                   <h3 className="mt-4 font-display text-2xl font-bold">BMI Calculator</h3>
                   <p className="mt-2 text-sm leading-relaxed text-gray-300">
                     Your Body Mass Index is a quick way to check if your weight is in a healthy
-                    range for your height. It is a starting point — not the whole picture. Pair
+                    range for your height. It is a starting point - not the whole picture. Pair
                     it with calisthenics and you will build a body that performs, not just one that
                     scores well on a chart.
                   </p>
@@ -359,7 +372,7 @@ export function ContactPage() {
                   <h3 className="mt-4 font-display text-2xl font-bold">Protein Intake Calculator</h3>
                   <p className="mt-2 text-sm leading-relaxed text-gray-300">
                     Protein is what your muscles rebuild from after every training session.
-                    Your daily target scales with your bodyweight and how often you train —
+                    Your daily target scales with your bodyweight and how often you train - 
                     use this to get a whole-day starting point, then adjust from there.
                   </p>
                 </div>

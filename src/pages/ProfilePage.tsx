@@ -8,6 +8,7 @@ import { useMyEnrollments, type Enrollment } from '@/lib/enrollments';
 import { events } from '@/data/events';
 import { getEventStatus } from '@/lib/events';
 import { useReveal } from '@/lib/useReveal';
+import { useTilt } from '@/lib/useTilt';
 import { useRouter } from '@/lib/router';
 import type { FitnessEvent } from '@/data/types';
 
@@ -17,8 +18,9 @@ function formatJoinedDate(iso: string): string {
 
 function ProgramEnrollmentCard({ enrollment }: { enrollment: Enrollment }) {
   const { navigate } = useRouter();
+  const tiltRef = useTilt<HTMLDivElement>();
   return (
-    <div className="card flex flex-col p-6">
+    <div ref={tiltRef} className="card card-hover tilt-glow flex flex-col p-6">
       <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-green-100 text-green-600 dark:bg-green-500/15 dark:text-green-400">
         <Dumbbell className="h-6 w-6" />
       </span>
@@ -43,8 +45,9 @@ function ProgramEnrollmentCard({ enrollment }: { enrollment: Enrollment }) {
 
 function EventEnrollmentCard({ enrollment, onOpen }: { enrollment: Enrollment; onOpen: (event: FitnessEvent) => void }) {
   const liveEvent = events.find((e) => e.id === enrollment.itemId);
+  const tiltRef = useTilt<HTMLDivElement>();
   return (
-    <div className="card flex flex-col p-6">
+    <div ref={tiltRef} className="card card-hover tilt-glow flex flex-col p-6">
       <div className="flex items-start justify-between gap-3">
         <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-green-100 text-green-600 dark:bg-green-500/15 dark:text-green-400">
           <Calendar className="h-6 w-6" />

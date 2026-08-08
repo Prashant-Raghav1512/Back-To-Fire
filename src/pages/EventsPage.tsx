@@ -17,6 +17,8 @@ import { EnrollButton } from '@/components/EnrollButton';
 import { groupEventsByStatus, formatEventDateRange, daysUntil, getEventStatus } from '@/lib/events';
 import { useMyEnrollments } from '@/lib/enrollments';
 import { useReveal } from '@/lib/useReveal';
+import { useTilt } from '@/lib/useTilt';
+import { useParallax } from '@/lib/useParallax';
 import type { FitnessEvent } from '@/data/types';
 
 const iconMap = { GraduationCap, Flame, Trophy, Users, Video, PartyPopper } as const;
@@ -33,9 +35,11 @@ function EventCard({ event, onSelect, enrolled, onEnrolled }: EventCardProps) {
   const ended = status === 'ended';
   const Icon = iconMap[event.icon as keyof typeof iconMap];
   const days = daysUntil(event);
+  const tiltRef = useTilt<HTMLDivElement>();
 
   return (
     <div
+      ref={tiltRef}
       onClick={() => onSelect(event)}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
@@ -45,7 +49,7 @@ function EventCard({ event, onSelect, enrolled, onEnrolled }: EventCardProps) {
       }}
       role="button"
       tabIndex={0}
-      className={`card card-hover flex cursor-pointer flex-col p-6 text-left ${ended ? 'opacity-70' : ''}`}
+      className={`card card-hover tilt-glow flex cursor-pointer flex-col p-6 text-left ${ended ? 'opacity-70' : ''}`}
     >
       <div className="flex items-start justify-between gap-3">
         <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-green-100 text-green-600 dark:bg-green-500/15 dark:text-green-400">
@@ -131,6 +135,7 @@ export function EventsPage() {
   const { ongoing, upcoming, ended } = groupEventsByStatus();
   const [selected, setSelected] = useState<FitnessEvent | null>(null);
   const { isEnrolledIn, refresh } = useMyEnrollments();
+  const heroImgRef = useParallax<HTMLImageElement>();
 
   return (
     <div className="pt-16 sm:pt-20">
@@ -138,6 +143,7 @@ export function EventsPage() {
       <section className="relative overflow-hidden bg-gray-900 py-20 sm:py-28">
         <div className="absolute inset-0">
           <img
+            ref={heroImgRef}
             src="https://images.pexels.com/photos/10476460/pexels-photo-10476460.jpeg?auto=compress&cs=tinysrgb&h=900&w=1600"
             alt="Group calisthenics session outdoors"
             className="h-full w-full object-cover opacity-25"
@@ -152,7 +158,7 @@ export function EventsPage() {
             Train together, not just alone
           </h1>
           <p className="mx-auto mt-5 max-w-2xl text-lg text-gray-300">
-            Challenges, workshops, and in-person meetups across India — see what is happening right
+            Challenges, workshops, and in-person meetups across India - see what is happening right
             now, what is coming up, and what you missed. Tap any event for the full details.
           </p>
         </div>
@@ -173,7 +179,7 @@ export function EventsPage() {
               <EventGrid eventList={upcoming} onSelect={setSelected} isEnrolledIn={isEnrolledIn} onEnrolled={refresh} />
             ) : (
               <p className="mt-6 text-sm text-gray-500 dark:text-gray-400">
-                Nothing on the calendar right now — check back soon, or ask the chatbot below and
+                Nothing on the calendar right now - check back soon, or ask the chatbot below and
                 we will let you know as soon as something is scheduled.
               </p>
             )}

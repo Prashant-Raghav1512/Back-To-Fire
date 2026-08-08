@@ -2,17 +2,20 @@ import { Sprout, Flame, Zap, Check, ArrowRight, Clock, BarChart3 } from 'lucide-
 import { SectionHeading } from '@/components/SectionHeading';
 import { DifficultyBadge } from '@/components/DifficultyBadge';
 import { EnrollButton } from '@/components/EnrollButton';
+import { TiltCard } from '@/components/TiltCard';
 import { MembershipPlans } from '@/components/MembershipPlans';
 import { GymBranchLocator } from '@/components/GymBranchLocator';
 import { programs } from '@/data/content';
 import { useMyEnrollments } from '@/lib/enrollments';
 import { useReveal } from '@/lib/useReveal';
+import { useParallax } from '@/lib/useParallax';
 
 const iconMap = { Sprout, Flame, Zap } as const;
 
 export function ProgramsPage() {
   const ref = useReveal<HTMLDivElement>();
   const { isEnrolledIn, refresh } = useMyEnrollments();
+  const heroImgRef = useParallax<HTMLImageElement>();
 
   return (
     <div className="pt-16 sm:pt-20">
@@ -20,6 +23,7 @@ export function ProgramsPage() {
       <section className="relative overflow-hidden bg-gray-900 py-20 sm:py-28">
         <div className="absolute inset-0">
           <img
+            ref={heroImgRef}
             src="https://images.pexels.com/photos/8519690/pexels-photo-8519690.jpeg?auto=compress&cs=tinysrgb&h=900&w=1600"
             alt="Man working out at outdoor gym"
             className="h-full w-full object-cover opacity-25"
@@ -34,7 +38,7 @@ export function ProgramsPage() {
             Programs built for every level
           </h1>
           <p className="mx-auto mt-5 max-w-2xl text-lg text-gray-300">
-            Three structured tiers — from your very first push-up to the planche. Pick the one that
+            Three structured tiers - from your very first push-up to the planche. Pick the one that
             matches where you are today and start where you stand.
           </p>
         </div>
@@ -45,7 +49,7 @@ export function ProgramsPage() {
         <div ref={ref} className="reveal container-x mx-auto">
           <SectionHeading
             eyebrow="Choose your tier"
-            title="Three paths. One goal — mastery."
+            title="Three paths. One goal - mastery."
             subtitle="Each program is a complete journey with clear weekly progressions, rest days, and milestones."
           />
           <div className="mt-12 grid gap-6 lg:grid-cols-3">
@@ -53,7 +57,7 @@ export function ProgramsPage() {
               const Icon = iconMap[p.icon as keyof typeof iconMap];
               const featured = p.difficulty === 'Intermediate';
               return (
-                <div
+                <TiltCard
                   key={p.id}
                   className={`card card-hover relative flex flex-col p-7 ${
                     featured ? 'ring-2 ring-green-500 lg:scale-[1.03]' : ''
@@ -99,7 +103,7 @@ export function ProgramsPage() {
                     label={`Start ${p.title}`}
                     className={`mt-6 w-full ${featured ? 'btn-primary' : 'btn-outline'}`}
                   />
-                </div>
+                </TiltCard>
               );
             })}
           </div>
@@ -126,7 +130,7 @@ export function ProgramsPage() {
                 { icon: Clock, step: '02', title: 'Follow the plan', text: 'Train 3-5 days a week with guided sessions and built-in rest.' },
                 { icon: ArrowRight, step: '03', title: 'Progress & level up', text: 'Hit your milestones, then move to the next progression.' },
               ].map((s) => (
-                <div key={s.step} className="card p-6">
+                <TiltCard key={s.step} className="card card-hover p-6">
                   <div className="flex items-center justify-between">
                     <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-gray-900 text-white dark:bg-gray-700">
                       <s.icon className="h-6 w-6" />
@@ -141,7 +145,7 @@ export function ProgramsPage() {
                   <p className="mt-2 text-sm leading-relaxed text-gray-600 dark:text-gray-400">
                     {s.text}
                   </p>
-                </div>
+                </TiltCard>
               ))}
             </div>
           </div>

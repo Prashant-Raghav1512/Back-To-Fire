@@ -6,8 +6,49 @@ import { ExerciseDemo } from '@/components/ExerciseDemo';
 import { exercises } from '@/data/content';
 import type { Difficulty, Exercise } from '@/data/types';
 import { useReveal } from '@/lib/useReveal';
+import { useTilt } from '@/lib/useTilt';
+import { useParallax } from '@/lib/useParallax';
 
 type DiffFilter = 'All' | Difficulty;
+
+function ExerciseCard({ exercise, onSelect }: { exercise: Exercise; onSelect: (ex: Exercise) => void }) {
+  const tiltRef = useTilt<HTMLButtonElement>();
+  return (
+    <button
+      ref={tiltRef}
+      onClick={() => onSelect(exercise)}
+      className="card card-hover group w-full overflow-hidden text-left"
+    >
+      <div className="relative h-52 overflow-hidden">
+        <img
+          src={exercise.image}
+          alt={exercise.name}
+          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-gray-900/70 to-transparent" />
+        <div className="absolute left-4 top-4">
+          <DifficultyBadge level={exercise.difficulty} />
+        </div>
+        <h3 className="absolute bottom-4 left-4 font-display text-2xl font-bold text-white">
+          {exercise.name}
+        </h3>
+      </div>
+      <div className="p-5">
+        <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+          <Target className="h-4 w-4 text-orange-500" />
+          {exercise.muscleGroup}
+        </div>
+        <p className="mt-3 line-clamp-2 text-sm leading-relaxed text-gray-600 dark:text-gray-400">
+          {exercise.description}
+        </p>
+        <p className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-green-600 transition-colors group-hover:text-green-700 dark:text-green-400">
+          View full guide
+          <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
+        </p>
+      </div>
+    </button>
+  );
+}
 
 export function ExercisesPage() {
   const [query, setQuery] = useState('');
@@ -15,6 +56,7 @@ export function ExercisesPage() {
   const [muscle, setMuscle] = useState('All');
   const [selected, setSelected] = useState<Exercise | null>(null);
   const ref = useReveal<HTMLDivElement>();
+  const heroImgRef = useParallax<HTMLImageElement>();
 
   const muscleGroups = useMemo(
     () => ['All', ...Array.from(new Set(exercises.map((e) => e.muscleGroup)))],
@@ -41,6 +83,7 @@ export function ExercisesPage() {
       <section className="relative overflow-hidden bg-gray-900 py-20 sm:py-28">
         <div className="absolute inset-0">
           <img
+            ref={heroImgRef}
             src="https://images.pexels.com/photos/4803694/pexels-photo-4803694.jpeg?auto=compress&cs=tinysrgb&h=900&w=1600"
             alt="Man doing pull-ups on blue bars"
             className="h-full w-full object-cover opacity-25"
@@ -141,39 +184,7 @@ export function ExercisesPage() {
 
           <div className="mt-4 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {filtered.map((ex) => (
-              <button
-                key={ex.id}
-                onClick={() => setSelected(ex)}
-                className="card card-hover group w-full overflow-hidden text-left"
-              >
-                <div className="relative h-52 overflow-hidden">
-                  <img
-                    src={ex.image}
-                    alt={ex.name}
-                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-gray-900/70 to-transparent" />
-                  <div className="absolute left-4 top-4">
-                    <DifficultyBadge level={ex.difficulty} />
-                  </div>
-                  <h3 className="absolute bottom-4 left-4 font-display text-2xl font-bold text-white">
-                    {ex.name}
-                  </h3>
-                </div>
-                <div className="p-5">
-                  <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-                    <Target className="h-4 w-4 text-orange-500" />
-                    {ex.muscleGroup}
-                  </div>
-                  <p className="mt-3 line-clamp-2 text-sm leading-relaxed text-gray-600 dark:text-gray-400">
-                    {ex.description}
-                  </p>
-                  <p className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-green-600 transition-colors group-hover:text-green-700 dark:text-green-400">
-                    View full guide
-                    <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
-                  </p>
-                </div>
-              </button>
+              <ExerciseCard key={ex.id} exercise={ex} onSelect={setSelected} />
             ))}
           </div>
 

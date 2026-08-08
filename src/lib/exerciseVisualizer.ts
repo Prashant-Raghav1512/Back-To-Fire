@@ -1,16 +1,28 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
-import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
+import { loadRiggedCharacter, poseBone, type RiggedBone, type RiggedCharacter } from '@/lib/riggedCharacter';
 
-// A from-scratch 3D IK rig + exercise-pose library rendered with three.js.
-// Framework-agnostic on purpose — createExerciseVisualizer() takes a plain
-// <canvas> and container element and returns an imperative handle; the React
-// wrapper (src/components/ExerciseDemo.tsx) owns all UI state and just calls
-// into this handle. Ported from a standalone prototype (see PR/commit that
-// introduced this file for the original single-file version) — ids were
-// kept identical to this app's src/data/*.json exercise ids so the two stay
-// in sync without a translation table.
+// A from-scratch 3D IK pose library (the math, not the mesh) rendered with
+// three.js and driving a real rigged/skinned glTF character (public/models/
+// soldier.glb, loaded via src/lib/riggedCharacter.ts — see that file for the
+// bind-pose/skinning bugs its loader works around). Framework-
+// agnostic on purpose — createExerciseVisualizer() takes a plain <canvas>
+// and container element and returns an imperative handle; the React wrapper
+// (src/components/ExerciseDemo.tsx) owns all UI state and just calls into
+// this handle. Exercise ids are kept identical to this app's
+// src/data/*.json exercise ids so the two stay in sync without a
+// translation table.
+//
+// The IK math below still targets a hand-derived skeleton with fixed bone
+// lengths (the L constants) and a hip-centered root, exactly as when it
+// drove a hand-built primitive rig. applyPoseToRig() is what bridges that
+// to the loaded skeleton: it maps each IK joint angle onto the
+// corresponding mixamorig bone, applying the same base-correction +
+// left/right sign-flip transform derived (and verified by rendering) for
+// the flex character's arms, plus the direct pass-through that worked for
+// its legs/torso/head — see the comment above applyPoseToRig for the full
+// mapping and why each axis needs (or doesn't need) a flip.
 
 /* =========================================================================
    RIG DIMENSIONS (all lengths verified against a standalone FK/IK solver
@@ -904,7 +916,52 @@ export interface VisualizerHandle {
   dispose: () => void;
 }
 
-export function createExerciseVisualizer(canvas: HTMLCanvasElement, width: number, height: number): VisualizerHandle {
+// This rig has real bind-pose quirks, all discovered by rendering and
+// comparing screenshots rather than from the glTF JSON alone: non-identity
+// bind rotations on Hips/UpLeg (see riggedCharacter.ts's poseBone()), arms
+// extending along local +Y instead of +X, and facing away from the camera
+// by default (hence FACING_CORRECTION below).
+const MODEL_URL = `${import.meta.env.BASE_URL}models/soldier.glb`;
+const FACING_CORRECTION = Math.PI;
+
+const BONE_NAMES = {
+  hips: 'mixamorigHips',
+  spine: 'mixamorigSpine',
+  spine1: 'mixamorigSpine1',
+  neck: 'mixamorigNeck',
+  head: 'mixamorigHead',
+  lArm: 'mixamorigLeftArm',
+  lForeArm: 'mixamorigLeftForeArm',
+  lHand: 'mixamorigLeftHand',
+  rArm: 'mixamorigRightArm',
+  rForeArm: 'mixamorigRightForeArm',
+  rHand: 'mixamorigRightHand',
+  lUpLeg: 'mixamorigLeftUpLeg',
+  lLeg: 'mixamorigLeftLeg',
+  lFoot: 'mixamorigLeftFoot',
+  rUpLeg: 'mixamorigRightUpLeg',
+  rLeg: 'mixamorigRightLeg',
+  rFoot: 'mixamorigRightFoot',
+};
+
+// Bringing the arms down out of the T-pose is a local X rotation on this
+// rig (see flexCharacter.ts) — opposite base sign per side, since the
+// skeleton mirrors its arm bones' local axes left/right.
+const BASE_ARM_X_L = Math.PI / 2;
+const BASE_ARM_X_R = -Math.PI / 2;
+
+// The old hand-built rig was authored in real-world-ish meters (a standing
+// height of ~1.75m, e.g. ANCHOR.barHand.y = 2.15 reads as a realistic pull-
+// up bar height) — every ANCHOR constant above assumes that scale. Loading
+// the model at this target height keeps those anchors reading correctly
+// regardless of the glTF's native scale.
+const TARGET_HEIGHT = 1.75;
+
+export async function createExerciseVisualizer(
+  canvas: HTMLCanvasElement,
+  width: number,
+  height: number
+): Promise<VisualizerHandle> {
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x0b0e11);
   scene.fog = new THREE.Fog(0x0b0e11, 6, 15);
@@ -933,12 +990,34 @@ export function createExerciseVisualizer(canvas: HTMLCanvasElement, width: numbe
   controls.maxDistance = 6.5;
   controls.maxPolarAngle = Math.PI * 0.49;
 
+  // CAM_PRESETS were tuned for a standing character (rotX = 0). Exercises
+  // that lie prone, hang, or invert pitch the whole character by rotX
+  // around world X — and a *fixed* world-space camera position ends up, for
+  // large rotX, looking almost straight down the character's now-horizontal
+  // long axis instead of across it, which perspective-foreshortens the body
+  // into a shape that reads as "standing" even though the pitch is applied
+  // correctly (verified against the actual `character.rotation.x` value).
+  // Rotating each preset's camera offset by the exercise's own rotX keeps
+  // the *viewing angle relative to the body* constant regardless of
+  // orientation, the same way the fixed "side" preset only happens to work
+  // for prone poses by coincidence (its offset is perpendicular to the
+  // pitch axis).
+  let activeCameraPreset: CameraPreset = 'angle';
+  const camOffsetScratch = new THREE.Vector3();
+  function primaryRotX(id: string): number {
+    const ex = EXERCISES[id];
+    if (ex.custom && ex.customFn) return ex.customFn(0).rotX;
+    return ex.orient(0);
+  }
   function setCam(name: CameraPreset) {
+    activeCameraPreset = name;
     const c = CAM_PRESETS[name];
-    camera.position.set(...c.pos);
+    const rotX = primaryRotX(currentKey);
+    camOffsetScratch.set(c.pos[0] - c.target[0], c.pos[1] - c.target[1], c.pos[2] - c.target[2]);
+    camOffsetScratch.applyAxisAngle(new THREE.Vector3(1, 0, 0), rotX);
+    camera.position.set(c.target[0] + camOffsetScratch.x, c.target[1] + camOffsetScratch.y, c.target[2] + camOffsetScratch.z);
     controls.target.set(...c.target);
   }
-  setCam('angle');
 
   /* Lighting / ground */
   scene.add(new THREE.HemisphereLight(0x4a5a6a, 0x0a0d10, 0.55));
@@ -1000,213 +1079,51 @@ export function createExerciseVisualizer(canvas: HTMLCanvasElement, width: numbe
   scene.add(contactShadow);
 
   /* =======================================================================
-     CHARACTER RIG (pure single-axis hinge joints — this is what makes the
-     IK above exact: every joint bends on one axis only, and lateral stance
-     width comes from fixed joint offsets rather than an animated abduction
-     rotation, so there's no coupling between the two.)
+     CHARACTER — the outer `character` group is the exact same "pitch root"
+     the IK math above was written against: `character.position.set(0,
+     rootY, rootZ)` places the hip joint in world space, and
+     `character.rotation.x = rotX` reorients the whole rig (lying prone,
+     hanging, upside-down, etc.) as a single rigid rotation. Two more groups
+     get the loaded model into that frame without touching the IK math:
+     `facing` applies this asset's constant facing correction, and `root`
+     (the loaded scene) gets shifted so its own Hips bone — not the glTF's
+     native origin — sits at local (0,0,0), matching how the old hand-built
+     rig's hips.position was always (0,0,0) relative to `character`.
      ======================================================================= */
-  const SKIN = 0xe3b58f;
-  const matTorso = new THREE.MeshPhysicalMaterial({ color: 0x232a33, roughness: 0.45, metalness: 0.1, clearcoat: 0.25, clearcoatRoughness: 0.5 });
-  const matHips = new THREE.MeshPhysicalMaterial({ color: 0x1f262d, roughness: 0.45, metalness: 0.1, clearcoat: 0.25, clearcoatRoughness: 0.5 });
-  const matTrim = new THREE.MeshStandardMaterial({ color: 0x22c55e, roughness: 0.4, metalness: 0.25, emissive: 0x0c3a1f, emissiveIntensity: 0.4 });
-  const skinMat = () =>
-    new THREE.MeshPhysicalMaterial({
-      color: SKIN,
-      roughness: 0.4,
-      clearcoat: 0.35,
-      clearcoatRoughness: 0.35,
-      sheen: 1,
-      sheenColor: new THREE.Color(0xe8996b),
-      sheenRoughness: 0.6,
-    });
-  const matUpperArmL = skinMat();
-  const matUpperArmR = skinMat();
-  const matForearmL = skinMat();
-  const matForearmR = skinMat();
-  const matThighL = skinMat();
-  const matThighR = skinMat();
-  const matShinL = skinMat();
-  const matShinR = skinMat();
-  const matHead = new THREE.MeshPhysicalMaterial({ color: SKIN, roughness: 0.38, clearcoat: 0.4, clearcoatRoughness: 0.3, sheen: 1, sheenColor: new THREE.Color(0xe8996b), sheenRoughness: 0.5 });
-  const matHair = new THREE.MeshStandardMaterial({ color: 0x2b211c, roughness: 0.55, metalness: 0.05 });
-  const matEye = new THREE.MeshStandardMaterial({ color: 0x14181d, roughness: 0.3, metalness: 0.1 });
-  const matShoe = new THREE.MeshStandardMaterial({ color: 0x14181d, roughness: 0.5, metalness: 0.2 });
-  const matSole = new THREE.MeshStandardMaterial({ color: 0xe7ecf1, roughness: 0.7, metalness: 0.05 });
-
-  function addBone(parent: THREE.Object3D, length: number, radius: number, mat: THREE.Material, tags: string[], dir: number) {
-    const h = Math.max(length - 2 * radius, 0.02);
-    const mesh = new THREE.Mesh(new THREE.CapsuleGeometry(radius, h, 6, 12), mat);
-    mesh.position.set(0, (dir * length) / 2, 0);
-    mesh.castShadow = true;
-    mesh.receiveShadow = true;
-    mesh.userData.tags = tags;
-    parent.add(mesh);
-    const end = new THREE.Group();
-    end.position.set(0, dir * length, 0);
-    parent.add(end);
-    return { mesh, end };
-  }
-
   const character = new THREE.Group();
   scene.add(character);
+  const facing = new THREE.Group();
+  facing.rotation.y = FACING_CORRECTION;
+  character.add(facing);
 
-  const hips = new THREE.Group();
-  character.add(hips);
-  const hipsMesh = new THREE.Mesh(new RoundedBoxGeometry(0.28, 0.17, 0.19, 3, 0.045), matHips);
-  hipsMesh.userData.tags = ['core', 'glutes'];
-  hipsMesh.castShadow = hipsMesh.receiveShadow = true;
-  hips.add(hipsMesh);
-  // waistband trim — a thin accent band so the "shorts" read as apparel, not a block
-  const waistband = new THREE.Mesh(new RoundedBoxGeometry(0.285, 0.03, 0.195, 3, 0.014), matTrim);
-  waistband.position.set(0, 0.075, 0);
-  hips.add(waistband);
+  const rig: RiggedCharacter = await loadRiggedCharacter(
+    MODEL_URL,
+    BONE_NAMES,
+    { top: 'mixamorigHeadTop_End', foot: 'mixamorigLeftFoot' },
+    TARGET_HEIGHT
+  );
+  const { root, bones, skinnedMeshes } = rig;
+  root.updateMatrixWorld(true);
 
-  const torsoPivot = new THREE.Group();
-  hips.add(torsoPivot);
-  // torso tapers slightly (broader chest/shoulders, narrower waist) via two
-  // stacked rounded segments rather than one flat box
-  const torsoMesh = new THREE.Mesh(new RoundedBoxGeometry(0.3, L.torsoLen * 0.62, 0.19, 3, 0.05), matTorso);
-  torsoMesh.position.set(0, L.torsoLen * 0.31, 0);
-  torsoMesh.castShadow = torsoMesh.receiveShadow = true;
-  torsoMesh.userData.tags = ['chest', 'back', 'core'];
-  torsoPivot.add(torsoMesh);
-  const chestMesh = new THREE.Mesh(new RoundedBoxGeometry(0.335, L.torsoLen * 0.42, 0.205, 3, 0.055), matTorso);
-  chestMesh.position.set(0, L.torsoLen * 0.72, 0);
-  chestMesh.castShadow = chestMesh.receiveShadow = true;
-  chestMesh.userData.tags = ['chest', 'back', 'core'];
-  torsoPivot.add(chestMesh);
-  const collarTrim = new THREE.Mesh(new THREE.TorusGeometry(0.115, 0.011, 8, 20, Math.PI * 1.5), matTrim);
-  collarTrim.position.set(0, L.torsoLen * 0.97, 0.03);
-  collarTrim.rotation.set(Math.PI / 2, 0, Math.PI * 0.25);
-  torsoPivot.add(collarTrim);
-  const torsoEnd = new THREE.Group();
-  torsoEnd.position.set(0, L.torsoLen, 0);
-  torsoPivot.add(torsoEnd);
+  // Captured here, before `root` gets a parent below, so getWorldQuaternion
+  // gives an orientation independent of whatever outer pitch/facing
+  // transform gets applied to the character afterward. This asset's hand
+  // bones have an ~identity bind rotation relative to the forearm (verified
+  // by inspecting the raw glTF), and BONE_NAMES only maps as far as the
+  // hand, not fingers — so with no per-frame correction the hand would just
+  // rigidly track the forearm's rotation, swinging the palm to an arbitrary
+  // angle every time the elbow bends to reach an IK target. See
+  // applyHandOrientation() below for how this bind quaternion is used to
+  // fix that.
+  const lHandBindQuat = new THREE.Quaternion();
+  bones.lHand.object.getWorldQuaternion(lHandBindQuat);
+  const rHandBindQuat = new THREE.Quaternion();
+  bones.rHand.object.getWorldQuaternion(rHandBindQuat);
 
-  // short neck cylinder so the head doesn't look like it's floating on the shoulders
-  const neckMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.052, 0.062, 0.09, 14), matHead);
-  neckMesh.position.set(0, 0.045, 0);
-  neckMesh.castShadow = true;
-  torsoEnd.add(neckMesh);
-
-  const headJoint = new THREE.Group();
-  headJoint.position.set(0, 0.09, 0);
-  torsoEnd.add(headJoint);
-  const headMesh = new THREE.Mesh(new THREE.SphereGeometry(L.headR, 24, 18), matHead);
-  headMesh.position.set(0, L.headR, 0);
-  headMesh.scale.set(0.92, 1, 0.96);
-  headMesh.castShadow = true;
-  headJoint.add(headMesh);
-
-  // hair — a flattened, off-center sphere cap sitting on the crown/back of the head
-  const hairMesh = new THREE.Mesh(new THREE.SphereGeometry(L.headR * 1.05, 18, 14, 0, Math.PI * 2, 0, Math.PI * 0.62), matHair);
-  hairMesh.position.set(0, L.headR + 0.012, -0.006);
-  hairMesh.castShadow = true;
-  headJoint.add(hairMesh);
-
-  // simple friendly eyes + brows so the figure reads as a person, not a mannequin
-  ([-1, 1] as const).forEach((sign) => {
-    const eye = new THREE.Mesh(new THREE.SphereGeometry(0.013, 10, 8), matEye);
-    eye.position.set(sign * 0.05, L.headR + 0.01, -L.headR * 0.9);
-    headJoint.add(eye);
-    const brow = new THREE.Mesh(new RoundedBoxGeometry(0.045, 0.011, 0.012, 1, 0.005), matHair);
-    brow.position.set(sign * 0.05, L.headR + 0.045, -L.headR * 0.88);
-    brow.rotation.z = -sign * 0.12;
-    headJoint.add(brow);
-  });
-
-  function makeArm(sign: number) {
-    const matUp = sign > 0 ? matUpperArmL : matUpperArmR;
-    const matFo = sign > 0 ? matForearmL : matForearmR;
-    const shoulder = new THREE.Group();
-    shoulder.position.set(sign * L.shW, -0.04, 0);
-    torsoEnd.add(shoulder);
-    const sleeve = new THREE.Mesh(new THREE.TorusGeometry(0.062, 0.009, 8, 16), matTrim);
-    sleeve.position.set(0, -0.025, 0);
-    sleeve.rotation.x = Math.PI / 2;
-    shoulder.add(sleeve);
-    const upperArm = addBone(shoulder, L.upArm, 0.055, matUp, ['arms', 'shoulders'], -1);
-    const forearm = addBone(upperArm.end, L.foArm, 0.046, matFo, ['arms'], -1);
-    const hand = new THREE.Mesh(new THREE.SphereGeometry(0.048, 14, 12), matFo);
-    hand.scale.set(0.85, 1, 1.15);
-    hand.position.set(0, -0.035, 0);
-    hand.castShadow = true;
-    forearm.end.add(hand);
-    return { shoulder, elbow: upperArm.end, upperArmMesh: upperArm.mesh, forearmMesh: forearm.mesh };
-  }
-  const armL = makeArm(1);
-  const armR = makeArm(-1);
-
-  // Foot + ankle: a rounded shoe (upper + contrasting sole) hung off its own
-  // hinge so it can be kept flush with the ground/bar as the leg moves —
-  // see flatAnkle() above.
-  function makeFoot() {
-    const g = new THREE.Group();
-    const upper = new THREE.Mesh(new RoundedBoxGeometry(0.09, 0.075, L.footLen, 3, 0.028), matShoe);
-    upper.position.set(0, 0.014, L.footLen * 0.3);
-    upper.castShadow = upper.receiveShadow = true;
-    g.add(upper);
-    const sole = new THREE.Mesh(new RoundedBoxGeometry(0.096, 0.026, L.footLen + 0.02, 3, 0.012), matSole);
-    sole.position.set(0, -0.026, L.footLen * 0.3);
-    sole.castShadow = sole.receiveShadow = true;
-    g.add(sole);
-    return g;
-  }
-  function makeLeg(sign: number) {
-    const matTh = sign > 0 ? matThighL : matThighR;
-    const matSh = sign > 0 ? matShinL : matShinR;
-    const hipJ = new THREE.Group();
-    hipJ.position.set(sign * L.hipW, -0.06, 0);
-    hips.add(hipJ);
-    const shortsCuff = new THREE.Mesh(new RoundedBoxGeometry(0.135, 0.1, 0.135, 2, 0.03), matHips);
-    shortsCuff.position.set(0, -0.05, 0);
-    shortsCuff.castShadow = shortsCuff.receiveShadow = true;
-    hipJ.add(shortsCuff);
-    const thigh = addBone(hipJ, L.thigh, 0.078, matTh, ['legs', 'glutes'], -1);
-    const shin = addBone(thigh.end, L.shin, 0.058, matSh, ['legs'], -1);
-    const sock = new THREE.Mesh(new THREE.CylinderGeometry(0.062, 0.05, 0.09, 12), matSole);
-    sock.position.set(0, -L.shin + 0.075, 0);
-    sock.castShadow = sock.receiveShadow = true;
-    thigh.end.add(sock);
-    const ankleJ = new THREE.Group();
-    ankleJ.position.set(0, -0.01, 0);
-    shin.end.add(ankleJ);
-    const foot = makeFoot();
-    foot.position.set(0, -0.015, 0);
-    ankleJ.add(foot);
-    return { hipJ, kneeEnd: thigh.end, ankleJ, thighMesh: thigh.mesh, shinMesh: shin.mesh };
-  }
-  const legL = makeLeg(1);
-  const legR = makeLeg(-1);
-
-  const joints = {
-    torso: torsoPivot,
-    head: headJoint,
-    lShoulder: armL.shoulder,
-    lElbow: armL.elbow,
-    rShoulder: armR.shoulder,
-    rElbow: armR.elbow,
-    lHip: legL.hipJ,
-    lKnee: legL.kneeEnd,
-    lAnkle: legL.ankleJ,
-    rHip: legR.hipJ,
-    rKnee: legR.kneeEnd,
-    rAnkle: legR.ankleJ,
-  };
-
-  const taggedMeshes = [
-    torsoMesh,
-    chestMesh,
-    hipsMesh,
-    armL.upperArmMesh,
-    armL.forearmMesh,
-    armR.upperArmMesh,
-    armR.forearmMesh,
-    legL.thighMesh,
-    legL.shinMesh,
-    legR.thighMesh,
-    legR.shinMesh,
-  ];
+  const hipsWorld = new THREE.Vector3();
+  bones.hips.object.getWorldPosition(hipsWorld);
+  root.position.set(-hipsWorld.x, -hipsWorld.y, -hipsWorld.z);
+  facing.add(root);
 
   /* Props */
   const barMat = new THREE.MeshStandardMaterial({ color: 0x394450, roughness: 0.3, metalness: 0.7 });
@@ -1290,33 +1207,74 @@ export function createExerciseVisualizer(canvas: HTMLCanvasElement, width: numbe
     if (name && props[name]) props[name].visible = true;
   }
 
-  function applyPoseToRig(p: Pose) {
-    joints.torso.rotation.set(p.torso.x, 0, p.torso.z ?? 0);
-    joints.head.rotation.set(p.head.x, 0, 0);
-    joints.lShoulder.rotation.set(p.lShoulder.x, 0, p.lShoulder.z ?? 0);
-    joints.rShoulder.rotation.set(p.rShoulder.x, 0, p.rShoulder.z ?? 0);
-    joints.lElbow.rotation.set(p.lElbow.x, 0, 0);
-    joints.rElbow.rotation.set(p.rElbow.x, 0, 0);
-    joints.lHip.rotation.set(p.lHip.x, 0, p.lHip.z ?? 0);
-    joints.rHip.rotation.set(p.rHip.x, 0, p.rHip.z ?? 0);
-    joints.lKnee.rotation.set(p.lKnee.x, 0, 0);
-    joints.rKnee.rotation.set(p.rKnee.x, 0, 0);
-    joints.lAnkle.rotation.set(p.lAnkle.x, 0, 0);
-    joints.rAnkle.rotation.set(p.rAnkle.x, 0, 0);
+  // Maps each IK joint angle (computed against the hand-derived skeleton
+  // above) onto the loaded rig's bones. The arm mapping — base correction
+  // plus an opposite sign per side on both the shoulder's rotation and the
+  // elbow's — was derived and verified by rendering: this rig's left/right
+  // arm bones mirror their local axes, so a symmetric IK result (same angle
+  // fed to both sides) has to be applied with opposite sign to produce a
+  // symmetric *pose*. Legs, torso, and head needed no such flip and are
+  // passed through directly here too. The single torso pivot the IK math
+  // assumes is spread across two spine bones (60/40) for a smoother curve
+  // than dumping the whole rotation onto one joint.
+  const scratchOuterQuat = new THREE.Quaternion();
+  const scratchForearmQuat = new THREE.Quaternion();
+  const scratchDesiredQuat = new THREE.Quaternion();
+
+  // Locks a hand's WORLD orientation to its bind-pose orientation, rotated
+  // only by the body's current overall pitch/facing (`scratchOuterQuat`) —
+  // instead of rigidly inheriting whatever the forearm's rotation happens
+  // to be. This matches real wrist behavior for every exercise here: a hand
+  // on the ground or wrapped around a bar keeps roughly the same
+  // orientation regardless of how bent the elbow is, because it's the
+  // ground/bar dictating the hand's angle, not the elbow. Requires
+  // `forearm`'s world matrix to already reflect this frame's pose (see the
+  // updateMatrixWorld call below).
+  function applyHandOrientation(hand: RiggedBone, forearm: RiggedBone, bindWorldQuat: THREE.Quaternion) {
+    forearm.object.getWorldQuaternion(scratchForearmQuat);
+    scratchDesiredQuat.copy(scratchOuterQuat).multiply(bindWorldQuat);
+    hand.object.quaternion.copy(scratchForearmQuat.invert().multiply(scratchDesiredQuat));
   }
 
+  function applyPoseToRig(p: Pose) {
+    poseBone(bones.spine, p.torso.x * 0.6, 0, (p.torso.z ?? 0) * 0.6);
+    poseBone(bones.spine1, p.torso.x * 0.4, 0, (p.torso.z ?? 0) * 0.4);
+    poseBone(bones.head, p.head.x, 0, 0);
+    poseBone(bones.lArm, BASE_ARM_X_L - p.lShoulder.x, 0, p.lShoulder.z ?? 0);
+    poseBone(bones.rArm, BASE_ARM_X_R + p.rShoulder.x, 0, p.rShoulder.z ?? 0);
+    poseBone(bones.lForeArm, p.lElbow.x, 0, 0);
+    poseBone(bones.rForeArm, -p.rElbow.x, 0, 0);
+    poseBone(bones.lUpLeg, p.lHip.x, 0, p.lHip.z ?? 0);
+    poseBone(bones.rUpLeg, p.rHip.x, 0, p.rHip.z ?? 0);
+    poseBone(bones.lLeg, p.lKnee.x, 0, 0);
+    poseBone(bones.rLeg, p.rKnee.x, 0, 0);
+    poseBone(bones.lFoot, p.lAnkle.x, 0, 0);
+    poseBone(bones.rFoot, p.rAnkle.x, 0, 0);
+
+    character.updateMatrixWorld(true);
+    facing.getWorldQuaternion(scratchOuterQuat);
+    applyHandOrientation(bones.lHand, bones.lForeArm, lHandBindQuat);
+    applyHandOrientation(bones.rHand, bones.rForeArm, rHandBindQuat);
+  }
+
+  // The loaded model has only ~2 skinned meshes (not one mesh per limb like
+  // the old primitive rig), so muscle emphasis is a whole-body tint rather
+  // than per-limb — same approach as the flex character.
   const ACCENT_GLOW = new THREE.Color(0x22c55e);
   const BLACK = new THREE.Color(0x000000);
   function updateMuscleGlow(muscles: string[], phase: number) {
     const pulse = 0.35 + 0.65 * Math.pow(Math.abs(Math.sin(phase * Math.PI)), 1.4);
-    taggedMeshes.forEach((m) => {
-      const tags = m.userData.tags as string[];
-      const active = tags.some((t) => muscles.includes(t));
-      const target = active ? pulse : 0;
-      const mat = m.material as THREE.MeshStandardMaterial;
-      const cur = mat.emissiveIntensity || 0;
-      mat.emissiveIntensity = lerp(cur, target, 0.15);
-      mat.emissive.copy(active ? ACCENT_GLOW : BLACK);
+    const active = muscles.length > 0;
+    const target = active ? pulse : 0;
+    skinnedMeshes.forEach((mesh) => {
+      const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+      materials.forEach((m) => {
+        const mat = m as THREE.MeshStandardMaterial;
+        if (!('emissive' in mat)) return;
+        const cur = mat.emissiveIntensity || 0;
+        mat.emissiveIntensity = lerp(cur, target, 0.15);
+        mat.emissive.copy(active ? ACCENT_GLOW : BLACK);
+      });
     });
   }
 
@@ -1345,6 +1303,7 @@ export function createExerciseVisualizer(canvas: HTMLCanvasElement, width: numbe
     reps = 0;
     lastReportedReps = -1;
     setProp(EXERCISES[id].prop);
+    setCam(activeCameraPreset);
     notify(0);
   }
   selectExercise(currentKey);

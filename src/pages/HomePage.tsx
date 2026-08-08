@@ -4,11 +4,14 @@ import { SectionHeading } from '@/components/SectionHeading';
 import { DifficultyBadge } from '@/components/DifficultyBadge';
 import { EventStatusBadge } from '@/components/EventStatusBadge';
 import { EventModal } from '@/components/EventModal';
+import { TiltCard } from '@/components/TiltCard';
+import { FrameScrubSection } from '@/components/FrameScrubSection';
 import { benefits, programs } from '@/data/content';
 import { groupEventsByStatus, formatEventDateRange, getEventStatus } from '@/lib/events';
 import { useMyEnrollments } from '@/lib/enrollments';
 import { useRouter } from '@/lib/router';
 import { useReveal } from '@/lib/useReveal';
+import { useParallax } from '@/lib/useParallax';
 import type { FitnessEvent } from '@/data/types';
 
 const iconMap = { Dumbbell, Activity, Calendar, Move } as const;
@@ -26,6 +29,8 @@ export function HomePage() {
   const { ongoing, upcoming } = groupEventsByStatus();
   const spotlightEvents = [...ongoing, ...upcoming].slice(0, 3);
   const [selectedEvent, setSelectedEvent] = useState<FitnessEvent | null>(null);
+  const heroImgRef = useParallax<HTMLImageElement>();
+  const ctaImgRef = useParallax<HTMLImageElement>();
 
   return (
     <div>
@@ -33,6 +38,7 @@ export function HomePage() {
       <section className="relative overflow-hidden bg-gray-900 pt-24 sm:pt-28">
         <div className="absolute inset-0">
           <img
+            ref={heroImgRef}
             src="https://images.pexels.com/photos/4048236/pexels-photo-4048236.jpeg?auto=compress&cs=tinysrgb&h=900&w=1600"
             alt="Athlete performing a handstand outdoors"
             className="h-full w-full object-cover opacity-30"
@@ -46,7 +52,7 @@ export function HomePage() {
           <div className="max-w-3xl">
             <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-sm font-medium text-green-300 ring-1 ring-white/15 backdrop-blur">
               <span className="flex h-2 w-2 rounded-full bg-green-400" />
-              Calisthenics for India — train anywhere
+              Calisthenics for India - train anywhere
             </span>
             <h1 className="mt-6 font-display text-4xl font-extrabold leading-[1.05] tracking-tight text-white sm:text-6xl lg:text-7xl">
               No weights.
@@ -58,7 +64,7 @@ export function HomePage() {
               </span>
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-gray-300">
-              Born to Fire is your home for bodyweight training — beginner-friendly programs,
+              Born to Fire is your home for bodyweight training - beginner-friendly programs,
               guided exercises, and a community that helps you build real strength, no gym
               required.
             </p>
@@ -90,6 +96,9 @@ export function HomePage() {
         </div>
       </section>
 
+      {/* SCROLL-DRIVEN FLEX CHARACTER */}
+      <FrameScrubSection />
+
       {/* INTRODUCTION */}
       <section className="section-pad bg-white dark:bg-gray-900">
         <div ref={introRef} className="reveal container-x mx-auto">
@@ -98,14 +107,14 @@ export function HomePage() {
               <SectionHeading
                 eyebrow="Welcome to Born to Fire"
                 title="Your body is the only gym you'll ever need"
-                subtitle="We make calisthenics simple, safe, and approachable for everyone — from students on a budget to busy professionals to seniors wanting to stay active. Learn to move with strength and control using structured, progressive programs you can follow at home."
+                subtitle="We make calisthenics simple, safe, and approachable for everyone - from students on a budget to busy professionals to seniors wanting to stay active. Learn to move with strength and control using structured, progressive programs you can follow at home."
                 center={false}
               />
               <ul className="mt-8 space-y-4">
                 {[
                   'Step-by-step progressions for every level',
                   'Clear video guidance and form cues',
-                  'No equipment, no excuses — just you and gravity',
+                  'No equipment, no excuses - just you and gravity',
                 ].map((item) => (
                   <li key={item} className="flex items-start gap-3">
                     <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-green-100 dark:bg-green-500/15">
@@ -137,16 +146,13 @@ export function HomePage() {
           <SectionHeading
             eyebrow="Why Calisthenics"
             title="Benefits of training with your bodyweight"
-            subtitle="Calisthenics builds functional strength, mobility, and control — all without expensive equipment or gym memberships."
+            subtitle="Calisthenics builds functional strength, mobility, and control - all without expensive equipment or gym memberships."
           />
           <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {benefits.map((b) => {
               const Icon = iconMap[b.icon as keyof typeof iconMap];
               return (
-                <div
-                  key={b.title}
-                  className="card card-hover group p-6 text-center"
-                >
+                <TiltCard key={b.title} className="card card-hover group p-6 text-center">
                   <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-green-100 text-green-600 transition-colors duration-300 group-hover:bg-green-500 group-hover:text-white dark:bg-green-500/15 dark:text-green-400">
                     <Icon className="h-7 w-7" />
                   </span>
@@ -156,7 +162,7 @@ export function HomePage() {
                   <p className="mt-2 text-sm leading-relaxed text-gray-600 dark:text-gray-400">
                     {b.text}
                   </p>
-                </div>
+                </TiltCard>
               );
             })}
           </div>
@@ -173,7 +179,7 @@ export function HomePage() {
           />
           <div className="mt-12 grid gap-6 md:grid-cols-3">
             {programs.map((p) => (
-              <div key={p.id} className="card card-hover flex flex-col p-6">
+              <TiltCard key={p.id} className="card card-hover flex flex-col p-6">
                 <div className="flex items-center justify-between">
                   <DifficultyBadge level={p.difficulty} />
                   <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
@@ -192,7 +198,7 @@ export function HomePage() {
                 >
                   View program <ArrowRight className="h-4 w-4" />
                 </button>
-              </div>
+              </TiltCard>
             ))}
           </div>
         </div>
@@ -209,7 +215,7 @@ export function HomePage() {
             />
             <div className="mt-12 grid gap-6 md:grid-cols-3">
               {spotlightEvents.map((e) => (
-                <div
+                <TiltCard
                   key={e.id}
                   onClick={() => setSelectedEvent(e)}
                   onKeyDown={(ev) => {
@@ -241,7 +247,7 @@ export function HomePage() {
                   <p className="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-green-600 transition-colors dark:text-green-400">
                     View details <ArrowRight className="h-4 w-4" />
                   </p>
-                </div>
+                </TiltCard>
               ))}
             </div>
             <div className="mt-10 text-center">
@@ -259,24 +265,24 @@ export function HomePage() {
           <SectionHeading
             eyebrow="Stories"
             title="Loved by beginners across India"
-            subtitle="Real people, real progress — no matter where they started."
+            subtitle="Real people, real progress - no matter where they started."
           />
           <div className="mt-12 grid gap-6 md:grid-cols-3">
             {[
               {
-                name: 'Aarav, Student — Delhi',
+                name: 'Aarav, Student - Delhi',
                 text: 'I started with wall push-ups and could barely do 5. In 8 weeks I am doing clean pull-ups. The progressions just make sense.',
               },
               {
-                name: 'Priya, Professional — Bengaluru',
+                name: 'Priya, Professional - Bengaluru',
                 text: 'Working from home left me stiff and weak. The 20-minute sessions fit perfectly between meetings. I feel stronger every week.',
               },
               {
-                name: 'Mr. Rao, Retired — Hyderabad',
+                name: 'Mr. Rao, Retired - Hyderabad',
                 text: 'At 62 I wanted gentle movement. The beginner mobility work improved my balance and my knees feel better than they have in years.',
               },
             ].map((t) => (
-              <div key={t.name} className="card p-6">
+              <TiltCard key={t.name} className="card card-hover p-6">
                 <div className="flex gap-1 text-orange-400">
                   {Array.from({ length: 5 }).map((_, i) => (
                     <Star key={i} className="h-4 w-4 fill-current" />
@@ -286,7 +292,7 @@ export function HomePage() {
                   "{t.text}"
                 </p>
                 <p className="mt-4 text-sm font-semibold text-gray-900 dark:text-white">{t.name}</p>
-              </div>
+              </TiltCard>
             ))}
           </div>
         </div>
@@ -296,6 +302,7 @@ export function HomePage() {
       <section className="relative overflow-hidden bg-gray-900 py-20 sm:py-24">
         <div className="absolute inset-0">
           <img
+            ref={ctaImgRef}
             src="https://images.pexels.com/photos/10086629/pexels-photo-10086629.jpeg?auto=compress&cs=tinysrgb&h=900&w=1600"
             alt="Athlete performing a human flag"
             className="h-full w-full object-cover opacity-20"

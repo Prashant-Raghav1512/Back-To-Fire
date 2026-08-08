@@ -1,8 +1,11 @@
 import { useState } from 'react';
 import { Check, Sprout, Flame, Crown } from 'lucide-react';
 import { EnrollButton } from '@/components/EnrollButton';
+import { PaymentMethodSelector } from '@/components/PaymentMethodSelector';
+import { TiltCard } from '@/components/TiltCard';
 import { SectionHeading } from '@/components/SectionHeading';
 import { ageGroups, paidPlans } from '@/data/paidPlans';
+import { paymentMethods } from '@/data/paymentMethods';
 import { useMyEnrollments } from '@/lib/enrollments';
 import type { AgeGroupId, PlanTier } from '@/data/types';
 
@@ -10,6 +13,7 @@ const TIER_ICON: Record<PlanTier, typeof Sprout> = { Basic: Sprout, Standard: Fl
 
 export function MembershipPlans() {
   const [activeGroup, setActiveGroup] = useState<AgeGroupId>('adults');
+  const [selectedMethods, setSelectedMethods] = useState<Record<string, string>>({});
   const { isEnrolledIn, refresh } = useMyEnrollments();
 
   const group = ageGroups.find((g) => g.id === activeGroup)!;
@@ -20,7 +24,7 @@ export function MembershipPlans() {
       <SectionHeading
         eyebrow="Paid coaching"
         title="Membership plans for every age group"
-        subtitle="Calisthenics lessons, access to your nearest gym branch, and a diet plan on every plan — 1-on-1 personal training on Premium."
+        subtitle="Calisthenics lessons, access to your nearest gym branch, and a diet plan on every plan - 1-on-1 personal training on Premium."
       />
 
       <div className="mt-8 flex flex-wrap justify-center gap-2">
@@ -44,8 +48,11 @@ export function MembershipPlans() {
         {plans.map((plan) => {
           const Icon = TIER_ICON[plan.tier];
           const featured = plan.tier === 'Premium';
+          const enrolled = isEnrolledIn('program', plan.id);
+          const selectedMethodId = selectedMethods[plan.id] ?? null;
+          const selectedMethodLabel = paymentMethods.find((m) => m.id === selectedMethodId)?.label;
           return (
-            <div
+            <TiltCard
               key={plan.id}
               className={`card card-hover relative flex flex-col p-7 ${
                 featured ? 'ring-2 ring-green-500 lg:scale-[1.03]' : ''
@@ -80,17 +87,33 @@ export function MembershipPlans() {
                   </li>
                 ))}
               </ul>
+
+              {!enrolled && (
+                <div className="mt-6">
+                  <PaymentMethodSelector
+                    selected={selectedMethodId}
+                    onSelect={(id) => setSelectedMethods((prev) => ({ ...prev, [plan.id]: id }))}
+                  />
+                </div>
+              )}
+
               <EnrollButton
                 itemType="program"
                 itemId={plan.id}
                 itemTitle={plan.title}
-                itemDetail={`₹${plan.price.toLocaleString('en-IN')}/mo · ${group.label} · ${plan.tier}`}
-                enrolled={isEnrolledIn('program', plan.id)}
+                itemDetail={`₹${plan.price.toLocaleString('en-IN')}/mo · ${group.label} · ${plan.tier}${
+                  selectedMethodLabel ? ` · Pay via ${selectedMethodLabel}` : ''
+                }`}
+                enrolled={enrolled}
+                disabled={!enrolled && !selectedMethodId}
                 onEnrolled={refresh}
                 label={`Choose ${plan.tier}`}
-                className={`mt-6 w-full ${featured ? 'btn-primary' : 'btn-outline'}`}
+                className={`mt-4 w-full ${featured ? 'btn-primary' : 'btn-outline'}`}
               />
-            </div>
+              {!enrolled && !selectedMethodId && (
+                <p className="mt-2 text-center text-xs text-gray-400">Select a payment method to continue</p>
+              )}
+            </TiltCard>
           );
         })}
       </div>

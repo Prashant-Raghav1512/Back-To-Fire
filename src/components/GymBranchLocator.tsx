@@ -1,4 +1,5 @@
 import { MapPin, Navigation, Phone, Clock, Loader2 } from 'lucide-react';
+import { TiltCard } from '@/components/TiltCard';
 import { useNearestBranches } from '@/lib/gymBranches';
 
 export function GymBranchLocator() {
@@ -34,7 +35,7 @@ export function GymBranchLocator() {
 
       {status === 'unsupported' && (
         <p className="mt-3 text-sm text-orange-500">
-          Your browser doesn't support location — browse the list below instead.
+          Your browser doesn't support location - browse the list below instead.
         </p>
       )}
       {status === 'error' && (
@@ -43,7 +44,7 @@ export function GymBranchLocator() {
 
       <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {branches.map((b, i) => (
-          <div key={b.id} className={`card p-5 ${status === 'done' && i === 0 ? 'ring-2 ring-green-500' : ''}`}>
+          <TiltCard key={b.id} className={`card card-hover p-5 ${status === 'done' && i === 0 ? 'ring-2 ring-green-500' : ''}`}>
             {status === 'done' && i === 0 && (
               <span className="badge mb-2 bg-green-100 text-green-700 dark:bg-green-500/15 dark:text-green-400">
                 Nearest to you
@@ -69,7 +70,7 @@ export function GymBranchLocator() {
                 {b.distanceKm.toFixed(1)} km away
               </p>
             )}
-          </div>
+          </TiltCard>
         ))}
       </div>
     </div>

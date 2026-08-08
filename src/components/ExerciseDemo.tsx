@@ -27,30 +27,42 @@ export function ExerciseDemo() {
 
   // Mount the three.js scene once. A fresh <canvas> per mount (React key
   // never changes here) plus full disposal in the cleanup keeps this safe
-  // under StrictMode's dev-only double-invoke.
+  // under StrictMode's dev-only double-invoke. Model loading is async, so
+  // the cleanup can fire before it resolves — the `cancelled` flag disposes
+  // the handle immediately instead of leaking it in that case.
   useEffect(() => {
     const container = containerRef.current;
     const canvas = canvasRef.current;
     if (!container || !canvas) return;
 
+    let cancelled = false;
+    let resizeObserver: ResizeObserver | null = null;
+    let unsubscribe: (() => void) | null = null;
+
     const { clientWidth, clientHeight } = container;
-    const handle = createExerciseVisualizer(canvas, clientWidth || 800, clientHeight || 520);
-    handleRef.current = handle;
+    createExerciseVisualizer(canvas, clientWidth || 800, clientHeight || 520).then((handle) => {
+      if (cancelled) {
+        handle.dispose();
+        return;
+      }
+      handleRef.current = handle;
 
-    const unsubscribe = handle.subscribe(setState);
+      unsubscribe = handle.subscribe(setState);
 
-    const resizeObserver = new ResizeObserver((entries) => {
-      const entry = entries[0];
-      if (!entry) return;
-      const { width, height } = entry.contentRect;
-      handle.resize(width, height);
+      resizeObserver = new ResizeObserver((entries) => {
+        const entry = entries[0];
+        if (!entry) return;
+        const { width, height } = entry.contentRect;
+        handle.resize(width, height);
+      });
+      resizeObserver.observe(container);
     });
-    resizeObserver.observe(container);
 
     return () => {
-      unsubscribe();
-      resizeObserver.disconnect();
-      handle.dispose();
+      cancelled = true;
+      unsubscribe?.();
+      resizeObserver?.disconnect();
+      handleRef.current?.dispose();
       handleRef.current = null;
     };
   }, []);

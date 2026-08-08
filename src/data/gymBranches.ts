@@ -6,7 +6,7 @@ import type { GymBranch } from '@/data/types';
 export const gymBranches: GymBranch[] = [
   {
     id: 'indiranagar',
-    name: 'Born to Fire — Indiranagar (HQ)',
+    name: 'Born to Fire - Indiranagar (HQ)',
     locality: 'Indiranagar',
     address: '100 Feet Road, Indiranagar, Bengaluru, Karnataka 560038',
     phone: '+91 98765 43210',
@@ -16,7 +16,7 @@ export const gymBranches: GymBranch[] = [
   },
   {
     id: 'koramangala',
-    name: 'Born to Fire — Koramangala',
+    name: 'Born to Fire - Koramangala',
     locality: 'Koramangala',
     address: '5th Block, Koramangala, Bengaluru, Karnataka 560095',
     phone: '+91 98765 43211',
@@ -26,7 +26,7 @@ export const gymBranches: GymBranch[] = [
   },
   {
     id: 'whitefield',
-    name: 'Born to Fire — Whitefield',
+    name: 'Born to Fire - Whitefield',
     locality: 'Whitefield',
     address: 'ITPL Main Road, Whitefield, Bengaluru, Karnataka 560066',
     phone: '+91 98765 43212',
@@ -36,7 +36,7 @@ export const gymBranches: GymBranch[] = [
   },
   {
     id: 'hsr-layout',
-    name: 'Born to Fire — HSR Layout',
+    name: 'Born to Fire - HSR Layout',
     locality: 'HSR Layout',
     address: '27th Main, HSR Layout, Bengaluru, Karnataka 560102',
     phone: '+91 98765 43213',
@@ -46,7 +46,7 @@ export const gymBranches: GymBranch[] = [
   },
   {
     id: 'jayanagar',
-    name: 'Born to Fire — Jayanagar',
+    name: 'Born to Fire - Jayanagar',
     locality: 'Jayanagar',
     address: '4th Block, Jayanagar, Bengaluru, Karnataka 560011',
     phone: '+91 98765 43214',
