@@ -33,7 +33,7 @@ export function HomeFrameBackground() {
     let rafId = 0;
     let cleanupScroll: (() => void) | null = null;
 
-    const handle = createFrameScrubber(canvas, FRAME_URLS, window.innerWidth, window.innerHeight);
+    const handle = createFrameScrubber(canvas, FRAME_URLS, window.innerWidth, window.innerHeight, 'contain');
     handleRef.current = handle;
 
     resizeObserver = new ResizeObserver(() => handle.resize(window.innerWidth, window.innerHeight));

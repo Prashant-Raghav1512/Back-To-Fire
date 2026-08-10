@@ -22,7 +22,8 @@ export function createFrameScrubber(
   canvas: HTMLCanvasElement,
   frameUrls: string[],
   width: number,
-  height: number
+  height: number,
+  fit: 'cover' | 'contain' = 'cover'
 ): FrameScrubHandle {
   const ctx = canvas.getContext('2d')!;
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -52,13 +53,21 @@ export function createFrameScrubber(
     )
   ).then(() => undefined);
 
-  // Cover-fit: scale so the frame fills the canvas, cropping overflow —
-  // matches CSS object-fit: cover, since these frames are a fixed 16:9
-  // source that needs to fill whatever aspect ratio the section has.
-  function drawCover(img: HTMLImageElement) {
+  // Cover-fit (default): scale so the frame fills the canvas, cropping
+  // overflow — matches CSS object-fit: cover. Contain-fit: scale so the
+  // WHOLE frame is always visible, letterboxed instead of cropped — matches
+  // object-fit: contain. Both apply a single uniform scale to width and
+  // height, so neither ever distorts/stretches the frame; contain-fit is
+  // what HomeFrameBackground uses specifically because cover-fit's crop
+  // gets aggressive on tall viewports (a 16:9 source covering a narrow,
+  // very tall portrait screen), which reads as an ugly, over-zoomed crop.
+  function drawFrame(img: HTMLImageElement) {
     const cw = canvas.width;
     const ch = canvas.height;
-    const scale = Math.max(cw / img.naturalWidth, ch / img.naturalHeight);
+    const scale =
+      fit === 'contain'
+        ? Math.min(cw / img.naturalWidth, ch / img.naturalHeight)
+        : Math.max(cw / img.naturalWidth, ch / img.naturalHeight);
     const dw = img.naturalWidth * scale;
     const dh = img.naturalHeight * scale;
     ctx.drawImage(img, (cw - dw) / 2, (ch - dh) / 2, dw, dh);
@@ -75,11 +84,11 @@ export function createFrameScrubber(
     if (!imgA) return;
     ctx.globalAlpha = 1;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    drawCover(imgA);
+    drawFrame(imgA);
     const imgB = images[indexB];
     if (imgB && indexB !== indexA && alpha > 0.001) {
       ctx.globalAlpha = alpha;
-      drawCover(imgB);
+      drawFrame(imgB);
       ctx.globalAlpha = 1;
     }
   }
