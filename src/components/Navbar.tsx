@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Menu, X, Moon, Sun, ClipboardList } from 'lucide-react';
+import { Menu, X, Moon, Sun, CircleUser } from 'lucide-react';
 import { SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/clerk-react';
 import { Logo } from './Logo';
 import { navLinks } from '@/data/content';
@@ -89,8 +89,8 @@ export function Navbar() {
             <UserButton afterSignOutUrl={window.location.pathname}>
               <UserButton.MenuItems>
                 <UserButton.Action
-                  label="My Enrollments"
-                  labelIcon={<ClipboardList className="h-4 w-4" />}
+                  label="My Profile"
+                  labelIcon={<CircleUser className="h-4 w-4" />}
                   onClick={() => navigate('/profile')}
                 />
               </UserButton.MenuItems>
