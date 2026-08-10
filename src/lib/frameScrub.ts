@@ -1,5 +1,6 @@
-// Scroll-scrubbed image-sequence player, used by FrameScrubSection.tsx on the
-// Home page in place of the earlier three.js flex character — this is a real
+// Scroll-scrubbed image-sequence player, used by HomeFrameBackground.tsx as
+// the Home page's full-page background in place of the earlier three.js
+// flex character — this is a real
 // captured video (extracted to public/frames/flex-transition/), not a
 // rendered pose, so it plays back on a plain 2D canvas instead. Framework-
 // agnostic on purpose, matching flexCharacter.ts/exerciseVisualizer.ts:

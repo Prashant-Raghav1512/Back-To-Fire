@@ -6,13 +6,12 @@ import { EventStatusBadge } from '@/components/EventStatusBadge';
 import { EventModal } from '@/components/EventModal';
 import { TiltCard } from '@/components/TiltCard';
 import { AnimatedCounter } from '@/components/AnimatedCounter';
-import { FrameScrubSection } from '@/components/FrameScrubSection';
+import { HomeFrameBackground } from '@/components/HomeFrameBackground';
 import { benefits, programs } from '@/data/content';
 import { groupEventsByStatus, formatEventDateRange, getEventStatus } from '@/lib/events';
 import { useMyEnrollments } from '@/lib/enrollments';
 import { useRouter } from '@/lib/router';
 import { useReveal } from '@/lib/useReveal';
-import { useParallax } from '@/lib/useParallax';
 import { useMagnetic } from '@/lib/useMagnetic';
 import type { FitnessEvent } from '@/data/types';
 
@@ -32,28 +31,22 @@ export function HomePage() {
   const { ongoing, upcoming } = groupEventsByStatus();
   const spotlightEvents = [...ongoing, ...upcoming].slice(0, 3);
   const [selectedEvent, setSelectedEvent] = useState<FitnessEvent | null>(null);
-  const heroImgRef = useParallax<HTMLImageElement>();
-  const ctaImgRef = useParallax<HTMLImageElement>();
   const heroCtaRef = useMagnetic<HTMLSpanElement>();
   const closingCtaRef = useMagnetic<HTMLSpanElement>();
 
   return (
-    <div>
-      {/* HERO */}
-      <section className="relative overflow-hidden bg-gray-900 pt-24 sm:pt-28">
-        <div className="absolute inset-0">
-          <img
-            ref={heroImgRef}
-            src={`${import.meta.env.BASE_URL}hero-home.jpg`}
-            alt="Athlete performing a handstand outdoors"
-            className="h-full w-full object-cover opacity-30"
-          />
-          <div className="absolute inset-0 bg-gradient-to-br from-gray-900/95 via-gray-900/80 to-green-900/60" />
-          <div className="hero-glow absolute -left-20 top-20 h-72 w-72 rounded-full bg-green-500/30 blur-3xl" />
-          <div className="hero-glow absolute -right-10 bottom-0 h-80 w-80 rounded-full bg-orange-500/20 blur-3xl" />
-        </div>
+    // Forces this page's existing dark: styling on unconditionally, since
+    // the frame-scrub sequence is now the page's background throughout —
+    // Tailwind's class-strategy dark mode matches any ancestor with this
+    // class, not just <html>, so it's scoped to just the Home page and
+    // doesn't touch the site-wide light/dark toggle used on every other
+    // page.
+    <div className="dark relative">
+      <HomeFrameBackground />
 
-        <div ref={heroRef} className="reveal relative container-x mx-auto px-5 pb-20 sm:px-8 sm:pb-28 lg:pb-32">
+      {/* HERO */}
+      <section className="relative pt-24 sm:pt-28">
+        <div ref={heroRef} className="reveal relative z-10 container-x mx-auto px-5 pb-20 sm:px-8 sm:pb-28 lg:pb-32">
           <div className="max-w-3xl">
             <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-sm font-medium text-green-300 ring-1 ring-white/15 backdrop-blur">
               <span className="flex h-2 w-2 rounded-full bg-green-400" />
@@ -105,11 +98,8 @@ export function HomePage() {
         </div>
       </section>
 
-      {/* SCROLL-DRIVEN FLEX CHARACTER */}
-      <FrameScrubSection />
-
       {/* INTRODUCTION */}
-      <section className="section-pad bg-white dark:bg-gray-900">
+      <section className="section-pad relative z-10">
         <div ref={introRef} className="reveal container-x mx-auto">
           <div className="grid items-center gap-12 lg:grid-cols-2">
             <div>
@@ -152,7 +142,7 @@ export function HomePage() {
       </section>
 
       {/* BENEFITS */}
-      <section className="section-pad bg-gray-50 dark:bg-gray-950">
+      <section className="section-pad relative z-10">
         <div ref={benefitsRef} className="reveal container-x mx-auto">
           <SectionHeading
             eyebrow="Why Calisthenics"
@@ -181,7 +171,7 @@ export function HomePage() {
       </section>
 
       {/* FEATURED PROGRAMS */}
-      <section className="section-pad bg-white dark:bg-gray-900">
+      <section className="section-pad relative z-10">
         <div ref={programsRef} className="reveal container-x mx-auto">
           <SectionHeading
             eyebrow="Featured Programs"
@@ -217,7 +207,7 @@ export function HomePage() {
 
       {/* EVENTS SPOTLIGHT */}
       {spotlightEvents.length > 0 && (
-        <section className="section-pad bg-white dark:bg-gray-900">
+        <section className="section-pad relative z-10">
           <div ref={eventsRef} className="reveal container-x mx-auto">
             <SectionHeading
               eyebrow="Community"
@@ -271,7 +261,7 @@ export function HomePage() {
       )}
 
       {/* TESTIMONIALS */}
-      <section className="section-pad bg-gray-50 dark:bg-gray-950">
+      <section className="section-pad relative z-10">
         <div ref={testimonialsRef} className="reveal container-x mx-auto">
           <SectionHeading
             eyebrow="Stories"
@@ -322,16 +312,7 @@ export function HomePage() {
       </section>
 
       {/* CLOSING CTA */}
-      <section className="relative overflow-hidden bg-gray-900 py-20 sm:py-24">
-        <div className="absolute inset-0">
-          <img
-            ref={ctaImgRef}
-            src={`${import.meta.env.BASE_URL}hero-home-cta.jpg`}
-            alt="Athlete performing a human flag"
-            className="h-full w-full object-cover opacity-20"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-gray-900 via-gray-900/90 to-green-900/70" />
-        </div>
+      <section className="relative z-10 py-20 sm:py-24">
         <div ref={ctaRef} className="reveal relative container-x mx-auto px-5 text-center sm:px-8">
           <h2 className="mx-auto max-w-2xl font-display text-3xl font-extrabold leading-tight text-white sm:text-5xl">
             Your fitness journey starts with one rep.
