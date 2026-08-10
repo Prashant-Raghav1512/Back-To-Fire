@@ -40,8 +40,12 @@ export function ExerciseModal({ exercise, onClose }: ExerciseModalProps) {
         className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-3xl bg-white shadow-2xl dark:bg-gray-800"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="relative h-64 shrink-0">
-          <img src={exercise.image} alt={exercise.name} className="h-full w-full object-cover" />
+        <div className="group relative h-64 shrink-0 overflow-hidden">
+          <img
+            src={exercise.image}
+            alt={exercise.name}
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+          />
           <div className="absolute inset-0 bg-gradient-to-t from-gray-900/80 to-transparent" />
           <button
             onClick={onClose}

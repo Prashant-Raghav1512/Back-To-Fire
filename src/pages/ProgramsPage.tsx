@@ -52,7 +52,7 @@ export function ProgramsPage() {
             title="Three paths. One goal - mastery."
             subtitle="Each program is a complete journey with clear weekly progressions, rest days, and milestones."
           />
-          <div className="mt-12 grid gap-6 lg:grid-cols-3">
+          <div className="mt-12 grid gap-6 lg:grid-cols-3 stagger-children">
             {programs.map((p) => {
               const Icon = iconMap[p.icon as keyof typeof iconMap];
               const featured = p.difficulty === 'Intermediate';
@@ -124,7 +124,7 @@ export function ProgramsPage() {
               eyebrow="How it works"
               title="Simple, structured, sustainable"
             />
-            <div className="mt-10 grid gap-6 sm:grid-cols-3">
+            <div className="mt-10 grid gap-6 sm:grid-cols-3 stagger-children">
               {[
                 { icon: BarChart3, step: '01', title: 'Assess your level', text: 'Take a quick self-test to find the right starting tier.' },
                 { icon: Clock, step: '02', title: 'Follow the plan', text: 'Train 3-5 days a week with guided sessions and built-in rest.' },

@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { ArrowRight, Dumbbell, Activity, Calendar, Move, Check, Star, Users, Clock, MapPin } from 'lucide-react';
+import { ArrowRight, Dumbbell, Activity, Calendar, Move, Check, Star, Clock, MapPin } from 'lucide-react';
 import { SectionHeading } from '@/components/SectionHeading';
 import { DifficultyBadge } from '@/components/DifficultyBadge';
 import { EventStatusBadge } from '@/components/EventStatusBadge';
 import { EventModal } from '@/components/EventModal';
 import { TiltCard } from '@/components/TiltCard';
+import { AnimatedCounter } from '@/components/AnimatedCounter';
 import { FrameScrubSection } from '@/components/FrameScrubSection';
 import { benefits, programs } from '@/data/content';
 import { groupEventsByStatus, formatEventDateRange, getEventStatus } from '@/lib/events';
@@ -12,6 +13,7 @@ import { useMyEnrollments } from '@/lib/enrollments';
 import { useRouter } from '@/lib/router';
 import { useReveal } from '@/lib/useReveal';
 import { useParallax } from '@/lib/useParallax';
+import { useMagnetic } from '@/lib/useMagnetic';
 import type { FitnessEvent } from '@/data/types';
 
 const iconMap = { Dumbbell, Activity, Calendar, Move } as const;
@@ -23,6 +25,7 @@ export function HomePage() {
   const benefitsRef = useReveal<HTMLDivElement>();
   const programsRef = useReveal<HTMLDivElement>();
   const eventsRef = useReveal<HTMLDivElement>();
+  const testimonialsRef = useReveal<HTMLDivElement>();
   const ctaRef = useReveal<HTMLDivElement>();
   const { isEnrolledIn, refresh } = useMyEnrollments();
 
@@ -31,6 +34,8 @@ export function HomePage() {
   const [selectedEvent, setSelectedEvent] = useState<FitnessEvent | null>(null);
   const heroImgRef = useParallax<HTMLImageElement>();
   const ctaImgRef = useParallax<HTMLImageElement>();
+  const heroCtaRef = useMagnetic<HTMLSpanElement>();
+  const closingCtaRef = useMagnetic<HTMLSpanElement>();
 
   return (
     <div>
@@ -69,9 +74,11 @@ export function HomePage() {
               required.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <button onClick={() => navigate('/programs')} className="btn-primary text-base">
-                Explore Programs <ArrowRight className="h-5 w-5" />
-              </button>
+              <span ref={heroCtaRef} className="inline-block">
+                <button onClick={() => navigate('/programs')} className="btn-primary text-base">
+                  Explore Programs <ArrowRight className="h-5 w-5" />
+                </button>
+              </span>
               <button
                 onClick={() => navigate('/exercises')}
                 className="inline-flex items-center justify-center gap-2 rounded-full border-2 border-white/25 px-6 py-3 font-semibold text-white backdrop-blur transition-all duration-300 hover:border-white/60 hover:bg-white/10 active:scale-95"
@@ -81,16 +88,18 @@ export function HomePage() {
             </div>
 
             <div className="mt-12 flex flex-wrap gap-8 text-white">
-              {[
-                { Icon: Users, label: '10,000+ members' },
-                { Icon: Activity, label: '50+ exercises' },
-                { Icon: Clock, label: '20-60 min sessions' },
-              ].map(({ Icon, label }) => (
-                <div key={label} className="flex items-center gap-2 text-sm text-gray-300">
-                  <Icon className="h-5 w-5 text-green-400" />
-                  {label}
-                </div>
-              ))}
+              <div className="flex items-center gap-2 text-sm text-gray-300">
+                <MapPin className="h-5 w-5 text-green-400" />
+                <AnimatedCounter end={25} suffix="+" /> Gyms Across India
+              </div>
+              <div className="flex items-center gap-2 text-sm text-gray-300">
+                <Activity className="h-5 w-5 text-green-400" />
+                <AnimatedCounter end={50} suffix="+" /> exercises
+              </div>
+              <div className="flex items-center gap-2 text-sm text-gray-300">
+                <Clock className="h-5 w-5 text-green-400" />
+                20-60 min sessions
+              </div>
             </div>
           </div>
         </div>
@@ -128,12 +137,15 @@ export function HomePage() {
                 Learn more <ArrowRight className="h-4 w-4" />
               </button>
             </div>
-            <div className="relative">
-              <img
-                src={`${import.meta.env.BASE_URL}pushup-home.jpg`}
-                alt="Person doing push-ups at home"
-                className="w-full"
-              />
+            <div className="relative mx-auto aspect-square w-full max-w-md">
+              <div className="absolute -inset-4 rounded-full bg-gradient-to-br from-green-400/30 to-orange-400/20 blur-xl" />
+              <div className="group relative h-full w-full overflow-hidden rounded-full shadow-2xl ring-4 ring-white dark:ring-gray-800">
+                <img
+                  src={`${import.meta.env.BASE_URL}pushup-home.jpg`}
+                  alt="Person doing push-ups at home"
+                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -147,7 +159,7 @@ export function HomePage() {
             title="Benefits of training with your bodyweight"
             subtitle="Calisthenics builds functional strength, mobility, and control - all without expensive equipment or gym memberships."
           />
-          <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4 stagger-children">
             {benefits.map((b) => {
               const Icon = iconMap[b.icon as keyof typeof iconMap];
               return (
@@ -176,7 +188,7 @@ export function HomePage() {
             title="Find the program that fits your level"
             subtitle="Structured, progressive training plans designed to take you from day one to mastery."
           />
-          <div className="mt-12 grid gap-6 md:grid-cols-3">
+          <div className="mt-12 grid gap-6 md:grid-cols-3 stagger-children">
             {programs.map((p) => (
               <TiltCard key={p.id} className="card card-hover flex flex-col p-6">
                 <div className="flex items-center justify-between">
@@ -212,7 +224,7 @@ export function HomePage() {
               title="Train with others, not just alone"
               subtitle="Live challenges, workshops, and in-person meetups happening now and coming up."
             />
-            <div className="mt-12 grid gap-6 md:grid-cols-3">
+            <div className="mt-12 grid gap-6 md:grid-cols-3 stagger-children">
               {spotlightEvents.map((e) => (
                 <TiltCard
                   key={e.id}
@@ -260,25 +272,28 @@ export function HomePage() {
 
       {/* TESTIMONIALS */}
       <section className="section-pad bg-gray-50 dark:bg-gray-950">
-        <div className="container-x mx-auto">
+        <div ref={testimonialsRef} className="reveal container-x mx-auto">
           <SectionHeading
             eyebrow="Stories"
             title="Loved by beginners across India"
             subtitle="Real people, real progress - no matter where they started."
           />
-          <div className="mt-12 grid gap-6 md:grid-cols-3">
+          <div className="mt-12 grid gap-6 md:grid-cols-3 stagger-children">
             {[
               {
                 name: 'Aarav, Student - Delhi',
                 text: 'I started with wall push-ups and could barely do 5. In 8 weeks I am doing clean pull-ups. The progressions just make sense.',
+                photo: 'testimonial-aarav.jpg',
               },
               {
                 name: 'Priya, Professional - Bengaluru',
                 text: 'Working from home left me stiff and weak. The 20-minute sessions fit perfectly between meetings. I feel stronger every week.',
+                photo: 'testimonial-priya.jpg',
               },
               {
                 name: 'Mr. Rao, Retired - Hyderabad',
                 text: 'At 62 I wanted gentle movement. The beginner mobility work improved my balance and my knees feel better than they have in years.',
+                photo: 'testimonial-rao.jpg',
               },
             ].map((t) => (
               <TiltCard key={t.name} className="card card-hover p-6">
@@ -290,7 +305,16 @@ export function HomePage() {
                 <p className="mt-4 text-sm leading-relaxed text-gray-700 dark:text-gray-300">
                   "{t.text}"
                 </p>
-                <p className="mt-4 text-sm font-semibold text-gray-900 dark:text-white">{t.name}</p>
+                <div className="mt-4 flex items-center gap-3">
+                  <div className="group h-11 w-11 shrink-0 overflow-hidden rounded-full ring-2 ring-white dark:ring-gray-700">
+                    <img
+                      src={`${import.meta.env.BASE_URL}${t.photo}`}
+                      alt={t.name}
+                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    />
+                  </div>
+                  <p className="text-sm font-semibold text-gray-900 dark:text-white">{t.name}</p>
+                </div>
               </TiltCard>
             ))}
           </div>
@@ -317,9 +341,11 @@ export function HomePage() {
             feel the difference in four weeks.
           </p>
           <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-            <button onClick={() => navigate('/programs')} className="btn-primary text-base">
-              Start your journey <ArrowRight className="h-5 w-5" />
-            </button>
+            <span ref={closingCtaRef} className="inline-block">
+              <button onClick={() => navigate('/programs')} className="btn-primary text-base">
+                Start your journey <ArrowRight className="h-5 w-5" />
+              </button>
+            </span>
             <button
               onClick={() => navigate('/contact')}
               className="inline-flex items-center justify-center gap-2 rounded-full border-2 border-white/25 px-6 py-3 font-semibold text-white transition-all duration-300 hover:border-white/60 hover:bg-white/10 active:scale-95"

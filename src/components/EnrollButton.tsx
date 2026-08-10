@@ -31,6 +31,7 @@ export function EnrollButton({
   const { openSignIn } = useClerk();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [justEnrolled, setJustEnrolled] = useState(false);
 
   const handleClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -52,6 +53,10 @@ export function EnrollButton({
         itemDetail,
       });
       onEnrolled();
+      // Brief confirmation bounce so the "Enrolled" state reads as an event
+      // that just happened, not just a label that silently changed.
+      setJustEnrolled(true);
+      setTimeout(() => setJustEnrolled(false), 400);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
     } finally {
@@ -64,7 +69,9 @@ export function EnrollButton({
       <button
         onClick={handleClick}
         disabled={submitting || enrolled || (isSignedIn && disabled)}
-        className={className ?? 'btn-primary w-full disabled:cursor-not-allowed disabled:opacity-70'}
+        className={`${className ?? 'btn-primary w-full disabled:cursor-not-allowed disabled:opacity-70'} ${
+          justEnrolled ? 'animate-success-pop' : ''
+        }`}
       >
         {enrolled ? (
           <>

@@ -32,8 +32,12 @@ export function ExerciseGuide() {
       </div>
 
       <div className="grid lg:grid-cols-2">
-        <div className="relative h-64 lg:h-auto">
-          <img src={exercise.image} alt={exercise.name} className="h-full w-full object-cover" />
+        <div className="group relative h-64 overflow-hidden lg:h-auto">
+          <img
+            src={exercise.image}
+            alt={exercise.name}
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+          />
           <div className="absolute left-5 top-5">
             <DifficultyBadge level={exercise.difficulty} />
           </div>

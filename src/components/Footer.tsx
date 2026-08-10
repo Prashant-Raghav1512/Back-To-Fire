@@ -10,12 +10,16 @@ export function Footer() {
       <div className="container-x mx-auto px-5 py-14 sm:px-8 sm:py-16">
         <div className="grid gap-10 md:grid-cols-4">
           <div className="md:col-span-1">
-            <div className="flex items-center gap-2.5">
-              <img src={`${import.meta.env.BASE_URL}logo.png`} alt="Born to Fire" className="h-10 w-auto shrink-0" />
+            <button onClick={() => navigate('/')} className="group flex items-center gap-2.5">
+              <img
+                src={`${import.meta.env.BASE_URL}logo.png`}
+                alt="Born to Fire"
+                className="h-10 w-auto shrink-0 transition-transform duration-300 group-hover:scale-105"
+              />
               <span className="font-display text-lg font-extrabold text-white">
                 Born to <span className="text-green-500">fire</span>
               </span>
-            </div>
+            </button>
             <p className="mt-4 text-sm leading-relaxed text-gray-400">
               No weights. No limits. Master the machine you were born in. Calisthenics for every
               body, made for India.

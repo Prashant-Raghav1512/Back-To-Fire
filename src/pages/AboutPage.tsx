@@ -52,11 +52,13 @@ export function AboutPage() {
           <div className="grid items-center gap-12 lg:grid-cols-2">
             <div className="relative order-2 lg:order-1">
               <div className="absolute -inset-3 rounded-[2rem] bg-gradient-to-br from-orange-400/30 to-green-400/20 blur-xl" />
-              <img
-                src={`${import.meta.env.BASE_URL}about-calisthenics.jpg`}
-                alt="Athlete performing a bodyweight bar move outdoors"
-                className="relative w-full rounded-[2rem] object-cover shadow-2xl"
-              />
+              <div className="group relative overflow-hidden rounded-[2rem] shadow-2xl">
+                <img
+                  src={`${import.meta.env.BASE_URL}about-calisthenics.jpg`}
+                  alt="Athlete performing a bodyweight bar move outdoors"
+                  className="w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                />
+              </div>
             </div>
             <div className="order-1 lg:order-2">
               <SectionHeading
@@ -89,7 +91,7 @@ export function AboutPage() {
             title="Why calisthenics beats the gym"
             subtitle="Traditional gyms build isolated muscle. Calisthenics builds a body that moves well, stays healthy, and stays strong for life."
           />
-          <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4 stagger-children">
             {advantages.map((a) => (
               <TiltCard key={a.title} className="card card-hover group p-6">
                 <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-orange-100 text-orange-600 transition-colors duration-300 group-hover:bg-orange-500 group-hover:text-white dark:bg-orange-500/15 dark:text-orange-400">
@@ -110,7 +112,7 @@ export function AboutPage() {
       {/* Mission & Vision */}
       <section className="section-pad bg-white dark:bg-gray-900">
         <div ref={mvRef} className="reveal container-x mx-auto">
-          <div className="grid gap-6 md:grid-cols-2">
+          <div className="grid gap-6 md:grid-cols-2 stagger-children">
             <TiltCard className="card card-hover relative overflow-hidden p-8">
               <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-green-500/10 blur-2xl" />
               <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-green-100 text-green-600 dark:bg-green-500/15 dark:text-green-400">

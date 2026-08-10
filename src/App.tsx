@@ -1,7 +1,10 @@
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { ChatWidget } from '@/components/ChatWidget';
+import { ScrollProgressBar } from '@/components/ScrollProgressBar';
+import { BackToTop } from '@/components/BackToTop';
 import { RouterProvider, useRouter } from '@/lib/router';
+import { useGlobalRipple } from '@/lib/useGlobalRipple';
 import { HomePage } from '@/pages/HomePage';
 import { AboutPage } from '@/pages/AboutPage';
 import { ProgramsPage } from '@/pages/ProgramsPage';
@@ -14,6 +17,7 @@ import { ToolsPage } from '@/pages/ToolsPage';
 
 function Routes() {
   const { path } = useRouter();
+  useGlobalRipple();
 
   const page = (() => {
     switch (path) {
@@ -42,10 +46,14 @@ function Routes() {
 
   return (
     <div className="flex min-h-screen flex-col bg-white dark:bg-gray-900">
+      <ScrollProgressBar />
       <Navbar />
-      <main className="flex-1">{page}</main>
+      <main key={path} className="page-transition flex-1">
+        {page}
+      </main>
       <Footer />
       <ChatWidget />
+      <BackToTop />
     </div>
   );
 }
