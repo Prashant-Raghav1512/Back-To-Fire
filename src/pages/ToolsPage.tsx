@@ -15,7 +15,7 @@ export function ToolsPage() {
         <div className="absolute inset-0">
           <img
             ref={heroImgRef}
-            src="https://images.pexels.com/photos/4498362/pexels-photo-4498362.jpeg?auto=compress&cs=tinysrgb&h=900&w=1600"
+            src={`${import.meta.env.BASE_URL}hero-tools.jpg`}
             alt="Person tracking fitness progress"
             className="h-full w-full object-cover opacity-25"
           />
