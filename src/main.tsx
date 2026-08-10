@@ -15,7 +15,14 @@ if (!clerkPublishableKey) {
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <ClerkProvider publishableKey={clerkPublishableKey}>
+    {/* afterSignOutUrl defaults to the bare domain root when unset, which
+        404s on GitHub Pages project sites like this one (the site actually
+        lives under /Back-To-Fire/, and nothing is published at the domain
+        root itself) — this hit real users via account deletion, which
+        signs the user out same as a normal sign-out. BASE_URL resolves to
+        '/' locally and '/Back-To-Fire/' in production, matching whatever
+        this build was actually deployed under. */}
+    <ClerkProvider publishableKey={clerkPublishableKey} afterSignOutUrl={import.meta.env.BASE_URL}>
       <App />
     </ClerkProvider>
   </StrictMode>
