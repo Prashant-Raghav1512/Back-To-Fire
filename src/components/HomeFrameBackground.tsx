@@ -11,10 +11,15 @@ const REDUCED_MOTION_PROGRESS = 1; // last frame - fully flexed, a representativ
 // Replaces the earlier FrameScrubSection (a single 500vh mid-page section)
 // with a `position: fixed` full-viewport layer that sits behind the entire
 // Home page — every section scrolls over it as a normal-flow overlay while
-// the canvas itself never moves. Progress is driven by how far down the
-// WHOLE page the visitor has scrolled (0 at the top, 1 at the bottom)
-// instead of a single bounded section's scroll range, since this is meant
-// to read as "the page's background," not one scrollytelling moment.
+// the canvas itself never moves. The canvas renders at the source frames'
+// own 16:9 resolution and is fit into the fixed viewport box via CSS
+// `object-fit: contain` (see frameScrub.ts), so it always reads as a
+// correctly-proportioned "window" letterboxed against the background's own
+// dark color, never stretched or aggressively cropped. Progress is driven
+// by how far down the WHOLE page the visitor has scrolled (0 at the top, 1
+// at the bottom) instead of a single bounded section's scroll range, since
+// this is meant to read as "the page's background," not one scrollytelling
+// moment.
 export function HomeFrameBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const handleRef = useRef<FrameScrubHandle | null>(null);
@@ -29,15 +34,11 @@ export function HomeFrameBackground() {
     if (!canvas) return;
 
     let cancelled = false;
-    let resizeObserver: ResizeObserver | null = null;
     let rafId = 0;
     let cleanupScroll: (() => void) | null = null;
 
-    const handle = createFrameScrubber(canvas, FRAME_URLS, window.innerWidth, window.innerHeight, 'contain');
+    const handle = createFrameScrubber(canvas, FRAME_URLS);
     handleRef.current = handle;
-
-    resizeObserver = new ResizeObserver(() => handle.resize(window.innerWidth, window.innerHeight));
-    resizeObserver.observe(document.body);
 
     handle.ready.then(() => {
       if (cancelled) return;
@@ -92,7 +93,6 @@ export function HomeFrameBackground() {
       cancelled = true;
       cleanupScroll?.();
       if (rafId) cancelAnimationFrame(rafId);
-      resizeObserver?.disconnect();
       handleRef.current?.dispose();
       handleRef.current = null;
     };
@@ -100,7 +100,7 @@ export function HomeFrameBackground() {
 
   return (
     <div className="fixed inset-0 z-0 overflow-hidden bg-gray-900" aria-hidden="true">
-      <canvas ref={canvasRef} className="h-full w-full" />
+      <canvas ref={canvasRef} className="h-full w-full object-contain" />
       <div className="absolute inset-0 bg-gradient-to-b from-gray-900/85 via-gray-900/70 to-gray-900/90" />
       <div className="hero-glow absolute -left-24 top-1/4 h-72 w-72 rounded-full bg-green-500/20 blur-3xl" />
       <div className="hero-glow absolute -right-16 bottom-1/4 h-80 w-80 rounded-full bg-orange-500/15 blur-3xl" />

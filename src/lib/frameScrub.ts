@@ -1,38 +1,38 @@
 // Scroll-scrubbed image-sequence player, used by HomeFrameBackground.tsx as
 // the Home page's full-page background in place of the earlier three.js
-// flex character — this is a real
-// captured video (extracted to public/frames/flex-transition/), not a
-// rendered pose, so it plays back on a plain 2D canvas instead. Framework-
-// agnostic on purpose, matching flexCharacter.ts/exerciseVisualizer.ts:
-// createFrameScrubber() takes a <canvas> and returns an imperative handle
-// driven entirely by setProgress(t) from the caller's scroll handler — same
-// "renders exactly one frame per call, costs nothing while idle" contract as
+// flex character — this is a real captured video (extracted to
+// public/frames/flex-transition/), not a rendered pose, so it plays back on
+// a plain 2D canvas instead. Framework-agnostic on purpose, matching
+// flexCharacter.ts/exerciseVisualizer.ts: createFrameScrubber() takes a
+// <canvas> and returns an imperative handle driven entirely by
+// setProgress(t) from the caller's scroll handler — same "renders exactly
+// one frame per call, costs nothing while idle" contract as
 // flexCharacter.ts's setProgress.
 
 export interface FrameScrubHandle {
   /** t = 0..1, maps linearly onto the frame sequence. */
   setProgress: (t: number) => void;
-  resize: (width: number, height: number) => void;
   dispose: () => void;
   /** Resolves once every frame has attempted to load. */
   ready: Promise<void>;
 }
 
-export function createFrameScrubber(
-  canvas: HTMLCanvasElement,
-  frameUrls: string[],
-  width: number,
-  height: number,
-  fit: 'cover' | 'contain' = 'cover'
-): FrameScrubHandle {
+// The canvas's drawing buffer is matched to the source frames' own native
+// resolution (set once the first frame loads) rather than to the viewport —
+// sizing the buffer off window.innerWidth/innerHeight and then hand-rolling
+// letterbox math inside drawImage() was fragile and prone to reading as a
+// stretched/distorted frame if that math or the buffer size ever drifted
+// even slightly out of sync with the CSS-rendered box. Handing the actual
+// fit to CSS `object-fit: contain` on the <canvas> element (a replaced
+// element, so object-fit applies to it same as <img>/<video>) is what
+// browsers are built to do correctly, so there's no scale math to get
+// wrong: the buffer is always drawn 1:1, undistorted, and CSS letterboxes
+// it into whatever box it sits in.
+export function createFrameScrubber(canvas: HTMLCanvasElement, frameUrls: string[]): FrameScrubHandle {
   const ctx = canvas.getContext('2d')!;
-  const dpr = Math.min(window.devicePixelRatio || 1, 2);
   let disposed = false;
   let lastT = -1;
   const lastFramePos = frameUrls.length - 1;
-
-  canvas.width = Math.max(1, Math.round(width * dpr));
-  canvas.height = Math.max(1, Math.round(height * dpr));
 
   const images: HTMLImageElement[] = new Array(frameUrls.length);
   const ready = Promise.all(
@@ -43,6 +43,10 @@ export function createFrameScrubber(
           img.decoding = 'async';
           img.onload = () => {
             images[i] = img;
+            if (i === 0) {
+              canvas.width = img.naturalWidth;
+              canvas.height = img.naturalHeight;
+            }
             resolve();
           };
           // A single missing/corrupt frame shouldn't block the rest of the
@@ -53,24 +57,8 @@ export function createFrameScrubber(
     )
   ).then(() => undefined);
 
-  // Cover-fit (default): scale so the frame fills the canvas, cropping
-  // overflow — matches CSS object-fit: cover. Contain-fit: scale so the
-  // WHOLE frame is always visible, letterboxed instead of cropped — matches
-  // object-fit: contain. Both apply a single uniform scale to width and
-  // height, so neither ever distorts/stretches the frame; contain-fit is
-  // what HomeFrameBackground uses specifically because cover-fit's crop
-  // gets aggressive on tall viewports (a 16:9 source covering a narrow,
-  // very tall portrait screen), which reads as an ugly, over-zoomed crop.
   function drawFrame(img: HTMLImageElement) {
-    const cw = canvas.width;
-    const ch = canvas.height;
-    const scale =
-      fit === 'contain'
-        ? Math.min(cw / img.naturalWidth, ch / img.naturalHeight)
-        : Math.max(cw / img.naturalWidth, ch / img.naturalHeight);
-    const dw = img.naturalWidth * scale;
-    const dh = img.naturalHeight * scale;
-    ctx.drawImage(img, (cw - dw) / 2, (ch - dh) / 2, dw, dh);
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
   }
 
   // Crossfades between the two frames straddling the current scroll
@@ -107,16 +95,9 @@ export function createFrameScrubber(
     render(clamped);
   }
 
-  function resize(w: number, h: number) {
-    if (w <= 0 || h <= 0) return;
-    canvas.width = Math.round(w * dpr);
-    canvas.height = Math.round(h * dpr);
-    if (lastT >= 0) render(lastT);
-  }
-
   function dispose() {
     disposed = true;
   }
 
-  return { setProgress, resize, dispose, ready };
+  return { setProgress, dispose, ready };
 }
