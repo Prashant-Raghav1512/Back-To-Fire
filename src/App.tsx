@@ -1,6 +1,7 @@
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { ChatWidget } from '@/components/ChatWidget';
+import { CommunityWidget } from '@/components/CommunityWidget';
 import { ScrollProgressBar } from '@/components/ScrollProgressBar';
 import { BackToTop } from '@/components/BackToTop';
 import { RouterProvider, useRouter } from '@/lib/router';
@@ -53,6 +54,7 @@ function Routes() {
       </main>
       <Footer />
       <ChatWidget />
+      <CommunityWidget />
       <BackToTop />
     </div>
   );

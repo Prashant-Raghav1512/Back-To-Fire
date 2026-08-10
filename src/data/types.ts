@@ -112,3 +112,21 @@ export interface GymBranch {
   lat: number;
   lng: number;
 }
+
+/** A user's chosen state for the Community tab — see src/lib/community.ts. */
+export interface CommunityProfile {
+  displayName: string;
+  state: string;
+}
+
+export type CommunityScope = 'state' | 'india';
+
+export interface CommunityMessage {
+  id: number;
+  clerkUserId: string;
+  /** Snapshot of the poster's display name/state at post time — see db/schema.sql. */
+  displayName: string;
+  state: string;
+  message: string;
+  createdAt: string;
+}

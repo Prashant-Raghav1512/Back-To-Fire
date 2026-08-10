@@ -52,6 +52,37 @@ CREATE TABLE IF NOT EXISTS enrollments (
 
 CREATE INDEX IF NOT EXISTS enrollments_clerk_user_id_idx ON enrollments (clerk_user_id);
 
+-- One row per user, holding which state they've picked for the Community
+-- tab (see src/lib/community.ts). `clerk_user_id` is a soft reference to
+-- Clerk, same as `enrollments` above — no FK, since users live in Clerk,
+-- not Neon. Kept as its own small table (rather than Clerk unsafeMetadata)
+-- so it follows the same "per-user data lives in Neon" pattern the rest of
+-- the app already uses, instead of introducing a second place user data
+-- can live.
+CREATE TABLE IF NOT EXISTS community_profiles (
+  clerk_user_id text PRIMARY KEY,
+  display_name text NOT NULL,
+  state text NOT NULL,
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+
+-- Community board posts. `display_name` and `state` are a snapshot taken at
+-- post time (same reasoning as enrollments' item_title/item_detail
+-- snapshot) — a message's shown state shouldn't retroactively change if the
+-- poster later updates their community_profiles row, and the feed should
+-- still read sensibly even if community_profiles is ever cleared.
+CREATE TABLE IF NOT EXISTS community_messages (
+  id bigserial PRIMARY KEY,
+  clerk_user_id text NOT NULL,
+  display_name text NOT NULL,
+  state text NOT NULL,
+  message text NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS community_messages_state_idx ON community_messages (state);
+CREATE INDEX IF NOT EXISTS community_messages_created_at_idx ON community_messages (created_at DESC);
+
 -- Programs -------------------------------------------------------------
 
 INSERT INTO programs (id, title, duration, difficulty, description, features, icon, sort_order) VALUES
