@@ -77,7 +77,7 @@ export function ArticlesPage() {
         <div className="absolute inset-0">
           <img
             ref={heroImgRef}
-            src="https://images.pexels.com/photos/6111616/pexels-photo-6111616.jpeg?auto=compress&cs=tinysrgb&h=900&w=1600"
+            src={`${import.meta.env.BASE_URL}hero-articles.jpg`}
             alt="Person reading and planning a fitness routine"
             className="h-full w-full object-cover opacity-25"
           />

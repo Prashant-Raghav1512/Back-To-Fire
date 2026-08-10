@@ -24,7 +24,7 @@ export function ProgramsPage() {
         <div className="absolute inset-0">
           <img
             ref={heroImgRef}
-            src="https://images.pexels.com/photos/8519690/pexels-photo-8519690.jpeg?auto=compress&cs=tinysrgb&h=900&w=1600"
+            src={`${import.meta.env.BASE_URL}hero-programs.jpg`}
             alt="Man working out at outdoor gym"
             className="h-full w-full object-cover opacity-25"
           />

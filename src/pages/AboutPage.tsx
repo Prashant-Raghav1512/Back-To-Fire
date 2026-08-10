@@ -26,7 +26,7 @@ export function AboutPage() {
         <div className="absolute inset-0">
           <img
             ref={heroImgRef}
-            src="https://images.pexels.com/photos/8520080/pexels-photo-8520080.jpeg?auto=compress&cs=tinysrgb&h=900&w=1600"
+            src={`${import.meta.env.BASE_URL}hero-about.jpg`}
             alt="Athlete exercising on outdoor bars"
             className="h-full w-full object-cover opacity-25"
           />
