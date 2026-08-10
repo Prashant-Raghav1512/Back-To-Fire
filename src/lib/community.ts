@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { neon } from '@neondatabase/serverless';
 import { useUser } from '@clerk/clerk-react';
-import type { CommunityMessage, CommunityProfile, CommunityScope } from '@/data/types';
+import type { CommunityMessage, CommunityProfile, CommunityScope, Gender } from '@/data/types';
 
 // SECURITY NOTE: reuses the same browser-exposed connection as the contact
 // form and enrollments (src/lib/contact.ts, src/lib/enrollments.ts) rather
@@ -28,6 +28,10 @@ function containsBlockedWord(text: string): boolean {
 interface ProfileRow {
   display_name: string;
   state: string;
+  age: number | null;
+  height_cm: number | null;
+  weight_kg: string | null; // numeric columns come back as strings from the driver
+  gender: Gender | null;
 }
 
 interface MessageRow {
@@ -49,18 +53,37 @@ function client() {
 export async function getMyProfile(clerkUserId: string): Promise<CommunityProfile | null> {
   const sql = client();
   const rows = (await sql`
-    SELECT display_name, state FROM community_profiles WHERE clerk_user_id = ${clerkUserId}
+    SELECT display_name, state, age, height_cm, weight_kg, gender
+    FROM community_profiles WHERE clerk_user_id = ${clerkUserId}
   `) as ProfileRow[];
   const row = rows[0];
-  return row ? { displayName: row.display_name, state: row.state } : null;
+  if (!row) return null;
+  return {
+    displayName: row.display_name,
+    state: row.state,
+    age: row.age,
+    heightCm: row.height_cm,
+    weightKg: row.weight_kg === null ? null : Number(row.weight_kg),
+    gender: row.gender,
+  };
 }
 
-export async function saveMyProfile(clerkUserId: string, displayName: string, state: string): Promise<void> {
+// Always writes every column — callers merge with the currently-loaded
+// profile first (see useCommunityProfile below) rather than this function
+// trying to support partial updates, which keeps the upsert itself simple.
+async function saveMyProfile(clerkUserId: string, fields: CommunityProfile): Promise<void> {
   const sql = client();
   await sql`
-    INSERT INTO community_profiles (clerk_user_id, display_name, state, updated_at)
-    VALUES (${clerkUserId}, ${displayName}, ${state}, now())
-    ON CONFLICT (clerk_user_id) DO UPDATE SET display_name = ${displayName}, state = ${state}, updated_at = now()
+    INSERT INTO community_profiles (clerk_user_id, display_name, state, age, height_cm, weight_kg, gender, updated_at)
+    VALUES (${clerkUserId}, ${fields.displayName}, ${fields.state}, ${fields.age}, ${fields.heightCm}, ${fields.weightKg}, ${fields.gender}, now())
+    ON CONFLICT (clerk_user_id) DO UPDATE SET
+      display_name = ${fields.displayName},
+      state = ${fields.state},
+      age = ${fields.age},
+      height_cm = ${fields.heightCm},
+      weight_kg = ${fields.weightKg},
+      gender = ${fields.gender},
+      updated_at = now()
   `;
 }
 
@@ -117,9 +140,16 @@ export async function getMessages(scope: CommunityScope, state: string): Promise
     .reverse(); // oldest first, so the feed reads top-to-bottom like a chat
 }
 
-// Fetches the signed-in user's saved state/display name once, and exposes
-// `saveState` to set it (first-time picker) — mirrors useMyEnrollments's
-// "fetch on mount, expose a setter" shape.
+const EMPTY_DETAILS = { age: null, heightCm: null, weightKg: null, gender: null } as const;
+
+// Fetches the signed-in user's saved profile once, and exposes two setters
+// over the same underlying row: `saveState` (used by the Community tab's
+// first-time state picker — only changes state, preserving whatever
+// personal details are already saved) and `saveDetails` (used by the
+// Profile page's "Personal Details" form — saves everything at once, since
+// that form is pre-filled from `profile` so unedited fields just
+// round-trip their current value). Mirrors useMyEnrollments's "fetch on
+// mount, expose setters" shape.
 export function useCommunityProfile() {
   const { user, isSignedIn } = useUser();
   const [profile, setProfile] = useState<CommunityProfile | null>(null);
@@ -142,17 +172,35 @@ export function useCommunityProfile() {
     refresh();
   }, [refresh]);
 
+  const displayName = () => user?.fullName ?? user?.username ?? 'A Born to Fire member';
+
   const saveState = useCallback(
     async (state: string) => {
       if (!user) return;
-      const displayName = user.fullName ?? user.username ?? 'A Born to Fire member';
-      await saveMyProfile(user.id, displayName, state);
-      setProfile({ displayName, state });
+      const fields: CommunityProfile = {
+        displayName: displayName(),
+        state,
+        ...(profile ?? EMPTY_DETAILS),
+      };
+      await saveMyProfile(user.id, fields);
+      setProfile(fields);
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [user, profile]
+  );
+
+  const saveDetails = useCallback(
+    async (details: Pick<CommunityProfile, 'state' | 'age' | 'heightCm' | 'weightKg' | 'gender'>) => {
+      if (!user) return;
+      const fields: CommunityProfile = { displayName: displayName(), ...details };
+      await saveMyProfile(user.id, fields);
+      setProfile(fields);
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [user]
   );
 
-  return { profile, loading, saveState, refresh };
+  return { profile, loading, saveState, saveDetails, refresh };
 }
 
 // Polls for new messages every 7s while mounted (only while the Community

@@ -4,6 +4,7 @@ import { useUser, useClerk } from '@clerk/clerk-react';
 import { SectionHeading } from '@/components/SectionHeading';
 import { EventStatusBadge } from '@/components/EventStatusBadge';
 import { EventModal } from '@/components/EventModal';
+import { ProfileDetailsForm } from '@/components/ProfileDetailsForm';
 import { useMyEnrollments, type Enrollment } from '@/lib/enrollments';
 import { events } from '@/data/events';
 import { getEventStatus } from '@/lib/events';
@@ -122,6 +123,13 @@ export function ProfilePage() {
 
       <section className="section-pad bg-gray-50 dark:bg-gray-950">
         <div ref={ref} className="reveal container-x mx-auto space-y-16">
+          <div>
+            <SectionHeading eyebrow="About you" title="Personal Details" center={false} />
+            <div className="mt-8 max-w-2xl">
+              <ProfileDetailsForm />
+            </div>
+          </div>
+
           <div>
             <SectionHeading eyebrow="Training" title="My Programs" center={false} />
             {loading ? (

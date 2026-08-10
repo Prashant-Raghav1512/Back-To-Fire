@@ -113,10 +113,18 @@ export interface GymBranch {
   lng: number;
 }
 
-/** A user's chosen state for the Community tab — see src/lib/community.ts. */
+export type Gender = 'Male' | 'Female' | 'Other' | 'Prefer not to say';
+
+// A user's profile row — the state/displayName pair powers the Community
+// tab, the rest powers the Profile page's "Personal Details" section. Name
+// and profile photo are deliberately not here: Clerk already owns those.
 export interface CommunityProfile {
   displayName: string;
   state: string;
+  age: number | null;
+  heightCm: number | null;
+  weightKg: number | null;
+  gender: Gender | null;
 }
 
 export type CommunityScope = 'state' | 'india';

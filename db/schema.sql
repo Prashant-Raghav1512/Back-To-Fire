@@ -52,17 +52,24 @@ CREATE TABLE IF NOT EXISTS enrollments (
 
 CREATE INDEX IF NOT EXISTS enrollments_clerk_user_id_idx ON enrollments (clerk_user_id);
 
--- One row per user, holding which state they've picked for the Community
--- tab (see src/lib/community.ts). `clerk_user_id` is a soft reference to
--- Clerk, same as `enrollments` above — no FK, since users live in Clerk,
--- not Neon. Kept as its own small table (rather than Clerk unsafeMetadata)
--- so it follows the same "per-user data lives in Neon" pattern the rest of
--- the app already uses, instead of introducing a second place user data
--- can live.
+-- One row per user, holding both their Community tab state (see
+-- src/lib/community.ts) and the optional personal details editable from
+-- the Profile page's "Personal Details" section (age/height/weight/gender —
+-- name and profile photo are deliberately NOT duplicated here, since Clerk
+-- already owns those and has its own upload/edit UI). `clerk_user_id` is a
+-- soft reference to Clerk, same as `enrollments` above — no FK, since users
+-- live in Clerk, not Neon. Kept as its own small table (rather than Clerk
+-- unsafeMetadata) so it follows the same "per-user data lives in Neon"
+-- pattern the rest of the app already uses, instead of introducing a
+-- second place user data can live.
 CREATE TABLE IF NOT EXISTS community_profiles (
   clerk_user_id text PRIMARY KEY,
   display_name text NOT NULL,
   state text NOT NULL,
+  age integer,
+  height_cm integer,
+  weight_kg numeric(5,2),
+  gender text CHECK (gender IS NULL OR gender IN ('Male', 'Female', 'Other', 'Prefer not to say')),
   updated_at timestamptz NOT NULL DEFAULT now()
 );
 
