@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /profile
+
+Sitemap: https://prashant-raghav1512.github.io/Back-To-Fire/sitemap.xml
