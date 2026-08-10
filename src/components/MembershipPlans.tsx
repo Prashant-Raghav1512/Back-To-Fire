@@ -14,6 +14,10 @@ const TIER_ICON: Record<PlanTier, typeof Sprout> = { Basic: Sprout, Standard: Fl
 export function MembershipPlans() {
   const [activeGroup, setActiveGroup] = useState<AgeGroupId>('adults');
   const [selectedMethods, setSelectedMethods] = useState<Record<string, string>>({});
+  // Tracks which plans have had "Choose <Tier>" clicked once already — the
+  // payment method picker only appears after that first opt-in click,
+  // instead of being shown upfront for every plan.
+  const [optedIn, setOptedIn] = useState<Record<string, boolean>>({});
   const { isEnrolledIn, refresh } = useMyEnrollments();
 
   const group = ageGroups.find((g) => g.id === activeGroup)!;
@@ -88,7 +92,16 @@ export function MembershipPlans() {
                 ))}
               </ul>
 
-              {!enrolled && (
+              {!enrolled && !optedIn[plan.id] && (
+                <button
+                  onClick={() => setOptedIn((prev) => ({ ...prev, [plan.id]: true }))}
+                  className={`mt-4 w-full ${featured ? 'btn-primary' : 'btn-outline'}`}
+                >
+                  Choose {plan.tier}
+                </button>
+              )}
+
+              {!enrolled && optedIn[plan.id] && (
                 <div className="mt-6">
                   <PaymentMethodSelector
                     selected={selectedMethodId}
@@ -97,20 +110,22 @@ export function MembershipPlans() {
                 </div>
               )}
 
-              <EnrollButton
-                itemType="program"
-                itemId={plan.id}
-                itemTitle={plan.title}
-                itemDetail={`₹${plan.price.toLocaleString('en-IN')}/mo · ${group.label} · ${plan.tier}${
-                  selectedMethodLabel ? ` · Pay via ${selectedMethodLabel}` : ''
-                }`}
-                enrolled={enrolled}
-                disabled={!enrolled && !selectedMethodId}
-                onEnrolled={refresh}
-                label={`Choose ${plan.tier}`}
-                className={`mt-4 w-full ${featured ? 'btn-primary' : 'btn-outline'}`}
-              />
-              {!enrolled && !selectedMethodId && (
+              {(enrolled || optedIn[plan.id]) && (
+                <EnrollButton
+                  itemType="program"
+                  itemId={plan.id}
+                  itemTitle={plan.title}
+                  itemDetail={`₹${plan.price.toLocaleString('en-IN')}/mo · ${group.label} · ${plan.tier}${
+                    selectedMethodLabel ? ` · Pay via ${selectedMethodLabel}` : ''
+                  }`}
+                  enrolled={enrolled}
+                  disabled={!enrolled && !selectedMethodId}
+                  onEnrolled={refresh}
+                  label={`Confirm ${plan.tier}`}
+                  className={`mt-4 w-full ${featured ? 'btn-primary' : 'btn-outline'}`}
+                />
+              )}
+              {!enrolled && optedIn[plan.id] && !selectedMethodId && (
                 <p className="mt-2 text-center text-xs text-gray-400">Select a payment method to continue</p>
               )}
             </TiltCard>
