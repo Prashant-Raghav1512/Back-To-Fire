@@ -7,10 +7,20 @@ import { createContext, useCallback, useContext, useEffect, useState } from 'rea
 const BASE = import.meta.env.BASE_URL.replace(/\/$/, '');
 
 function toInternalPath(pathname: string): string {
-  if (BASE && pathname.startsWith(BASE)) {
-    return pathname.slice(BASE.length) || '/';
+  let internal = pathname;
+  if (BASE && internal.startsWith(BASE)) {
+    internal = internal.slice(BASE.length) || '/';
   }
-  return pathname || '/';
+  // GitHub Pages 301-redirects any extensionless path ("/exercises") to add
+  // a trailing slash ("/exercises/") before serving the 404-fallback SPA
+  // shell — so a direct load or refresh on a non-home route arrives here
+  // with a trailing slash the switch in App.tsx doesn't expect. Without
+  // stripping it, `/exercises/` never matches `case '/exercises':` and
+  // silently falls through to the Home page instead.
+  if (internal.length > 1 && internal.endsWith('/')) {
+    internal = internal.slice(0, -1);
+  }
+  return internal || '/';
 }
 
 interface RouterContextValue {
