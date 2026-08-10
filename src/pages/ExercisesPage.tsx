@@ -84,7 +84,7 @@ export function ExercisesPage() {
         <div className="absolute inset-0">
           <img
             ref={heroImgRef}
-            src={`${import.meta.env.BASE_URL}hero-exercises.jpg`}
+            src="https://images.pexels.com/photos/4803694/pexels-photo-4803694.jpeg?auto=compress&cs=tinysrgb&h=900&w=1600"
             alt="Man doing pull-ups on blue bars"
             className="h-full w-full object-cover opacity-25"
           />

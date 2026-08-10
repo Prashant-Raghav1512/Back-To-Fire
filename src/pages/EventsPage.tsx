@@ -144,7 +144,7 @@ export function EventsPage() {
         <div className="absolute inset-0">
           <img
             ref={heroImgRef}
-            src={`${import.meta.env.BASE_URL}hero-contact-events.jpg`}
+            src="https://images.pexels.com/photos/10476460/pexels-photo-10476460.jpeg?auto=compress&cs=tinysrgb&h=900&w=1600"
             alt="Group calisthenics session outdoors"
             className="h-full w-full object-cover opacity-25"
           />

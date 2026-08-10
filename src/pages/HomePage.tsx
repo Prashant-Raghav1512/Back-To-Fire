@@ -44,7 +44,7 @@ export function HomePage() {
         <div className="absolute inset-0">
           <img
             ref={heroImgRef}
-            src={`${import.meta.env.BASE_URL}hero-home.jpg`}
+            src="https://images.pexels.com/photos/4048236/pexels-photo-4048236.jpeg?auto=compress&cs=tinysrgb&h=900&w=1600"
             alt="Athlete performing a handstand outdoors"
             className="h-full w-full object-cover opacity-30"
           />
@@ -326,7 +326,7 @@ export function HomePage() {
         <div className="absolute inset-0">
           <img
             ref={ctaImgRef}
-            src={`${import.meta.env.BASE_URL}hero-home-cta.jpg`}
+            src="https://images.pexels.com/photos/10086629/pexels-photo-10086629.jpeg?auto=compress&cs=tinysrgb&h=900&w=1600"
             alt="Athlete performing a human flag"
             className="h-full w-full object-cover opacity-20"
           />
