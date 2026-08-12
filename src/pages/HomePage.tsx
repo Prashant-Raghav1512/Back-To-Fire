@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowRight, Dumbbell, Activity, Calendar, Move, Check, Star, Clock, MapPin } from 'lucide-react';
+import { ArrowRight, Dumbbell, Activity, Calendar, Move, Check, Star, Clock, MapPin, Volume2, VolumeX } from 'lucide-react';
 import { SectionHeading } from '@/components/SectionHeading';
 import { DifficultyBadge } from '@/components/DifficultyBadge';
 import { EventStatusBadge } from '@/components/EventStatusBadge';
@@ -34,6 +34,8 @@ export function HomePage() {
   const [selectedEvent, setSelectedEvent] = useState<FitnessEvent | null>(null);
   const heroCtaRef = useMagnetic<HTMLSpanElement>();
   const closingCtaRef = useMagnetic<HTMLSpanElement>();
+  const videoRef = useReveal<HTMLDivElement>();
+  const [videoMuted, setVideoMuted] = useState(true);
 
   return (
     // Forces this page's existing dark: styling on unconditionally, since
@@ -93,6 +95,47 @@ export function HomePage() {
               <div className="flex items-center gap-2 text-sm text-gray-300">
                 <Clock className="h-5 w-5 text-green-400" />
                 20-60 min sessions
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* VIDEO SHOWCASE */}
+      <section className="section-pad relative z-10">
+        <div ref={videoRef} className="reveal container-x mx-auto">
+          <div className="grid items-center gap-12 lg:grid-cols-2">
+            <div className="order-2 lg:order-1">
+              <SectionHeading
+                eyebrow="See it in action"
+                title="This is what training at Born to Fire actually looks like"
+                subtitle="Real reps, real gyms, real people across India - no stock footage, no filters. Hit play and see the energy for yourself."
+                center={false}
+              />
+              <span className="mt-8 inline-block">
+                <button onClick={() => navigate('/programs')} className="btn-primary text-base">
+                  Start training <ArrowRight className="h-5 w-5" />
+                </button>
+              </span>
+            </div>
+            <div className="relative order-1 mx-auto w-full max-w-xs lg:order-2">
+              <div className="absolute -inset-4 rounded-[2.5rem] bg-gradient-to-br from-green-400/30 to-orange-400/20 blur-xl" />
+              <div className="group relative aspect-[9/16] w-full overflow-hidden rounded-[2rem] shadow-2xl ring-4 ring-white/10">
+                <video
+                  src={`${import.meta.env.BASE_URL}videos/btf-showcase.mp4`}
+                  autoPlay
+                  muted={videoMuted}
+                  loop
+                  playsInline
+                  className="h-full w-full object-cover"
+                />
+                <button
+                  onClick={() => setVideoMuted((m) => !m)}
+                  aria-label={videoMuted ? 'Unmute video' : 'Mute video'}
+                  className="absolute bottom-4 right-4 flex h-10 w-10 items-center justify-center rounded-full bg-black/50 text-white backdrop-blur transition-colors duration-300 hover:bg-black/70"
+                >
+                  {videoMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
+                </button>
               </div>
             </div>
           </div>
