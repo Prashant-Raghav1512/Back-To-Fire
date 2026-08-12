@@ -9,8 +9,28 @@ import { programs } from '@/data/content';
 import { useMyEnrollments } from '@/lib/enrollments';
 import { useReveal } from '@/lib/useReveal';
 import { useParallax } from '@/lib/useParallax';
+import type { Difficulty } from '@/data/types';
 
 const iconMap = { Sprout, Flame, Zap } as const;
+
+// Same color mapping as DifficultyBadge, extended to the card's icon badge
+// and ring so a Beginner/Intermediate/Advanced grid reads as three visually
+// distinct tiers rather than one uniform list of cards with a small badge
+// as the only difference.
+const DIFFICULTY_CARD_STYLES: Record<Difficulty, { icon: string; ring: string }> = {
+  Beginner: {
+    icon: 'bg-green-100 text-green-600 dark:bg-green-500/15 dark:text-green-400',
+    ring: 'ring-green-100 dark:ring-green-500/20',
+  },
+  Intermediate: {
+    icon: 'bg-orange-100 text-orange-600 dark:bg-orange-500/15 dark:text-orange-400',
+    ring: 'ring-orange-500',
+  },
+  Advanced: {
+    icon: 'bg-red-100 text-red-600 dark:bg-red-500/15 dark:text-red-400',
+    ring: 'ring-red-100 dark:ring-red-500/20',
+  },
+};
 
 export function ProgramsPage() {
   const ref = useReveal<HTMLDivElement>();
@@ -45,7 +65,7 @@ export function ProgramsPage() {
       </section>
 
       {/* Program cards */}
-      <section className="section-pad bg-gray-50 dark:bg-gray-950">
+      <section className="section-pad bg-gradient-to-b from-green-50/70 via-white to-white dark:from-gray-900 dark:via-gray-950 dark:to-gray-950">
         <div ref={ref} className="reveal container-x mx-auto">
           <SectionHeading
             eyebrow="Choose your tier"
@@ -56,19 +76,20 @@ export function ProgramsPage() {
             {programs.map((p) => {
               const Icon = iconMap[p.icon as keyof typeof iconMap];
               const featured = p.difficulty === 'Intermediate';
+              const style = DIFFICULTY_CARD_STYLES[p.difficulty];
               return (
                 <TiltCard
                   key={p.id}
-                  className={`card card-hover relative flex flex-col p-7 ${
-                    featured ? 'ring-2 ring-green-500 lg:scale-[1.03]' : ''
+                  className={`card card-hover relative flex flex-col p-7 !ring-2 ${style.ring} ${
+                    featured ? 'lg:scale-[1.03]' : ''
                   }`}
                 >
                   {featured && (
-                    <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-green-500 px-3 py-1 text-xs font-bold uppercase tracking-wide text-white shadow-lg">
+                    <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-orange-500 px-3 py-1 text-xs font-bold uppercase tracking-wide text-white shadow-lg">
                       Most popular
                     </span>
                   )}
-                  <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-green-100 text-green-600 dark:bg-green-500/15 dark:text-green-400">
+                  <span className={`flex h-16 w-16 items-center justify-center rounded-2xl ${style.icon}`}>
                     <Icon className="h-8 w-8" />
                   </span>
                   <div className="mt-5 flex items-center gap-2">

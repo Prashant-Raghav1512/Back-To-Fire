@@ -113,7 +113,7 @@ export function ContactPage() {
         </div>
       </section>
 
-      <section className="section-pad bg-gray-50 dark:bg-gray-950">
+      <section className="section-pad bg-gradient-to-b from-rose-50/70 via-white to-white dark:from-gray-900 dark:via-gray-950 dark:to-gray-950">
         <div ref={ref} className="reveal container-x mx-auto">
           <div className="grid gap-8 lg:grid-cols-3">
             {/* Contact info */}

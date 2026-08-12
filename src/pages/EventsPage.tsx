@@ -19,9 +19,40 @@ import { useMyEnrollments } from '@/lib/enrollments';
 import { useReveal } from '@/lib/useReveal';
 import { useTilt } from '@/lib/useTilt';
 import { useParallax } from '@/lib/useParallax';
-import type { FitnessEvent } from '@/data/types';
+import type { EventType, FitnessEvent } from '@/data/types';
 
 const iconMap = { GraduationCap, Flame, Trophy, Users, Video, PartyPopper } as const;
+
+// Distinguishes event cards by type at a glance — icon badge, card ring, and
+// the type/format pill all pick up the same color so a grid of mixed event
+// types reads as visually distinct groups rather than one uniform list.
+const EVENT_TYPE_STYLES: Record<EventType, { icon: string; ring: string; badge: string }> = {
+  Workshop: {
+    icon: 'bg-blue-100 text-blue-600 dark:bg-blue-500/15 dark:text-blue-400',
+    ring: 'ring-blue-100 dark:ring-blue-500/20',
+    badge: 'bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-400',
+  },
+  Bootcamp: {
+    icon: 'bg-orange-100 text-orange-600 dark:bg-orange-500/15 dark:text-orange-400',
+    ring: 'ring-orange-100 dark:ring-orange-500/20',
+    badge: 'bg-orange-100 text-orange-700 dark:bg-orange-500/15 dark:text-orange-400',
+  },
+  Challenge: {
+    icon: 'bg-red-100 text-red-600 dark:bg-red-500/15 dark:text-red-400',
+    ring: 'ring-red-100 dark:ring-red-500/20',
+    badge: 'bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-400',
+  },
+  Meetup: {
+    icon: 'bg-purple-100 text-purple-600 dark:bg-purple-500/15 dark:text-purple-400',
+    ring: 'ring-purple-100 dark:ring-purple-500/20',
+    badge: 'bg-purple-100 text-purple-700 dark:bg-purple-500/15 dark:text-purple-400',
+  },
+  Webinar: {
+    icon: 'bg-teal-100 text-teal-600 dark:bg-teal-500/15 dark:text-teal-400',
+    ring: 'ring-teal-100 dark:ring-teal-500/20',
+    badge: 'bg-teal-100 text-teal-700 dark:bg-teal-500/15 dark:text-teal-400',
+  },
+};
 
 interface EventCardProps {
   event: FitnessEvent;
@@ -36,6 +67,7 @@ function EventCard({ event, onSelect, enrolled, onEnrolled }: EventCardProps) {
   const Icon = iconMap[event.icon as keyof typeof iconMap];
   const days = daysUntil(event);
   const tiltRef = useTilt<HTMLDivElement>();
+  const typeStyle = EVENT_TYPE_STYLES[event.type];
 
   return (
     <div
@@ -49,10 +81,10 @@ function EventCard({ event, onSelect, enrolled, onEnrolled }: EventCardProps) {
       }}
       role="button"
       tabIndex={0}
-      className={`card card-hover tilt-glow flex cursor-pointer flex-col p-6 text-left ${ended ? 'opacity-70' : ''}`}
+      className={`card card-hover tilt-glow flex cursor-pointer flex-col p-6 text-left !ring-2 ${typeStyle.ring} ${ended ? 'opacity-70' : ''}`}
     >
       <div className="flex items-start justify-between gap-3">
-        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-green-100 text-green-600 dark:bg-green-500/15 dark:text-green-400">
+        <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${typeStyle.icon}`}>
           <Icon className="h-6 w-6" />
         </span>
         <EventStatusBadge status={status} />
@@ -78,7 +110,7 @@ function EventCard({ event, onSelect, enrolled, onEnrolled }: EventCardProps) {
       </p>
 
       <div className="mt-4 flex items-center justify-between gap-3">
-        <span className="badge bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300">
+        <span className={`badge ${typeStyle.badge}`}>
           {event.type} &middot; {event.format}
         </span>
         {status === 'upcoming' && (
@@ -164,7 +196,7 @@ export function EventsPage() {
         </div>
       </section>
 
-      <section className="section-pad bg-gray-50 dark:bg-gray-950">
+      <section className="section-pad bg-gradient-to-b from-purple-50/70 via-white to-white dark:from-gray-900 dark:via-gray-950 dark:to-gray-950">
         <div ref={ref} className="reveal container-x mx-auto space-y-16">
           {ongoing.length > 0 && (
             <div>

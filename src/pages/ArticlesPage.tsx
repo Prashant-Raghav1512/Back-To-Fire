@@ -10,10 +10,25 @@ import type { Article, ArticleCategory } from '@/data/types';
 
 const iconMap = { Sunrise, Flame, Sparkles, Zap, Dumbbell, Apple, Salad, Utensils } as const;
 
-const categoryStyles: Record<ArticleCategory, string> = {
-  Motivation: 'bg-orange-100 text-orange-700 dark:bg-orange-500/15 dark:text-orange-400',
-  Training: 'bg-green-100 text-green-700 dark:bg-green-500/15 dark:text-green-400',
-  Nutrition: 'bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-400',
+// Each category gets its own color carried across the badge, the icon
+// badge, and the card's ring, so a mixed grid reads as three visually
+// distinct groups rather than one uniform list of white cards.
+const categoryStyles: Record<ArticleCategory, { badge: string; icon: string; ring: string }> = {
+  Motivation: {
+    badge: 'bg-orange-100 text-orange-700 dark:bg-orange-500/15 dark:text-orange-400',
+    icon: 'bg-orange-100 text-orange-600 dark:bg-orange-500/15 dark:text-orange-400',
+    ring: 'ring-orange-100 dark:ring-orange-500/20',
+  },
+  Training: {
+    badge: 'bg-green-100 text-green-700 dark:bg-green-500/15 dark:text-green-400',
+    icon: 'bg-green-100 text-green-600 dark:bg-green-500/15 dark:text-green-400',
+    ring: 'ring-green-100 dark:ring-green-500/20',
+  },
+  Nutrition: {
+    badge: 'bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-400',
+    icon: 'bg-blue-100 text-blue-600 dark:bg-blue-500/15 dark:text-blue-400',
+    ring: 'ring-blue-100 dark:ring-blue-500/20',
+  },
 };
 
 const filters: Array<ArticleCategory | 'All'> = ['All', 'Motivation', 'Training', 'Nutrition'];
@@ -21,6 +36,7 @@ const filters: Array<ArticleCategory | 'All'> = ['All', 'Motivation', 'Training'
 function ArticleCard({ article, onSelect }: { article: Article; onSelect: (a: Article) => void }) {
   const Icon = iconMap[article.icon as keyof typeof iconMap];
   const tiltRef = useTilt<HTMLDivElement>();
+  const style = categoryStyles[article.category];
 
   return (
     <div
@@ -34,7 +50,7 @@ function ArticleCard({ article, onSelect }: { article: Article; onSelect: (a: Ar
       }}
       role="button"
       tabIndex={0}
-      className="card card-hover tilt-glow group flex cursor-pointer flex-col overflow-hidden text-left"
+      className={`card card-hover tilt-glow group flex cursor-pointer flex-col overflow-hidden text-left !ring-2 ${style.ring}`}
     >
       <div className="relative h-40 overflow-hidden">
         <img
@@ -42,13 +58,13 @@ function ArticleCard({ article, onSelect }: { article: Article; onSelect: (a: Ar
           alt={article.title}
           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
         />
-        <span className={`badge absolute right-3 top-3 ${categoryStyles[article.category]}`}>
+        <span className={`badge absolute right-3 top-3 ${style.badge}`}>
           {article.category}
         </span>
       </div>
 
       <div className="flex flex-1 flex-col p-6">
-        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-green-100 text-green-600 dark:bg-green-500/15 dark:text-green-400">
+        <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${style.icon}`}>
           <Icon className="h-6 w-6" />
         </span>
 
@@ -107,7 +123,7 @@ export function ArticlesPage() {
         </div>
       </section>
 
-      <section className="section-pad bg-gray-50 dark:bg-gray-950">
+      <section className="section-pad bg-gradient-to-b from-teal-50/70 via-white to-white dark:from-gray-900 dark:via-gray-950 dark:to-gray-950">
         <div ref={ref} className="reveal container-x mx-auto">
           <SectionHeading eyebrow="Browse" title="All articles" center={false} />
 

@@ -11,13 +11,22 @@ import { useParallax } from '@/lib/useParallax';
 
 type DiffFilter = 'All' | Difficulty;
 
+// Same color mapping as DifficultyBadge/ProgramsPage, applied to the card
+// ring so the library reads as three visually distinct difficulty groups
+// at a glance, not just via the small badge in the corner of each photo.
+const DIFFICULTY_RING: Record<Difficulty, string> = {
+  Beginner: 'ring-green-100 dark:ring-green-500/20',
+  Intermediate: 'ring-orange-100 dark:ring-orange-500/20',
+  Advanced: 'ring-red-100 dark:ring-red-500/20',
+};
+
 function ExerciseCard({ exercise, onSelect }: { exercise: Exercise; onSelect: (ex: Exercise) => void }) {
   const tiltRef = useTilt<HTMLButtonElement>();
   return (
     <button
       ref={tiltRef}
       onClick={() => onSelect(exercise)}
-      className="card card-hover group w-full overflow-hidden text-left"
+      className={`card card-hover group w-full overflow-hidden text-left !ring-2 ${DIFFICULTY_RING[exercise.difficulty]}`}
     >
       <div className="relative h-52 overflow-hidden">
         <img
@@ -105,14 +114,14 @@ export function ExercisesPage() {
       </section>
 
       {/* Exercise guide */}
-      <section className="section-pad bg-white dark:bg-gray-900">
+      <section className="section-pad bg-gradient-to-b from-blue-50/70 via-white to-white dark:from-gray-900 dark:via-gray-900 dark:to-gray-900">
         <div className="container-x mx-auto">
           <ExerciseGuide />
         </div>
       </section>
 
       {/* Library */}
-      <section className="section-pad bg-gray-50 dark:bg-gray-950">
+      <section className="section-pad bg-gradient-to-b from-white via-blue-50/50 to-blue-50/50 dark:from-gray-900 dark:via-gray-950 dark:to-gray-950">
         <div ref={ref} className="reveal container-x mx-auto">
           {/* Filters */}
           <div className="card p-5 sm:p-6">

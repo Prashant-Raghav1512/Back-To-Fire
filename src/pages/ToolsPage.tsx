@@ -35,7 +35,7 @@ export function ToolsPage() {
         </div>
       </section>
 
-      <section className="section-pad bg-gray-50 dark:bg-gray-950">
+      <section className="section-pad bg-gradient-to-b from-amber-50/70 via-white to-white dark:from-gray-900 dark:via-gray-950 dark:to-gray-950">
         <div ref={ref} className="reveal container-x mx-auto space-y-8">
           <BmiCalculator />
           <ProteinCalculator />

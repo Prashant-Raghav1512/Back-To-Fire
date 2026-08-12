@@ -47,7 +47,7 @@ export function AboutPage() {
       </section>
 
       {/* What is Calisthenics */}
-      <section className="section-pad bg-white dark:bg-gray-900">
+      <section className="section-pad bg-gradient-to-b from-orange-50/70 via-white to-white dark:from-gray-900 dark:via-gray-900 dark:to-gray-900">
         <div ref={introRef} className="reveal container-x mx-auto">
           <div className="grid items-center gap-12 lg:grid-cols-2">
             <div className="relative order-2 lg:order-1">
@@ -84,7 +84,7 @@ export function AboutPage() {
       </section>
 
       {/* Why choose calisthenics */}
-      <section className="section-pad bg-gray-50 dark:bg-gray-950">
+      <section className="section-pad bg-orange-100/40 dark:bg-gray-950">
         <div ref={whyRef} className="reveal container-x mx-auto">
           <SectionHeading
             eyebrow="Why choose it"
@@ -110,7 +110,7 @@ export function AboutPage() {
       </section>
 
       {/* Mission & Vision */}
-      <section className="section-pad bg-white dark:bg-gray-900">
+      <section className="section-pad bg-gradient-to-b from-orange-50/50 via-white to-white dark:from-gray-900 dark:via-gray-900 dark:to-gray-900">
         <div ref={mvRef} className="reveal container-x mx-auto">
           <div className="grid gap-6 md:grid-cols-2 stagger-children">
             <TiltCard className="card card-hover relative overflow-hidden p-8">

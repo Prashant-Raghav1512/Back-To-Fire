@@ -86,7 +86,7 @@ export function ProfilePage() {
   if (isLoaded && !isSignedIn) {
     return (
       <div className="pt-16 sm:pt-20">
-        <section className="section-pad bg-gray-50 dark:bg-gray-950">
+        <section className="section-pad bg-gradient-to-b from-indigo-50/70 via-white to-white dark:from-gray-900 dark:via-gray-950 dark:to-gray-950">
           <div className="container-x mx-auto max-w-xl text-center">
             <SectionHeading
               eyebrow="Your profile"
@@ -121,7 +121,7 @@ export function ProfilePage() {
         </div>
       </section>
 
-      <section className="section-pad bg-gray-50 dark:bg-gray-950">
+      <section className="section-pad bg-gradient-to-b from-indigo-50/70 via-white to-white dark:from-gray-900 dark:via-gray-950 dark:to-gray-950">
         <div ref={ref} className="reveal container-x mx-auto space-y-16">
           <div>
             <SectionHeading eyebrow="About you" title="Personal Details" center={false} />
