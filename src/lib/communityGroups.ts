@@ -62,7 +62,7 @@ export const INTEREST_GROUPS: CommunityGroupOption[] = communityInterests.map((i
 
 // Only ongoing/upcoming events get a discussion group — an ended event has
 // no "what's next" left to coordinate, and its recap already lives on the
-// Events page. Recomputed on every call (not cached at module scope) for
+// Programs & Events page. Recomputed on every call (not cached at module scope) for
 // the same reason src/lib/events.ts's chunk generator is: status is a
 // function of *today's date*, so a stale cached list could show an event
 // whose window already closed.

@@ -324,7 +324,7 @@ export function ProfilePage() {
                 ))}
               </div>
             ) : (
-              <EmptyState message="You haven't joined an event yet." ctaLabel="Browse events" ctaPath="/events" />
+              <EmptyState message="You haven't joined an event yet." ctaLabel="Browse events" ctaPath="/programs" />
             )}
           </div>
 

@@ -42,9 +42,8 @@ export const benefits = [
 export const navLinks = [
   { label: 'Home', path: '/' },
   { label: 'About', path: '/about' },
-  { label: 'Programs', path: '/programs' },
+  { label: 'Programs & Events', path: '/programs' },
   { label: 'Exercises', path: '/exercises' },
-  { label: 'Events', path: '/events' },
   { label: 'Articles', path: '/articles' },
   { label: 'Community', path: '/community' },
   { label: 'Membership', path: '/membership' },

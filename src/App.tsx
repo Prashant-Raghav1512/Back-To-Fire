@@ -9,7 +9,6 @@ import { HomePage } from '@/pages/HomePage';
 import { AboutPage } from '@/pages/AboutPage';
 import { ProgramsPage } from '@/pages/ProgramsPage';
 import { ExercisesPage } from '@/pages/ExercisesPage';
-import { EventsPage } from '@/pages/EventsPage';
 import { ArticlesPage } from '@/pages/ArticlesPage';
 import { CommunityPage } from '@/pages/CommunityPage';
 import { MembershipPage } from '@/pages/MembershipPage';
@@ -29,11 +28,12 @@ function Routes() {
       case '/about':
         return <AboutPage />;
       case '/programs':
+      case '/events':
+        // Merged into one page (see ProgramsPage.tsx) - both routes still
+        // resolve so any existing links/bookmarks to /events keep working.
         return <ProgramsPage />;
       case '/exercises':
         return <ExercisesPage />;
-      case '/events':
-        return <EventsPage />;
       case '/articles':
         return <ArticlesPage />;
       case '/community':

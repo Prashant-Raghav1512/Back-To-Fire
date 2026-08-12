@@ -144,7 +144,7 @@ export function getEventKnowledgeChunks(now: Date = new Date()): { id: string; t
             ? `Coming up: ${upcoming.map((e) => `${e.title} (${formatEventDateRange(e)})`).join('; ')}.`
             : 'There are no upcoming events on the calendar right now.',
           ended.length ? `Recently ended: ${ended.slice(0, 3).map((e) => e.title).join(', ')}.` : '',
-          'Full details for every event, including how to join, are on the Events page.',
+          'Full details for every event, including how to join, are on the Programs & Events page.',
         ]
           .filter(Boolean)
           .join(' ')

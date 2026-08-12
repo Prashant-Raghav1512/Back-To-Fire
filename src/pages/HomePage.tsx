@@ -313,7 +313,7 @@ export function HomePage() {
               ))}
             </div>
             <div className="mt-10 text-center">
-              <button onClick={() => navigate('/events')} className="btn-outline">
+              <button onClick={() => navigate('/programs')} className="btn-outline">
                 View all events <ArrowRight className="h-4 w-4" />
               </button>
             </div>
