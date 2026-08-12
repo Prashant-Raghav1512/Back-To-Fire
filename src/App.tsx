@@ -16,6 +16,8 @@ import { ProfilePage } from '@/pages/ProfilePage';
 import { ContactPage } from '@/pages/ContactPage';
 import { ToolsPage } from '@/pages/ToolsPage';
 import { AppComingSoonPage } from '@/pages/AppComingSoonPage';
+import { TermsPage } from '@/pages/TermsPage';
+import { PrivacyPolicyPage } from '@/pages/PrivacyPolicyPage';
 
 function Routes() {
   const { path } = useRouter();
@@ -48,6 +50,10 @@ function Routes() {
         return <ToolsPage />;
       case '/app':
         return <AppComingSoonPage />;
+      case '/terms':
+        return <TermsPage />;
+      case '/privacy':
+        return <PrivacyPolicyPage />;
       default:
         return <HomePage />;
     }

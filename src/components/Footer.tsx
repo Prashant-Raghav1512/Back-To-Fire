@@ -136,8 +136,16 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-10 flex flex-col items-center justify-between gap-3 border-t border-gray-800 pt-6 text-sm text-gray-500 sm:flex-row">
-          <p>© {new Date().getFullYear()} Born to Fire. All rights reserved.</p>
+        <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-gray-800 pt-6 text-sm text-gray-500 sm:flex-row">
+          <p className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5">
+            <span>© {new Date().getFullYear()} Born to Fire. All rights reserved.</span>
+            <button onClick={() => navigate('/terms')} className="transition-colors hover:text-green-400">
+              Terms &amp; Conditions
+            </button>
+            <button onClick={() => navigate('/privacy')} className="transition-colors hover:text-green-400">
+              Privacy Policy
+            </button>
+          </p>
           <p className="flex items-center gap-1.5">
             Built with <Flame className="h-4 w-4 text-orange-500" /> in India
           </p>
