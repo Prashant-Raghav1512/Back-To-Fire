@@ -20,40 +20,10 @@ import { useMyEnrollments } from '@/lib/enrollments';
 import { useReveal } from '@/lib/useReveal';
 import { useTilt } from '@/lib/useTilt';
 import { useParallax } from '@/lib/useParallax';
-import type { EventType, FitnessEvent } from '@/data/types';
+import { EVENT_TYPE_STYLES } from '@/lib/categoryStyles';
+import type { FitnessEvent } from '@/data/types';
 
 const iconMap = { GraduationCap, Flame, Trophy, Users, Video, PartyPopper } as const;
-
-// Distinguishes event cards by type at a glance — icon badge, card ring, and
-// the type/format pill all pick up the same color so a grid of mixed event
-// types reads as visually distinct groups rather than one uniform list.
-const EVENT_TYPE_STYLES: Record<EventType, { icon: string; ring: string; badge: string }> = {
-  Workshop: {
-    icon: 'bg-blue-100 text-blue-600 dark:bg-blue-500/15 dark:text-blue-400',
-    ring: 'ring-blue-100 dark:ring-blue-500/20',
-    badge: 'bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-400',
-  },
-  Bootcamp: {
-    icon: 'bg-orange-100 text-orange-600 dark:bg-orange-500/15 dark:text-orange-400',
-    ring: 'ring-orange-100 dark:ring-orange-500/20',
-    badge: 'bg-orange-100 text-orange-700 dark:bg-orange-500/15 dark:text-orange-400',
-  },
-  Challenge: {
-    icon: 'bg-red-100 text-red-600 dark:bg-red-500/15 dark:text-red-400',
-    ring: 'ring-red-100 dark:ring-red-500/20',
-    badge: 'bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-400',
-  },
-  Meetup: {
-    icon: 'bg-purple-100 text-purple-600 dark:bg-purple-500/15 dark:text-purple-400',
-    ring: 'ring-purple-100 dark:ring-purple-500/20',
-    badge: 'bg-purple-100 text-purple-700 dark:bg-purple-500/15 dark:text-purple-400',
-  },
-  Webinar: {
-    icon: 'bg-teal-100 text-teal-600 dark:bg-teal-500/15 dark:text-teal-400',
-    ring: 'ring-teal-100 dark:ring-teal-500/20',
-    badge: 'bg-teal-100 text-teal-700 dark:bg-teal-500/15 dark:text-teal-400',
-  },
-};
 
 interface EventCardProps {
   event: FitnessEvent;

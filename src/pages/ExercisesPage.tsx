@@ -9,17 +9,9 @@ import type { Difficulty, Exercise } from '@/data/types';
 import { useReveal } from '@/lib/useReveal';
 import { useTilt } from '@/lib/useTilt';
 import { useParallax } from '@/lib/useParallax';
+import { DIFFICULTY_CARD_STYLES } from '@/lib/categoryStyles';
 
 type DiffFilter = 'All' | Difficulty;
-
-// Same color mapping as DifficultyBadge/ProgramsPage, applied to the card
-// ring so the library reads as three visually distinct difficulty groups
-// at a glance, not just via the small badge in the corner of each photo.
-const DIFFICULTY_RING: Record<Difficulty, string> = {
-  Beginner: 'ring-green-100 dark:ring-green-500/20',
-  Intermediate: 'ring-orange-100 dark:ring-orange-500/20',
-  Advanced: 'ring-red-100 dark:ring-red-500/20',
-};
 
 function ExerciseCard({ exercise, onSelect }: { exercise: Exercise; onSelect: (ex: Exercise) => void }) {
   const tiltRef = useTilt<HTMLButtonElement>();
@@ -27,7 +19,7 @@ function ExerciseCard({ exercise, onSelect }: { exercise: Exercise; onSelect: (e
     <button
       ref={tiltRef}
       onClick={() => onSelect(exercise)}
-      className={`card card-hover group w-full overflow-hidden text-left !ring-2 ${DIFFICULTY_RING[exercise.difficulty]}`}
+      className={`card card-hover group w-full overflow-hidden text-left !ring-2 ${DIFFICULTY_CARD_STYLES[exercise.difficulty].ring}`}
     >
       <div className="relative h-52 overflow-hidden">
         <img

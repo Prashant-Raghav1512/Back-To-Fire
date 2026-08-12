@@ -10,28 +10,9 @@ import { programs } from '@/data/content';
 import { useMyEnrollments } from '@/lib/enrollments';
 import { useReveal } from '@/lib/useReveal';
 import { useParallax } from '@/lib/useParallax';
-import type { Difficulty } from '@/data/types';
+import { DIFFICULTY_CARD_STYLES } from '@/lib/categoryStyles';
 
 const iconMap = { Sprout, Flame, Zap } as const;
-
-// Same color mapping as DifficultyBadge, extended to the card's icon badge
-// and ring so a Beginner/Intermediate/Advanced grid reads as three visually
-// distinct tiers rather than one uniform list of cards with a small badge
-// as the only difference.
-const DIFFICULTY_CARD_STYLES: Record<Difficulty, { icon: string; ring: string }> = {
-  Beginner: {
-    icon: 'bg-green-100 text-green-600 dark:bg-green-500/15 dark:text-green-400',
-    ring: 'ring-green-100 dark:ring-green-500/20',
-  },
-  Intermediate: {
-    icon: 'bg-orange-100 text-orange-600 dark:bg-orange-500/15 dark:text-orange-400',
-    ring: 'ring-orange-500',
-  },
-  Advanced: {
-    icon: 'bg-red-100 text-red-600 dark:bg-red-500/15 dark:text-red-400',
-    ring: 'ring-red-100 dark:ring-red-500/20',
-  },
-};
 
 export function ProgramsPage() {
   const ref = useReveal<HTMLDivElement>();
@@ -110,8 +91,8 @@ export function ProgramsPage() {
               return (
                 <TiltCard
                   key={p.id}
-                  className={`card card-hover relative flex flex-col p-7 !ring-2 ${style.ring} ${
-                    featured ? 'lg:scale-[1.03]' : ''
+                  className={`card card-hover relative flex flex-col p-7 !ring-2 ${
+                    featured ? 'ring-orange-500 lg:scale-[1.03]' : style.ring
                   }`}
                 >
                   {featured && (

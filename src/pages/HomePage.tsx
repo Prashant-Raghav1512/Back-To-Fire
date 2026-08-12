@@ -13,6 +13,7 @@ import { useMyEnrollments } from '@/lib/enrollments';
 import { useRouter } from '@/lib/router';
 import { useReveal } from '@/lib/useReveal';
 import { useMagnetic } from '@/lib/useMagnetic';
+import { DIFFICULTY_CARD_STYLES, EVENT_TYPE_STYLES } from '@/lib/categoryStyles';
 import type { FitnessEvent } from '@/data/types';
 
 const iconMap = { Dumbbell, Activity, Calendar, Move } as const;
@@ -180,7 +181,10 @@ export function HomePage() {
           />
           <div className="mt-12 grid gap-6 md:grid-cols-3 stagger-children">
             {programs.map((p) => (
-              <TiltCard key={p.id} className="card card-hover flex flex-col p-6">
+              <TiltCard
+                key={p.id}
+                className={`card card-hover flex flex-col p-6 !ring-2 ${DIFFICULTY_CARD_STYLES[p.difficulty].ring}`}
+              >
                 <div className="flex items-center justify-between">
                   <DifficultyBadge level={p.difficulty} />
                   <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
@@ -227,9 +231,10 @@ export function HomePage() {
                   }}
                   role="button"
                   tabIndex={0}
-                  className="card card-hover flex cursor-pointer flex-col p-6 text-left"
+                  className={`card card-hover flex cursor-pointer flex-col p-6 text-left !ring-2 ${EVENT_TYPE_STYLES[e.type].ring}`}
                 >
                   <div className="flex items-start justify-between gap-3">
+                    <span className={`badge ${EVENT_TYPE_STYLES[e.type].badge}`}>{e.type}</span>
                     <EventStatusBadge status={getEventStatus(e)} />
                   </div>
                   <h3 className="mt-4 font-display text-lg font-bold text-gray-900 dark:text-white">
