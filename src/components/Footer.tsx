@@ -1,9 +1,17 @@
 import { Flame, Instagram, Youtube, Facebook, Twitter, Mail, Phone, MapPin } from 'lucide-react';
 import { navLinks } from '@/data/content';
 import { useRouter } from '@/lib/router';
+import { QRCode } from '@/components/QRCode';
+import { NewsletterForm } from '@/components/NewsletterForm';
 
 export function Footer() {
   const { navigate } = useRouter();
+  // Absolute URL so a phone camera scanning the printed/rendered QR code
+  // lands on the real deployed site, not a relative path that means
+  // nothing outside this page - correct under both the local dev origin
+  // and the GitHub Pages /Back-To-Fire/ subpath (see router.tsx's BASE_URL
+  // handling for the same pattern).
+  const appUrl = `${window.location.origin}${import.meta.env.BASE_URL}app`;
 
   return (
     <footer className="bg-gray-900 text-gray-300">
@@ -100,7 +108,37 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-12 flex flex-col items-center justify-between gap-3 border-t border-gray-800 pt-6 text-sm text-gray-500 sm:flex-row">
+        <div className="mt-12 grid gap-8 border-t border-gray-800 pt-10 sm:grid-cols-2">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => navigate('/app')}
+              aria-label="Go to the app page"
+              className="shrink-0 overflow-hidden rounded-2xl bg-white p-2 transition-transform duration-300 hover:scale-105"
+            >
+              <QRCode value={appUrl} size={80} />
+            </button>
+            <div>
+              <h4 className="font-display text-sm font-bold uppercase tracking-wider text-white">
+                Get the App
+              </h4>
+              <p className="mt-1.5 text-sm text-gray-400">
+                Scan to download Born to Fire from the Play Store.
+              </p>
+            </div>
+          </div>
+
+          <div>
+            <h4 className="font-display text-sm font-bold uppercase tracking-wider text-white">
+              Stay Updated
+            </h4>
+            <p className="mt-1.5 text-sm text-gray-400">
+              Get the latest programs, events, and app news in your inbox.
+            </p>
+            <NewsletterForm className="mt-4" />
+          </div>
+        </div>
+
+        <div className="mt-10 flex flex-col items-center justify-between gap-3 border-t border-gray-800 pt-6 text-sm text-gray-500 sm:flex-row">
           <p>© {new Date().getFullYear()} Born to Fire. All rights reserved.</p>
           <p className="flex items-center gap-1.5">
             Built with <Flame className="h-4 w-4 text-orange-500" /> in India

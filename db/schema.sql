@@ -32,6 +32,16 @@ CREATE TABLE IF NOT EXISTS contact_submissions (
   created_at timestamptz NOT NULL DEFAULT now()
 );
 
+-- One row per newsletter signup (src/lib/newsletter.ts, the Footer's
+-- "Stay Updated" form). `email` is UNIQUE so re-submitting the same address
+-- is a harmless no-op (ON CONFLICT DO NOTHING) rather than a duplicate row
+-- or a confusing error — signing up twice should just look like success.
+CREATE TABLE IF NOT EXISTS newsletter_subscribers (
+  id bigserial PRIMARY KEY,
+  email text NOT NULL UNIQUE,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+
 -- One row per (user, program-or-event) enrollment. `clerk_user_id` is
 -- Clerk's stable user id (see src/lib/enrollments.ts) — not a foreign key
 -- to any table here, since users live in Clerk, not Neon. `item_title` and

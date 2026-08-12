@@ -15,6 +15,7 @@ import { CommunityPage } from '@/pages/CommunityPage';
 import { ProfilePage } from '@/pages/ProfilePage';
 import { ContactPage } from '@/pages/ContactPage';
 import { ToolsPage } from '@/pages/ToolsPage';
+import { AppComingSoonPage } from '@/pages/AppComingSoonPage';
 
 function Routes() {
   const { path } = useRouter();
@@ -42,6 +43,8 @@ function Routes() {
         return <ContactPage />;
       case '/tools':
         return <ToolsPage />;
+      case '/app':
+        return <AppComingSoonPage />;
       default:
         return <HomePage />;
     }
