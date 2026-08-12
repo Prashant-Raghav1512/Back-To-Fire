@@ -50,51 +50,64 @@ export function HomePage() {
       {/* HERO */}
       <section className="relative pt-24 sm:pt-28">
         <div ref={heroRef} className="reveal relative z-10 container-x mx-auto px-5 pb-20 sm:px-8 sm:pb-28 lg:pb-32">
-          <div className="max-w-3xl">
-            <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-sm font-medium text-green-300 ring-1 ring-white/15 backdrop-blur">
-              <span className="flex h-2 w-2 rounded-full bg-green-400" />
-              Calisthenics for India - train anywhere
-            </span>
-            <h1 className="mt-6 font-display text-4xl font-extrabold leading-[1.05] tracking-tight text-white sm:text-6xl lg:text-7xl">
-              No weights.
-              <br />
-              No limits.
-              <br />
-              <span className="bg-gradient-to-r from-green-400 to-orange-400 bg-clip-text text-transparent">
-                Master the machine you were born in.
+          <div className="grid items-center gap-12 lg:grid-cols-[1.2fr_1fr]">
+            <div className="max-w-3xl">
+              <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-sm font-medium text-green-300 ring-1 ring-white/15 backdrop-blur">
+                <span className="flex h-2 w-2 rounded-full bg-green-400" />
+                Calisthenics for India - train anywhere
               </span>
-            </h1>
-            <p className="mt-6 max-w-xl text-lg leading-relaxed text-gray-300">
-              Born to Fire is your home for bodyweight training - beginner-friendly programs,
-              guided exercises, and a community that helps you build real strength, no gym
-              required.
-            </p>
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <span ref={heroCtaRef} className="inline-block">
-                <button onClick={() => navigate('/programs')} className="btn-primary text-base">
-                  Explore Programs <ArrowRight className="h-5 w-5" />
+              <h1 className="mt-6 font-display text-4xl font-extrabold leading-[1.05] tracking-tight text-white sm:text-6xl lg:text-7xl">
+                No weights.
+                <br />
+                No limits.
+                <br />
+                <span className="bg-gradient-to-r from-green-400 to-orange-400 bg-clip-text text-transparent">
+                  Master the machine you were born in.
+                </span>
+              </h1>
+              <p className="mt-6 max-w-xl text-lg leading-relaxed text-gray-300">
+                Born to Fire is your home for bodyweight training - beginner-friendly programs,
+                guided exercises, and a community that helps you build real strength, no gym
+                required.
+              </p>
+              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+                <span ref={heroCtaRef} className="inline-block">
+                  <button onClick={() => navigate('/programs')} className="btn-primary text-base">
+                    Explore Programs <ArrowRight className="h-5 w-5" />
+                  </button>
+                </span>
+                <button
+                  onClick={() => navigate('/exercises')}
+                  className="inline-flex items-center justify-center gap-2 rounded-full border-2 border-white/25 px-6 py-3 font-semibold text-white backdrop-blur transition-all duration-300 hover:border-white/60 hover:bg-white/10 active:scale-95"
+                >
+                  Browse Exercises
                 </button>
-              </span>
-              <button
-                onClick={() => navigate('/exercises')}
-                className="inline-flex items-center justify-center gap-2 rounded-full border-2 border-white/25 px-6 py-3 font-semibold text-white backdrop-blur transition-all duration-300 hover:border-white/60 hover:bg-white/10 active:scale-95"
-              >
-                Browse Exercises
-              </button>
+              </div>
+
+              <div className="mt-12 flex flex-wrap gap-8 text-white">
+                <div className="flex items-center gap-2 text-sm text-gray-300">
+                  <MapPin className="h-5 w-5 text-green-400" />
+                  <AnimatedCounter end={25} suffix="+" /> Gyms Across India
+                </div>
+                <div className="flex items-center gap-2 text-sm text-gray-300">
+                  <Activity className="h-5 w-5 text-green-400" />
+                  <AnimatedCounter end={50} suffix="+" /> exercises
+                </div>
+                <div className="flex items-center gap-2 text-sm text-gray-300">
+                  <Clock className="h-5 w-5 text-green-400" />
+                  20-60 min sessions
+                </div>
+              </div>
             </div>
 
-            <div className="mt-12 flex flex-wrap gap-8 text-white">
-              <div className="flex items-center gap-2 text-sm text-gray-300">
-                <MapPin className="h-5 w-5 text-green-400" />
-                <AnimatedCounter end={25} suffix="+" /> Gyms Across India
-              </div>
-              <div className="flex items-center gap-2 text-sm text-gray-300">
-                <Activity className="h-5 w-5 text-green-400" />
-                <AnimatedCounter end={50} suffix="+" /> exercises
-              </div>
-              <div className="flex items-center gap-2 text-sm text-gray-300">
-                <Clock className="h-5 w-5 text-green-400" />
-                20-60 min sessions
+            <div className="relative mx-auto hidden aspect-square w-full max-w-sm lg:block">
+              <div className="absolute -inset-4 rounded-full bg-gradient-to-br from-green-400/30 to-orange-400/20 blur-xl" />
+              <div className="group relative h-full w-full overflow-hidden rounded-full shadow-2xl ring-4 ring-white/15">
+                <img
+                  src={`${import.meta.env.BASE_URL}hero-event.jpg`}
+                  alt="Born to Fire calisthenics event with a competitor performing a handstand on a rig, cheered on by a crowd"
+                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                />
               </div>
             </div>
           </div>
