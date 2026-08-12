@@ -85,6 +85,24 @@ export function Footer() {
                 </li>
               ))}
             </ul>
+
+            <div className="mt-8 flex items-center gap-3">
+              <button
+                onClick={() => navigate('/app')}
+                aria-label="Go to the app page"
+                className="shrink-0 overflow-hidden rounded-xl bg-white p-1.5 transition-transform duration-300 hover:scale-105"
+              >
+                <QRCode value={appUrl} size={64} />
+              </button>
+              <div>
+                <h4 className="font-display text-xs font-bold uppercase tracking-wider text-white">
+                  Get the App
+                </h4>
+                <p className="mt-1 text-xs text-gray-400">
+                  Scan to download from the Play Store.
+                </p>
+              </div>
+            </div>
           </div>
 
           <div>
@@ -105,36 +123,16 @@ export function Footer() {
                 <span>Indiranagar, Bengaluru, Karnataka 560038</span>
               </li>
             </ul>
-          </div>
-        </div>
 
-        <div className="mt-12 grid gap-8 border-t border-gray-800 pt-10 sm:grid-cols-2">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => navigate('/app')}
-              aria-label="Go to the app page"
-              className="shrink-0 overflow-hidden rounded-2xl bg-white p-2 transition-transform duration-300 hover:scale-105"
-            >
-              <QRCode value={appUrl} size={80} />
-            </button>
-            <div>
-              <h4 className="font-display text-sm font-bold uppercase tracking-wider text-white">
-                Get the App
+            <div className="mt-8">
+              <h4 className="font-display text-xs font-bold uppercase tracking-wider text-white">
+                Stay Updated
               </h4>
-              <p className="mt-1.5 text-sm text-gray-400">
-                Scan to download Born to Fire from the Play Store.
+              <p className="mt-1 text-xs text-gray-400">
+                Get the latest programs, events, and app news.
               </p>
+              <NewsletterForm className="mt-3" />
             </div>
-          </div>
-
-          <div>
-            <h4 className="font-display text-sm font-bold uppercase tracking-wider text-white">
-              Stay Updated
-            </h4>
-            <p className="mt-1.5 text-sm text-gray-400">
-              Get the latest programs, events, and app news in your inbox.
-            </p>
-            <NewsletterForm className="mt-4" />
           </div>
         </div>
 

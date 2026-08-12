@@ -41,8 +41,12 @@ export function NewsletterForm({ className = '', variant = 'dark' }: NewsletterF
 
   return (
     <div className={className}>
-      <form onSubmit={handleSubmit} className="flex flex-col gap-2 sm:flex-row">
-        <div className="relative flex-1">
+      {/* Always stacked, never side-by-side - this renders in contexts as
+          narrow as a quarter-width footer column, and a row layout keyed
+          off viewport width (rather than the container's actual width)
+          would overflow/squeeze there even on a wide desktop screen. */}
+      <form onSubmit={handleSubmit} className="flex flex-col gap-2">
+        <div className="relative">
           <Mail
             className={`pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 ${
               isDark ? 'text-gray-500' : 'text-gray-400'
@@ -65,7 +69,7 @@ export function NewsletterForm({ className = '', variant = 'dark' }: NewsletterF
         <button
           type="submit"
           disabled={status === 'loading'}
-          className="btn-primary shrink-0 !py-2.5 text-sm disabled:cursor-not-allowed disabled:opacity-60"
+          className="btn-primary w-full !py-2.5 text-sm disabled:cursor-not-allowed disabled:opacity-60"
         >
           {status === 'loading' ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Subscribe'}
         </button>
