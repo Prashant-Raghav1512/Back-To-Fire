@@ -27,7 +27,7 @@ export function MembershipPlans() {
     <div>
       <SectionHeading
         eyebrow="Paid coaching"
-        title="Membership plans for every age group"
+        title="Coaching programs for every age group"
         subtitle="Calisthenics lessons, access to your nearest gym branch, and a diet plan on every plan - 1-on-1 personal training on Premium."
       />
 
