@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { Clock, Sunrise, Flame, Sparkles, Zap, Dumbbell, Apple, Salad, Utensils, ArrowRight } from 'lucide-react';
 import { SectionHeading } from '@/components/SectionHeading';
 import { ArticleModal } from '@/components/ArticleModal';
+import { AnimatedPageBackground } from '@/components/AnimatedPageBackground';
 import { articles } from '@/data/articles';
 import { useReveal } from '@/lib/useReveal';
 import { useTilt } from '@/lib/useTilt';
@@ -123,8 +124,29 @@ export function ArticlesPage() {
         </div>
       </section>
 
-      <section className="section-pad bg-gradient-to-b from-teal-50/70 via-white to-white dark:from-gray-900 dark:via-gray-950 dark:to-gray-950">
-        <div ref={ref} className="reveal container-x mx-auto">
+      <section className="relative overflow-hidden section-pad bg-white dark:bg-gray-950">
+        <AnimatedPageBackground
+          blobs={[
+            {
+              color: 'bg-teal-300',
+              size: 'h-96 w-96',
+              position: { top: '-6rem', left: '-6rem' },
+              x: [0, 50, 0],
+              y: [0, 40, 0],
+              scale: [1, 1.15, 1],
+              duration: 24,
+            },
+            {
+              color: 'bg-cyan-200',
+              size: 'h-72 w-72',
+              position: { bottom: '-4rem', right: '5%' },
+              x: [0, -45, 0],
+              y: [0, -25, 0],
+              duration: 28,
+            },
+          ]}
+        />
+        <div ref={ref} className="reveal relative z-10 container-x mx-auto">
           <SectionHeading eyebrow="Browse" title="All articles" center={false} />
 
           <div className="mt-6 flex flex-wrap gap-2">

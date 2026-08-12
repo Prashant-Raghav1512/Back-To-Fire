@@ -3,6 +3,7 @@ import { useParallax } from '@/lib/useParallax';
 import { BmiCalculator } from '@/components/BmiCalculator';
 import { ProteinCalculator } from '@/components/ProteinCalculator';
 import { ProteinChatBot } from '@/components/ProteinChatBot';
+import { AnimatedPageBackground } from '@/components/AnimatedPageBackground';
 
 export function ToolsPage() {
   const ref = useReveal<HTMLDivElement>();
@@ -35,8 +36,29 @@ export function ToolsPage() {
         </div>
       </section>
 
-      <section className="section-pad bg-gradient-to-b from-amber-50/70 via-white to-white dark:from-gray-900 dark:via-gray-950 dark:to-gray-950">
-        <div ref={ref} className="reveal container-x mx-auto space-y-8">
+      <section className="relative overflow-hidden section-pad bg-white dark:bg-gray-950">
+        <AnimatedPageBackground
+          blobs={[
+            {
+              color: 'bg-amber-300',
+              size: 'h-96 w-96',
+              position: { top: '-6rem', right: '-6rem' },
+              x: [0, -55, 0],
+              y: [0, 35, 0],
+              scale: [1, 1.15, 1],
+              duration: 25,
+            },
+            {
+              color: 'bg-yellow-200',
+              size: 'h-64 w-64',
+              position: { bottom: '10%', left: '-4rem' },
+              x: [0, 40, 0],
+              y: [0, -30, 0],
+              duration: 21,
+            },
+          ]}
+        />
+        <div ref={ref} className="reveal relative z-10 container-x mx-auto space-y-8">
           <BmiCalculator />
           <ProteinCalculator />
           <ProteinChatBot />

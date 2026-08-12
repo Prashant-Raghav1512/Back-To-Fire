@@ -5,6 +5,7 @@ import { SectionHeading } from '@/components/SectionHeading';
 import { EventStatusBadge } from '@/components/EventStatusBadge';
 import { EventModal } from '@/components/EventModal';
 import { ProfileDetailsForm } from '@/components/ProfileDetailsForm';
+import { AnimatedPageBackground } from '@/components/AnimatedPageBackground';
 import { useMyEnrollments, type Enrollment } from '@/lib/enrollments';
 import { events } from '@/data/events';
 import { getEventStatus } from '@/lib/events';
@@ -86,8 +87,29 @@ export function ProfilePage() {
   if (isLoaded && !isSignedIn) {
     return (
       <div className="pt-16 sm:pt-20">
-        <section className="section-pad bg-gradient-to-b from-indigo-50/70 via-white to-white dark:from-gray-900 dark:via-gray-950 dark:to-gray-950">
-          <div className="container-x mx-auto max-w-xl text-center">
+        <section className="relative overflow-hidden section-pad bg-white dark:bg-gray-950">
+          <AnimatedPageBackground
+            blobs={[
+              {
+                color: 'bg-indigo-300',
+                size: 'h-80 w-80',
+                position: { top: '-5rem', left: '-6rem' },
+                x: [0, 50, 0],
+                y: [0, 35, 0],
+                scale: [1, 1.15, 1],
+                duration: 24,
+              },
+              {
+                color: 'bg-blue-200',
+                size: 'h-64 w-64',
+                position: { bottom: '-3rem', right: '5%' },
+                x: [0, -40, 0],
+                y: [0, -25, 0],
+                duration: 28,
+              },
+            ]}
+          />
+          <div className="relative z-10 container-x mx-auto max-w-xl text-center">
             <SectionHeading
               eyebrow="Your profile"
               title="Sign in to see your profile"
@@ -121,8 +143,29 @@ export function ProfilePage() {
         </div>
       </section>
 
-      <section className="section-pad bg-gradient-to-b from-indigo-50/70 via-white to-white dark:from-gray-900 dark:via-gray-950 dark:to-gray-950">
-        <div ref={ref} className="reveal container-x mx-auto space-y-16">
+      <section className="relative overflow-hidden section-pad bg-white dark:bg-gray-950">
+        <AnimatedPageBackground
+          blobs={[
+            {
+              color: 'bg-indigo-300',
+              size: 'h-96 w-96',
+              position: { top: '-6rem', right: '-6rem' },
+              x: [0, -50, 0],
+              y: [0, 40, 0],
+              scale: [1, 1.15, 1],
+              duration: 25,
+            },
+            {
+              color: 'bg-blue-200',
+              size: 'h-72 w-72',
+              position: { bottom: '5%', left: '-4rem' },
+              x: [0, 45, 0],
+              y: [0, -30, 0],
+              duration: 29,
+            },
+          ]}
+        />
+        <div ref={ref} className="reveal relative z-10 container-x mx-auto space-y-16">
           <div>
             <SectionHeading eyebrow="About you" title="Personal Details" center={false} />
             <div className="mt-8 max-w-2xl">

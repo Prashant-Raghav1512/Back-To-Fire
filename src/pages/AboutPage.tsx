@@ -1,6 +1,7 @@
 import { Target, Eye, Heart, Dumbbell, Wallet, Home, Clock, TrendingUp } from 'lucide-react';
 import { SectionHeading } from '@/components/SectionHeading';
 import { TiltCard } from '@/components/TiltCard';
+import { AnimatedPageBackground } from '@/components/AnimatedPageBackground';
 import { useReveal } from '@/lib/useReveal';
 import { useParallax } from '@/lib/useParallax';
 import { useRouter } from '@/lib/router';
@@ -47,8 +48,29 @@ export function AboutPage() {
       </section>
 
       {/* What is Calisthenics */}
-      <section className="section-pad bg-gradient-to-b from-orange-50/70 via-white to-white dark:from-gray-900 dark:via-gray-900 dark:to-gray-900">
-        <div ref={introRef} className="reveal container-x mx-auto">
+      <section className="relative overflow-hidden section-pad bg-white dark:bg-gray-900">
+        <AnimatedPageBackground
+          blobs={[
+            {
+              color: 'bg-orange-300',
+              size: 'h-96 w-96',
+              position: { top: '-6rem', left: '-8rem' },
+              x: [0, 55, 0],
+              y: [0, 35, 0],
+              scale: [1, 1.15, 1],
+              duration: 24,
+            },
+            {
+              color: 'bg-amber-200',
+              size: 'h-64 w-64',
+              position: { bottom: '-3rem', right: '10%' },
+              x: [0, -35, 0],
+              y: [0, -25, 0],
+              duration: 20,
+            },
+          ]}
+        />
+        <div ref={introRef} className="reveal relative z-10 container-x mx-auto">
           <div className="grid items-center gap-12 lg:grid-cols-2">
             <div className="relative order-2 lg:order-1">
               <div className="absolute -inset-3 rounded-[2rem] bg-gradient-to-br from-orange-400/30 to-green-400/20 blur-xl" />
@@ -84,8 +106,29 @@ export function AboutPage() {
       </section>
 
       {/* Why choose calisthenics */}
-      <section className="section-pad bg-orange-100/40 dark:bg-gray-950">
-        <div ref={whyRef} className="reveal container-x mx-auto">
+      <section className="relative overflow-hidden section-pad bg-orange-50/40 dark:bg-gray-950">
+        <AnimatedPageBackground
+          blobs={[
+            {
+              color: 'bg-orange-200',
+              size: 'h-80 w-80',
+              position: { top: '10%', right: '-6rem' },
+              x: [0, -45, 0],
+              y: [0, 30, 0],
+              duration: 26,
+            },
+            {
+              color: 'bg-amber-300',
+              size: 'h-56 w-56',
+              position: { bottom: '-3rem', left: '10%' },
+              x: [0, 30, -15, 0],
+              y: [0, -25, 15, 0],
+              scale: [1, 1.12, 1],
+              duration: 30,
+            },
+          ]}
+        />
+        <div ref={whyRef} className="reveal relative z-10 container-x mx-auto">
           <SectionHeading
             eyebrow="Why choose it"
             title="Why calisthenics beats the gym"
@@ -110,8 +153,29 @@ export function AboutPage() {
       </section>
 
       {/* Mission & Vision */}
-      <section className="section-pad bg-gradient-to-b from-orange-50/50 via-white to-white dark:from-gray-900 dark:via-gray-900 dark:to-gray-900">
-        <div ref={mvRef} className="reveal container-x mx-auto">
+      <section className="relative overflow-hidden section-pad bg-white dark:bg-gray-900">
+        <AnimatedPageBackground
+          blobs={[
+            {
+              color: 'bg-orange-200',
+              size: 'h-72 w-72',
+              position: { top: '-4rem', left: '15%' },
+              x: [0, 40, 0],
+              y: [0, 30, 0],
+              duration: 22,
+            },
+            {
+              color: 'bg-amber-200',
+              size: 'h-64 w-64',
+              position: { bottom: '-4rem', right: '-4rem' },
+              x: [0, -35, 0],
+              y: [0, -20, 0],
+              scale: [1, 1.1, 1],
+              duration: 27,
+            },
+          ]}
+        />
+        <div ref={mvRef} className="reveal relative z-10 container-x mx-auto">
           <div className="grid gap-6 md:grid-cols-2 stagger-children">
             <TiltCard className="card card-hover relative overflow-hidden p-8">
               <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-green-500/10 blur-2xl" />

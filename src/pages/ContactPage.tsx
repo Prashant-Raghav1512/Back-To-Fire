@@ -6,6 +6,7 @@ import { useReveal } from '@/lib/useReveal';
 import { useTilt } from '@/lib/useTilt';
 import { useParallax } from '@/lib/useParallax';
 import { submitContact } from '@/lib/contact';
+import { AnimatedPageBackground } from '@/components/AnimatedPageBackground';
 
 interface FormState {
   name: string;
@@ -113,8 +114,29 @@ export function ContactPage() {
         </div>
       </section>
 
-      <section className="section-pad bg-gradient-to-b from-rose-50/70 via-white to-white dark:from-gray-900 dark:via-gray-950 dark:to-gray-950">
-        <div ref={ref} className="reveal container-x mx-auto">
+      <section className="relative overflow-hidden section-pad bg-white dark:bg-gray-950">
+        <AnimatedPageBackground
+          blobs={[
+            {
+              color: 'bg-rose-300',
+              size: 'h-96 w-96',
+              position: { top: '-6rem', left: '-6rem' },
+              x: [0, 55, 0],
+              y: [0, 35, 0],
+              scale: [1, 1.15, 1],
+              duration: 23,
+            },
+            {
+              color: 'bg-pink-200',
+              size: 'h-64 w-64',
+              position: { bottom: '-3rem', right: '10%' },
+              x: [0, -35, 0],
+              y: [0, -25, 0],
+              duration: 27,
+            },
+          ]}
+        />
+        <div ref={ref} className="reveal relative z-10 container-x mx-auto">
           <div className="grid gap-8 lg:grid-cols-3">
             {/* Contact info */}
             <div className="space-y-4">

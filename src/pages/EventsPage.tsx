@@ -14,6 +14,7 @@ import { SectionHeading } from '@/components/SectionHeading';
 import { EventStatusBadge } from '@/components/EventStatusBadge';
 import { EventModal } from '@/components/EventModal';
 import { EnrollButton } from '@/components/EnrollButton';
+import { AnimatedPageBackground } from '@/components/AnimatedPageBackground';
 import { groupEventsByStatus, formatEventDateRange, daysUntil, getEventStatus } from '@/lib/events';
 import { useMyEnrollments } from '@/lib/enrollments';
 import { useReveal } from '@/lib/useReveal';
@@ -196,8 +197,37 @@ export function EventsPage() {
         </div>
       </section>
 
-      <section className="section-pad bg-gradient-to-b from-purple-50/70 via-white to-white dark:from-gray-900 dark:via-gray-950 dark:to-gray-950">
-        <div ref={ref} className="reveal container-x mx-auto space-y-16">
+      <section className="relative overflow-hidden section-pad bg-white dark:bg-gray-950">
+        <AnimatedPageBackground
+          blobs={[
+            {
+              color: 'bg-purple-300',
+              size: 'h-96 w-96',
+              position: { top: '-6rem', right: '-8rem' },
+              x: [0, -60, 0],
+              y: [0, 40, 0],
+              scale: [1, 1.15, 1],
+              duration: 23,
+            },
+            {
+              color: 'bg-violet-200',
+              size: 'h-72 w-72',
+              position: { bottom: '5%', left: '-4rem' },
+              x: [0, 50, 0],
+              y: [0, -30, 0],
+              duration: 27,
+            },
+            {
+              color: 'bg-fuchsia-200',
+              size: 'h-56 w-56',
+              position: { top: '45%', left: '40%' },
+              x: [0, -30, 20, 0],
+              y: [0, 30, -20, 0],
+              duration: 32,
+            },
+          ]}
+        />
+        <div ref={ref} className="reveal relative z-10 container-x mx-auto space-y-16">
           {ongoing.length > 0 && (
             <div>
               <SectionHeading eyebrow="Live now" title="Happening now" center={false} />

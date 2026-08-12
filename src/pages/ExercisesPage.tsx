@@ -3,6 +3,7 @@ import { Search, X, ArrowRight, Target } from 'lucide-react';
 import { DifficultyBadge } from '@/components/DifficultyBadge';
 import { ExerciseModal } from '@/components/ExerciseModal';
 import { ExerciseGuide } from '@/components/ExerciseGuide';
+import { AnimatedPageBackground } from '@/components/AnimatedPageBackground';
 import { exercises } from '@/data/content';
 import type { Difficulty, Exercise } from '@/data/types';
 import { useReveal } from '@/lib/useReveal';
@@ -114,15 +115,57 @@ export function ExercisesPage() {
       </section>
 
       {/* Exercise guide */}
-      <section className="section-pad bg-gradient-to-b from-blue-50/70 via-white to-white dark:from-gray-900 dark:via-gray-900 dark:to-gray-900">
-        <div className="container-x mx-auto">
+      <section className="relative overflow-hidden section-pad bg-white dark:bg-gray-900">
+        <AnimatedPageBackground
+          blobs={[
+            {
+              color: 'bg-blue-300',
+              size: 'h-80 w-80',
+              position: { top: '-5rem', right: '-6rem' },
+              x: [0, -50, 0],
+              y: [0, 30, 0],
+              scale: [1, 1.1, 1],
+              duration: 24,
+            },
+            {
+              color: 'bg-sky-200',
+              size: 'h-64 w-64',
+              position: { bottom: '-3rem', left: '5%' },
+              x: [0, 40, 0],
+              y: [0, -20, 0],
+              duration: 20,
+            },
+          ]}
+        />
+        <div className="relative z-10 container-x mx-auto">
           <ExerciseGuide />
         </div>
       </section>
 
       {/* Library */}
-      <section className="section-pad bg-gradient-to-b from-white via-blue-50/50 to-blue-50/50 dark:from-gray-900 dark:via-gray-950 dark:to-gray-950">
-        <div ref={ref} className="reveal container-x mx-auto">
+      <section className="relative overflow-hidden section-pad bg-white dark:bg-gray-950">
+        <AnimatedPageBackground
+          blobs={[
+            {
+              color: 'bg-blue-200',
+              size: 'h-96 w-96',
+              position: { top: '10%', left: '-8rem' },
+              x: [0, 60, 0],
+              y: [0, 50, 0],
+              duration: 28,
+            },
+            {
+              color: 'bg-sky-300',
+              size: 'h-72 w-72',
+              position: { bottom: '-4rem', right: '-4rem' },
+              x: [0, -40, 0],
+              y: [0, -35, 0],
+              scale: [1, 1.12, 1],
+              duration: 25,
+            },
+          ]}
+        />
+        <div ref={ref} className="reveal relative z-10 container-x mx-auto">
           {/* Filters */}
           <div className="card p-5 sm:p-6">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">

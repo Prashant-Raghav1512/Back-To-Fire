@@ -5,6 +5,7 @@ import { EnrollButton } from '@/components/EnrollButton';
 import { TiltCard } from '@/components/TiltCard';
 import { MembershipPlans } from '@/components/MembershipPlans';
 import { GymBranchLocator } from '@/components/GymBranchLocator';
+import { AnimatedPageBackground } from '@/components/AnimatedPageBackground';
 import { programs } from '@/data/content';
 import { useMyEnrollments } from '@/lib/enrollments';
 import { useReveal } from '@/lib/useReveal';
@@ -65,8 +66,37 @@ export function ProgramsPage() {
       </section>
 
       {/* Program cards */}
-      <section className="section-pad bg-gradient-to-b from-green-50/70 via-white to-white dark:from-gray-900 dark:via-gray-950 dark:to-gray-950">
-        <div ref={ref} className="reveal container-x mx-auto">
+      <section className="relative overflow-hidden section-pad bg-white dark:bg-gray-950">
+        <AnimatedPageBackground
+          blobs={[
+            {
+              color: 'bg-green-300',
+              size: 'h-96 w-96',
+              position: { top: '-6rem', left: '-8rem' },
+              x: [0, 60, 0],
+              y: [0, 40, 0],
+              scale: [1, 1.15, 1],
+              duration: 22,
+            },
+            {
+              color: 'bg-lime-300',
+              size: 'h-72 w-72',
+              position: { bottom: '-4rem', right: '-4rem' },
+              x: [0, -50, 0],
+              y: [0, -30, 0],
+              duration: 26,
+            },
+            {
+              color: 'bg-emerald-200',
+              size: 'h-64 w-64',
+              position: { top: '30%', right: '15%' },
+              x: [0, 30, -20, 0],
+              y: [0, -40, 20, 0],
+              duration: 30,
+            },
+          ]}
+        />
+        <div ref={ref} className="reveal relative z-10 container-x mx-auto">
           <SectionHeading
             eyebrow="Choose your tier"
             title="Three paths. One goal - mastery."
