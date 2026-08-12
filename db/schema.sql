@@ -224,6 +224,45 @@ CREATE TABLE IF NOT EXISTS article_translations (
   PRIMARY KEY (article_id, language_code)
 );
 
+-- One row per member — joining any of the three membership types
+-- (src/data/membershipTypes.ts: normal/corporate/family) is what actually
+-- grants someone a member_id; browsing the site or even having a
+-- community_profiles row does not. `member_id` is a GENERATED column
+-- derived from the row's own bigserial id (e.g. "BTF000042") rather than a
+-- separately-issued value, so it's guaranteed unique with no extra
+-- coordination. `company_name` only applies to `membership_type =
+-- 'corporate'`; that's an application-level rule (src/lib/membership.ts),
+-- not a CHECK constraint, same "guardrail not real enforcement" pattern
+-- used throughout this backend-less app.
+CREATE TABLE IF NOT EXISTS memberships (
+  id bigserial PRIMARY KEY,
+  clerk_user_id text NOT NULL UNIQUE,
+  member_id text GENERATED ALWAYS AS ('BTF' || LPAD(id::text, 6, '0')) STORED,
+  membership_type text NOT NULL CHECK (membership_type IN ('normal', 'corporate', 'family')),
+  display_name text NOT NULL,
+  company_name text,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS memberships_member_id_idx ON memberships (member_id);
+
+-- Up to 4 dependents registered under one `family` membership
+-- (src/lib/membership.ts enforces the cap in application code before
+-- inserting — there's no DB-level count constraint). These are just
+-- name/relation/age records, not linked site accounts: a family
+-- membership's point is that a spouse or kid doesn't need their own login
+-- to be covered by it.
+CREATE TABLE IF NOT EXISTS family_members (
+  id bigserial PRIMARY KEY,
+  membership_id bigint NOT NULL REFERENCES memberships (id) ON DELETE CASCADE,
+  name text NOT NULL,
+  relation text,
+  age integer,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS family_members_membership_idx ON family_members (membership_id);
+
 -- Programs -------------------------------------------------------------
 
 INSERT INTO programs (id, title, duration, difficulty, description, features, icon, sort_order) VALUES

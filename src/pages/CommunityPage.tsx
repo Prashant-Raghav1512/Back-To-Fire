@@ -18,6 +18,7 @@ import {
   Trophy,
   Video,
   PartyPopper,
+  Crown,
   UserPlus,
   UserRound,
   UserMinus,
@@ -31,8 +32,10 @@ import { FriendRequestsPanel } from '@/components/community/FriendRequestsPanel'
 import { DirectMessageChat } from '@/components/community/DirectMessageChat';
 import { useCommunityProfile } from '@/lib/community';
 import { useFriends, removeFriend, type FriendView } from '@/lib/friends';
+import { useMembership } from '@/lib/membership';
 import {
   INDIA_GROUP,
+  MEMBERS_GROUP,
   STATE_GROUPS,
   AGE_GROUPS,
   INTEREST_GROUPS,
@@ -61,6 +64,7 @@ const ICONS = {
   Trophy,
   Video,
   PartyPopper,
+  Crown,
 } as const;
 
 function GroupIcon({ name, className }: { name: string; className?: string }) {
@@ -103,6 +107,7 @@ export function CommunityPage() {
   const { openSignIn } = useClerk();
   const { profile, saveState } = useCommunityProfile();
   const friends = useFriends();
+  const { membership } = useMembership();
   const [panel, setPanel] = useState<Panel>({ kind: 'group', group: INDIA_GROUP });
   const [tab, setTab] = useState<'chat' | 'posts'>('chat');
   const [pickingState, setPickingState] = useState(false);
@@ -227,6 +232,16 @@ export function CommunityPage() {
                         No friends yet - add someone from a group chat or post.
                       </p>
                     )}
+                  </SidebarSection>
+                )}
+
+                {membership && (
+                  <SidebarSection title="Exclusive">
+                    <GroupRow
+                      group={MEMBERS_GROUP}
+                      active={panel.kind === 'group' && panel.group.type === 'members'}
+                      onSelect={() => setPanel({ kind: 'group', group: MEMBERS_GROUP })}
+                    />
                   </SidebarSection>
                 )}
 

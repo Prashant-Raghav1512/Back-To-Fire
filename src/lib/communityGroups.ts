@@ -23,6 +23,17 @@ export const INDIA_GROUP: CommunityGroupOption = {
   icon: 'Flag',
 };
 
+// A single, fixed room only ever shown in the sidebar to signed-in members
+// (see MembershipPage.tsx / CommunityPage.tsx's useMembership() gate) — a
+// real, enforced perk from src/data/membershipTypes.ts's "Access to the
+// members-only Community group" benefit, not just a line of marketing copy.
+export const MEMBERS_GROUP: CommunityGroupOption = {
+  type: 'members',
+  key: 'members-only',
+  label: 'Members Only',
+  icon: 'Crown',
+};
+
 export const STATE_GROUPS: CommunityGroupOption[] = indianStates.map((s) => ({
   type: 'state',
   key: s.name,
@@ -68,6 +79,7 @@ export function getEventGroups(): CommunityGroupOption[] {
 
 export function findGroup(type: CommunityGroupType, key: string): CommunityGroupOption | undefined {
   if (type === 'india') return INDIA_GROUP;
+  if (type === 'members') return MEMBERS_GROUP;
   if (type === 'state') return STATE_GROUPS.find((g) => g.key === key);
   if (type === 'age') return AGE_GROUPS.find((g) => g.key === key);
   if (type === 'interest') return INTEREST_GROUPS.find((g) => g.key === key);

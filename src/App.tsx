@@ -12,6 +12,7 @@ import { ExercisesPage } from '@/pages/ExercisesPage';
 import { EventsPage } from '@/pages/EventsPage';
 import { ArticlesPage } from '@/pages/ArticlesPage';
 import { CommunityPage } from '@/pages/CommunityPage';
+import { MembershipPage } from '@/pages/MembershipPage';
 import { ProfilePage } from '@/pages/ProfilePage';
 import { ContactPage } from '@/pages/ContactPage';
 import { ToolsPage } from '@/pages/ToolsPage';
@@ -37,6 +38,8 @@ function Routes() {
         return <ArticlesPage />;
       case '/community':
         return <CommunityPage />;
+      case '/membership':
+        return <MembershipPage />;
       case '/profile':
         return <ProfilePage />;
       case '/contact':

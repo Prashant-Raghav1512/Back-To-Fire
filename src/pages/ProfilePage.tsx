@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowRight, Calendar, Dumbbell, Loader2, LogIn, MessageCircle, Trash2 } from 'lucide-react';
+import { ArrowRight, Calendar, Dumbbell, IdCard, Loader2, LogIn, MessageCircle, Trash2 } from 'lucide-react';
 import { useUser, useClerk } from '@clerk/clerk-react';
 import { SectionHeading } from '@/components/SectionHeading';
 import { EventStatusBadge } from '@/components/EventStatusBadge';
@@ -10,6 +10,8 @@ import { CommentsModal } from '@/components/community/CommentsModal';
 import { useMyEnrollments, type Enrollment } from '@/lib/enrollments';
 import { useMyPosts, deletePost } from '@/lib/communityPosts';
 import { findGroup } from '@/lib/communityGroups';
+import { useMembership } from '@/lib/membership';
+import { membershipTypes } from '@/data/membershipTypes';
 import { events } from '@/data/events';
 import { getEventStatus } from '@/lib/events';
 import { timeAgo } from '@/lib/timeAgo';
@@ -158,9 +160,11 @@ function MyPostCard({
 export function ProfilePage() {
   const { user, isSignedIn, isLoaded } = useUser();
   const { openSignIn } = useClerk();
+  const { navigate } = useRouter();
   const ref = useReveal<HTMLDivElement>();
   const { enrollments, loading, isEnrolledIn, refresh } = useMyEnrollments();
   const { posts: myPosts, loading: postsLoading, refresh: refreshPosts } = useMyPosts();
+  const { membership, loading: membershipLoading } = useMembership();
   const [selectedEvent, setSelectedEvent] = useState<FitnessEvent | null>(null);
   const [activePost, setActivePost] = useState<CommunityPost | null>(null);
 
@@ -257,6 +261,37 @@ export function ProfilePage() {
             <div className="mt-8 max-w-2xl">
               <ProfileDetailsForm />
             </div>
+          </div>
+
+          <div>
+            <SectionHeading eyebrow="Perks" title="My Membership" center={false} />
+            {membershipLoading ? (
+              <div className="mt-8 flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                <Loader2 className="h-4 w-4 animate-spin" /> Loading...
+              </div>
+            ) : membership ? (
+              <div className="mt-8 flex flex-col items-start gap-4 rounded-3xl bg-gradient-to-br from-gray-900 via-gray-900 to-orange-900 p-6 text-white sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-center gap-4">
+                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/10">
+                    <IdCard className="h-6 w-6" />
+                  </span>
+                  <div>
+                    <p className="text-xs uppercase tracking-widest text-white/60">
+                      {membershipTypes.find((t) => t.id === membership.membershipType)?.label}
+                    </p>
+                    <p className="font-display text-xl font-extrabold tracking-wider">{membership.memberId}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => navigate('/membership')}
+                  className="inline-flex shrink-0 items-center gap-2 rounded-full border-2 border-white/25 px-5 py-2.5 text-sm font-semibold text-white backdrop-blur transition-all duration-300 hover:border-white/60 hover:bg-white/10 active:scale-95"
+                >
+                  Manage <ArrowRight className="h-4 w-4" />
+                </button>
+              </div>
+            ) : (
+              <EmptyState message="You're not a member yet - join to get a Member ID and exclusive perks." ctaLabel="View memberships" ctaPath="/membership" />
+            )}
           </div>
 
           <div>

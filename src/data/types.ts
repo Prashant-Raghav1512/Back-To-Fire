@@ -134,7 +134,10 @@ export interface CommunityProfile {
 // db/schema.sql's community_messages comment), separate from every 'state'
 // room; 'age'/'interest'/'event' are further group types layered on top,
 // each keyed against a static catalog in src/lib/communityGroups.ts.
-export type CommunityGroupType = 'india' | 'state' | 'age' | 'interest' | 'event';
+// 'members' is a single, fixed room (see communityGroups.ts's MEMBERS_GROUP)
+// only shown in the sidebar to signed-in users who hold a membership (see
+// src/lib/membership.ts) — an actual gated benefit, not just a listed one.
+export type CommunityGroupType = 'india' | 'state' | 'age' | 'interest' | 'event' | 'members';
 
 export interface CommunityMessage {
   id: number;
