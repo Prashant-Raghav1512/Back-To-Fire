@@ -18,13 +18,19 @@ import {
   Trophy,
   Video,
   PartyPopper,
+  UserPlus,
+  UserRound,
+  UserMinus,
 } from 'lucide-react';
 import { useUser, useClerk } from '@clerk/clerk-react';
 import { SectionHeading } from '@/components/SectionHeading';
 import { AnimatedPageBackground } from '@/components/AnimatedPageBackground';
 import { GroupChat } from '@/components/community/GroupChat';
 import { GroupPosts } from '@/components/community/GroupPosts';
+import { FriendRequestsPanel } from '@/components/community/FriendRequestsPanel';
+import { DirectMessageChat } from '@/components/community/DirectMessageChat';
 import { useCommunityProfile } from '@/lib/community';
+import { useFriends, removeFriend, type FriendView } from '@/lib/friends';
 import {
   INDIA_GROUP,
   STATE_GROUPS,
@@ -33,6 +39,11 @@ import {
   getEventGroups,
   type CommunityGroupOption,
 } from '@/lib/communityGroups';
+
+type Panel =
+  | { kind: 'group'; group: CommunityGroupOption }
+  | { kind: 'requests' }
+  | { kind: 'dm'; friend: FriendView };
 
 const ICONS = {
   MapPin,
@@ -88,13 +99,16 @@ function SidebarSection({ title, children }: { title: string; children: React.Re
 }
 
 export function CommunityPage() {
-  const { isSignedIn } = useUser();
+  const { user, isSignedIn } = useUser();
   const { openSignIn } = useClerk();
   const { profile, saveState } = useCommunityProfile();
-  const [activeGroup, setActiveGroup] = useState<CommunityGroupOption>(INDIA_GROUP);
+  const friends = useFriends();
+  const [panel, setPanel] = useState<Panel>({ kind: 'group', group: INDIA_GROUP });
   const [tab, setTab] = useState<'chat' | 'posts'>('chat');
   const [pickingState, setPickingState] = useState(false);
   const [stateSearch, setStateSearch] = useState('');
+  const [removingFriend, setRemovingFriend] = useState(false);
+  const [confirmRemove, setConfirmRemove] = useState(false);
 
   const eventGroups = getEventGroups();
   const filteredStates = STATE_GROUPS.filter((s) => s.label.toLowerCase().includes(stateSearch.toLowerCase()));
@@ -107,7 +121,20 @@ export function CommunityPage() {
     await saveState(name);
     setPickingState(false);
     setStateSearch('');
-    setActiveGroup({ type: 'state', key: name, label: name, icon: 'MapPin' });
+    setPanel({ kind: 'group', group: { type: 'state', key: name, label: name, icon: 'MapPin' } });
+  };
+
+  const handleRemoveFriend = async () => {
+    if (!user || panel.kind !== 'dm') return;
+    setRemovingFriend(true);
+    try {
+      await removeFriend(panel.friend.requestId, user.id);
+      await friends.refresh();
+      setPanel({ kind: 'group', group: INDIA_GROUP });
+    } finally {
+      setRemovingFriend(false);
+      setConfirmRemove(false);
+    }
   };
 
   return (
@@ -159,16 +186,66 @@ export function CommunityPage() {
             {/* Sidebar */}
             <div className="card max-h-[600px] overflow-y-auto p-4">
               <div className="space-y-6">
+                {isSignedIn && (
+                  <SidebarSection title="Direct Messages">
+                    <button
+                      onClick={() => setPanel({ kind: 'requests' })}
+                      className={`flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm transition-colors ${
+                        panel.kind === 'requests'
+                          ? 'bg-orange-500 text-white font-semibold shadow-sm shadow-orange-500/30'
+                          : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700/60'
+                      }`}
+                    >
+                      <UserPlus className="h-4 w-4 shrink-0" />
+                      <span className="min-w-0 flex-1 truncate">Friend Requests</span>
+                      {friends.incoming.length > 0 && (
+                        <span
+                          className={`flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full px-1 text-[10px] font-bold ${
+                            panel.kind === 'requests' ? 'bg-white/20 text-white' : 'bg-orange-500 text-white'
+                          }`}
+                        >
+                          {friends.incoming.length}
+                        </span>
+                      )}
+                    </button>
+                    {friends.friends.map((f) => (
+                      <button
+                        key={f.requestId}
+                        onClick={() => setPanel({ kind: 'dm', friend: f })}
+                        className={`flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm transition-colors ${
+                          panel.kind === 'dm' && panel.friend.clerkUserId === f.clerkUserId
+                            ? 'bg-orange-500 text-white font-semibold shadow-sm shadow-orange-500/30'
+                            : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700/60'
+                        }`}
+                      >
+                        <UserRound className="h-4 w-4 shrink-0" />
+                        <span className="min-w-0 flex-1 truncate">{f.displayName}</span>
+                      </button>
+                    ))}
+                    {friends.friends.length === 0 && (
+                      <p className="px-3 py-1 text-xs text-gray-400 dark:text-gray-500">
+                        No friends yet - add someone from a group chat or post.
+                      </p>
+                    )}
+                  </SidebarSection>
+                )}
+
                 <SidebarSection title="Nationwide">
-                  <GroupRow group={INDIA_GROUP} active={activeGroup.type === 'india'} onSelect={() => setActiveGroup(INDIA_GROUP)} />
+                  <GroupRow
+                    group={INDIA_GROUP}
+                    active={panel.kind === 'group' && panel.group.type === 'india'}
+                    onSelect={() => setPanel({ kind: 'group', group: INDIA_GROUP })}
+                  />
                 </SidebarSection>
 
                 <SidebarSection title="Your State">
                   {profile ? (
                     <GroupRow
                       group={{ type: 'state', key: profile.state, label: profile.state, icon: 'MapPin' }}
-                      active={activeGroup.type === 'state' && activeGroup.key === profile.state}
-                      onSelect={() => setActiveGroup({ type: 'state', key: profile.state, label: profile.state, icon: 'MapPin' })}
+                      active={panel.kind === 'group' && panel.group.type === 'state' && panel.group.key === profile.state}
+                      onSelect={() =>
+                        setPanel({ kind: 'group', group: { type: 'state', key: profile.state, label: profile.state, icon: 'MapPin' } })
+                      }
                     />
                   ) : (
                     <button
@@ -215,20 +292,35 @@ export function CommunityPage() {
 
                 <SidebarSection title="Age Groups">
                   {AGE_GROUPS.map((g) => (
-                    <GroupRow key={g.key} group={g} active={activeGroup.type === 'age' && activeGroup.key === g.key} onSelect={() => setActiveGroup(g)} />
+                    <GroupRow
+                      key={g.key}
+                      group={g}
+                      active={panel.kind === 'group' && panel.group.type === 'age' && panel.group.key === g.key}
+                      onSelect={() => setPanel({ kind: 'group', group: g })}
+                    />
                   ))}
                 </SidebarSection>
 
                 <SidebarSection title="Interests">
                   {INTEREST_GROUPS.map((g) => (
-                    <GroupRow key={g.key} group={g} active={activeGroup.type === 'interest' && activeGroup.key === g.key} onSelect={() => setActiveGroup(g)} />
+                    <GroupRow
+                      key={g.key}
+                      group={g}
+                      active={panel.kind === 'group' && panel.group.type === 'interest' && panel.group.key === g.key}
+                      onSelect={() => setPanel({ kind: 'group', group: g })}
+                    />
                   ))}
                 </SidebarSection>
 
                 {eventGroups.length > 0 && (
                   <SidebarSection title="Events">
                     {eventGroups.map((g) => (
-                      <GroupRow key={g.key} group={g} active={activeGroup.type === 'event' && activeGroup.key === g.key} onSelect={() => setActiveGroup(g)} />
+                      <GroupRow
+                        key={g.key}
+                        group={g}
+                        active={panel.kind === 'group' && panel.group.type === 'event' && panel.group.key === g.key}
+                        onSelect={() => setPanel({ kind: 'group', group: g })}
+                      />
                     ))}
                   </SidebarSection>
                 )}
@@ -240,36 +332,86 @@ export function CommunityPage() {
               <div className="flex items-center justify-between gap-3 border-b border-gray-100 p-4 dark:border-gray-700">
                 <div className="flex min-w-0 items-center gap-2.5">
                   <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-orange-100 text-orange-600 dark:bg-orange-500/15 dark:text-orange-400">
-                    <GroupIcon name={activeGroup.icon} className="h-5 w-5" />
+                    {panel.kind === 'group' && <GroupIcon name={panel.group.icon} className="h-5 w-5" />}
+                    {panel.kind === 'requests' && <UserPlus className="h-5 w-5" />}
+                    {panel.kind === 'dm' && <UserRound className="h-5 w-5" />}
                   </span>
-                  <p className="truncate font-display text-sm font-bold text-gray-900 dark:text-white">{activeGroup.label}</p>
+                  <p className="truncate font-display text-sm font-bold text-gray-900 dark:text-white">
+                    {panel.kind === 'group' && panel.group.label}
+                    {panel.kind === 'requests' && 'Friend Requests'}
+                    {panel.kind === 'dm' && panel.friend.displayName}
+                  </p>
                 </div>
-                <div className="flex shrink-0 gap-1 rounded-full bg-gray-100 p-1 dark:bg-gray-700/60">
-                  <button
-                    onClick={() => setTab('chat')}
-                    className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
-                      tab === 'chat' ? 'bg-white text-gray-900 shadow-sm dark:bg-gray-800 dark:text-white' : 'text-gray-500 dark:text-gray-400'
-                    }`}
-                  >
-                    <MessageSquare className="h-3.5 w-3.5" /> Chat
-                  </button>
-                  <button
-                    onClick={() => setTab('posts')}
-                    className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
-                      tab === 'posts' ? 'bg-white text-gray-900 shadow-sm dark:bg-gray-800 dark:text-white' : 'text-gray-500 dark:text-gray-400'
-                    }`}
-                  >
-                    <Sparkles className="h-3.5 w-3.5" /> Posts
-                  </button>
-                </div>
+
+                {panel.kind === 'group' && (
+                  <div className="flex shrink-0 gap-1 rounded-full bg-gray-100 p-1 dark:bg-gray-700/60">
+                    <button
+                      onClick={() => setTab('chat')}
+                      className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
+                        tab === 'chat' ? 'bg-white text-gray-900 shadow-sm dark:bg-gray-800 dark:text-white' : 'text-gray-500 dark:text-gray-400'
+                      }`}
+                    >
+                      <MessageSquare className="h-3.5 w-3.5" /> Chat
+                    </button>
+                    <button
+                      onClick={() => setTab('posts')}
+                      className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
+                        tab === 'posts' ? 'bg-white text-gray-900 shadow-sm dark:bg-gray-800 dark:text-white' : 'text-gray-500 dark:text-gray-400'
+                      }`}
+                    >
+                      <Sparkles className="h-3.5 w-3.5" /> Posts
+                    </button>
+                  </div>
+                )}
+
+                {panel.kind === 'dm' &&
+                  (confirmRemove ? (
+                    <div className="flex shrink-0 items-center gap-2 text-xs">
+                      <button
+                        onClick={handleRemoveFriend}
+                        disabled={removingFriend}
+                        className="font-semibold text-red-500 hover:text-red-600 disabled:opacity-60"
+                      >
+                        {removingFriend ? 'Removing...' : 'Confirm'}
+                      </button>
+                      <button
+                        onClick={() => setConfirmRemove(false)}
+                        className="font-semibold text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setConfirmRemove(true)}
+                      className="flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold text-gray-400 transition hover:bg-red-50 hover:text-red-500 dark:text-gray-500 dark:hover:bg-red-500/10 dark:hover:text-red-400"
+                    >
+                      <UserMinus className="h-3.5 w-3.5" /> Remove friend
+                    </button>
+                  ))}
               </div>
 
               <div className="min-h-0 flex-1">
-                {tab === 'chat' ? (
-                  <GroupChat groupType={activeGroup.type} groupKey={activeGroup.key} groupLabel={activeGroup.label} profile={profile} />
-                ) : (
-                  <GroupPosts groupType={activeGroup.type} groupKey={activeGroup.key} groupLabel={activeGroup.label} profile={profile} />
-                )}
+                {panel.kind === 'group' &&
+                  (tab === 'chat' ? (
+                    <GroupChat
+                      groupType={panel.group.type}
+                      groupKey={panel.group.key}
+                      groupLabel={panel.group.label}
+                      profile={profile}
+                      friends={friends}
+                    />
+                  ) : (
+                    <GroupPosts
+                      groupType={panel.group.type}
+                      groupKey={panel.group.key}
+                      groupLabel={panel.group.label}
+                      profile={profile}
+                      friends={friends}
+                    />
+                  ))}
+                {panel.kind === 'requests' && <FriendRequestsPanel friends={friends} />}
+                {panel.kind === 'dm' && <DirectMessageChat friend={panel.friend} profile={profile} />}
               </div>
             </div>
           </div>

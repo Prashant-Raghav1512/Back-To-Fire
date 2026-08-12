@@ -151,6 +151,51 @@ CREATE TABLE IF NOT EXISTS community_post_comments (
 
 CREATE INDEX IF NOT EXISTS community_post_comments_post_idx ON community_post_comments (post_id, created_at ASC);
 
+-- One row per friend relationship, in every state it's ever been —
+-- 'pending' (a request awaiting a response), 'accepted', or 'declined'.
+-- `requester_*`/`recipient_*` snapshot display names the same way every
+-- other Community table does; who is "requester" vs "recipient" can change
+-- over time (see src/lib/friends.ts's sendFriendRequest — re-requesting
+-- after a decline flips the row's direction rather than inserting a
+-- second row for the same pair, and a request into someone who already
+-- requested you gets auto-accepted instead of duplicated). The unique
+-- index below is direction-independent (LEAST/GREATEST) specifically so
+-- there can only ever be one row per pair of users, no matter who
+-- requested whom first.
+CREATE TABLE IF NOT EXISTS friend_requests (
+  id bigserial PRIMARY KEY,
+  requester_clerk_user_id text NOT NULL,
+  requester_display_name text NOT NULL,
+  recipient_clerk_user_id text NOT NULL,
+  recipient_display_name text NOT NULL,
+  status text NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'accepted', 'declined')),
+  created_at timestamptz NOT NULL DEFAULT now(),
+  responded_at timestamptz
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS friend_requests_pair_idx
+  ON friend_requests (LEAST(requester_clerk_user_id, recipient_clerk_user_id), GREATEST(requester_clerk_user_id, recipient_clerk_user_id));
+CREATE INDEX IF NOT EXISTS friend_requests_recipient_idx ON friend_requests (recipient_clerk_user_id, status);
+CREATE INDEX IF NOT EXISTS friend_requests_requester_idx ON friend_requests (requester_clerk_user_id, status);
+
+-- Private 1:1 messages between two friends (src/lib/directMessages.ts).
+-- Not tied to friend_requests by a foreign key — unfriending removes the
+-- friendship row but deliberately leaves message history intact, same as
+-- most real chat apps. `sender_display_name` is a snapshot; the
+-- recipient's name is already known client-side from the friendship it was
+-- opened from, so it isn't duplicated here.
+CREATE TABLE IF NOT EXISTS direct_messages (
+  id bigserial PRIMARY KEY,
+  sender_clerk_user_id text NOT NULL,
+  sender_display_name text NOT NULL,
+  recipient_clerk_user_id text NOT NULL,
+  message text NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS direct_messages_pair_idx
+  ON direct_messages (LEAST(sender_clerk_user_id, recipient_clerk_user_id), GREATEST(sender_clerk_user_id, recipient_clerk_user_id), created_at);
+
 -- Programs -------------------------------------------------------------
 
 INSERT INTO programs (id, title, duration, difficulty, description, features, icon, sort_order) VALUES

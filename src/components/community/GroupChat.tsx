@@ -2,10 +2,53 @@ import { useState } from 'react';
 import { Send, MapPin } from 'lucide-react';
 import { useUser, useClerk } from '@clerk/clerk-react';
 import { postMessage, useCommunityMessages } from '@/lib/community';
+import { sendFriendRequest, respondToFriendRequest, type UseFriendsResult } from '@/lib/friends';
+import { FriendActionButton } from '@/components/community/FriendActionButton';
 import { timeAgo } from '@/lib/timeAgo';
 import type { CommunityGroupType, CommunityMessage, CommunityProfile } from '@/data/types';
 
-function MessageBubble({ message, showState, mine }: { message: CommunityMessage; showState: boolean; mine: boolean }) {
+interface MessageBubbleProps {
+  message: CommunityMessage;
+  showState: boolean;
+  mine: boolean;
+  friends: UseFriendsResult;
+  canAddFriends: boolean;
+}
+
+function MessageBubble({ message, showState, mine, friends, canAddFriends }: MessageBubbleProps) {
+  const { user } = useUser();
+  const [busy, setBusy] = useState(false);
+  const friendStatus = friends.statusFor(message.clerkUserId);
+
+  const handleSend = async () => {
+    if (!user || busy) return;
+    setBusy(true);
+    try {
+      await sendFriendRequest({
+        fromUserId: user.id,
+        fromDisplayName: user.fullName ?? user.username ?? 'A Born to Fire member',
+        toUserId: message.clerkUserId,
+        toDisplayName: message.displayName,
+      });
+      await friends.refresh();
+    } catch {
+      // Button just stays in its current state - not worth a dedicated error UI for a secondary action.
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleAccept = async (requestId: number) => {
+    if (!user || busy) return;
+    setBusy(true);
+    try {
+      await respondToFriendRequest(requestId, user.id, true);
+      await friends.refresh();
+    } finally {
+      setBusy(false);
+    }
+  };
+
   return (
     <div className={`flex ${mine ? 'justify-end' : 'justify-start'}`}>
       <div
@@ -13,18 +56,23 @@ function MessageBubble({ message, showState, mine }: { message: CommunityMessage
           mine ? 'bg-orange-500 text-white' : 'bg-gray-100 text-gray-700 dark:bg-gray-700/50 dark:text-gray-300'
         }`}
       >
-        <div
-          className={`flex items-center gap-1.5 text-xs font-semibold ${
-            mine ? 'text-white/80' : 'text-gray-500 dark:text-gray-400'
-          }`}
-        >
-          {message.displayName}
-          {showState && (
-            <span className="inline-flex items-center gap-0.5 opacity-80">
-              <MapPin className="h-2.5 w-2.5" /> {message.state}
-            </span>
+        <div className="flex items-center justify-between gap-3">
+          <div
+            className={`flex items-center gap-1.5 text-xs font-semibold ${
+              mine ? 'text-white/80' : 'text-gray-500 dark:text-gray-400'
+            }`}
+          >
+            {message.displayName}
+            {showState && (
+              <span className="inline-flex items-center gap-0.5 opacity-80">
+                <MapPin className="h-2.5 w-2.5" /> {message.state}
+              </span>
+            )}
+            <span className="opacity-70">&middot; {timeAgo(message.createdAt)}</span>
+          </div>
+          {!mine && canAddFriends && (
+            <FriendActionButton friendStatus={friendStatus} onSend={handleSend} onAccept={handleAccept} busy={busy} />
           )}
-          <span className="opacity-70">&middot; {timeAgo(message.createdAt)}</span>
         </div>
         <p className="mt-0.5 whitespace-pre-line">{message.message}</p>
       </div>
@@ -37,6 +85,7 @@ interface GroupChatProps {
   groupKey: string;
   groupLabel: string;
   profile: CommunityProfile | null;
+  friends: UseFriendsResult;
 }
 
 // Live message feed + composer for one group — generalized from the old
@@ -45,7 +94,7 @@ interface GroupChatProps {
 // groups (see src/lib/communityGroups.ts). Anyone can read; posting needs a
 // signed-in user with a saved community_profiles row (for a display name
 // and home state to snapshot onto the message).
-export function GroupChat({ groupType, groupKey, groupLabel, profile }: GroupChatProps) {
+export function GroupChat({ groupType, groupKey, groupLabel, profile, friends }: GroupChatProps) {
   const { user, isSignedIn } = useUser();
   const { openSignIn } = useClerk();
   const { messages, refresh } = useCommunityMessages(groupType, groupKey);
@@ -87,7 +136,14 @@ export function GroupChat({ groupType, groupKey, groupLabel, profile }: GroupCha
           </p>
         )}
         {messages.map((m) => (
-          <MessageBubble key={m.id} message={m} showState={groupType !== 'state'} mine={m.clerkUserId === user?.id} />
+          <MessageBubble
+            key={m.id}
+            message={m}
+            showState={groupType !== 'state'}
+            mine={m.clerkUserId === user?.id}
+            friends={friends}
+            canAddFriends={!!isSignedIn && !!profile}
+          />
         ))}
       </div>
 
