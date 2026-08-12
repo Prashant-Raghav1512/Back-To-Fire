@@ -129,7 +129,12 @@ export interface CommunityProfile {
   gender: Gender | null;
 }
 
-export type CommunityScope = 'state' | 'india';
+// Which "room" a community message/post belongs to. 'india' is its own
+// distinct room (not an aggregate view over every state — see
+// db/schema.sql's community_messages comment), separate from every 'state'
+// room; 'age'/'interest'/'event' are further group types layered on top,
+// each keyed against a static catalog in src/lib/communityGroups.ts.
+export type CommunityGroupType = 'india' | 'state' | 'age' | 'interest' | 'event';
 
 export interface CommunityMessage {
   id: number;
@@ -137,6 +142,32 @@ export interface CommunityMessage {
   /** Snapshot of the poster's display name/state at post time — see db/schema.sql. */
   displayName: string;
   state: string;
+  groupType: CommunityGroupType;
+  groupKey: string;
   message: string;
+  createdAt: string;
+}
+
+export interface CommunityPost {
+  id: number;
+  clerkUserId: string;
+  /** Snapshot of the poster's display name/state at post time — see db/schema.sql. */
+  displayName: string;
+  state: string;
+  groupType: CommunityGroupType;
+  groupKey: string;
+  body: string;
+  /** Base64 data URI, or null if the post has no image — see src/lib/imageUpload.ts. */
+  imageUrl: string | null;
+  createdAt: string;
+  commentCount: number;
+}
+
+export interface CommunityComment {
+  id: number;
+  postId: number;
+  clerkUserId: string;
+  displayName: string;
+  body: string;
   createdAt: string;
 }

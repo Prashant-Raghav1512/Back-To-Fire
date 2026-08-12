@@ -1,18 +1,22 @@
 import { useState } from 'react';
-import { ArrowRight, Calendar, Dumbbell, Loader2, LogIn } from 'lucide-react';
+import { ArrowRight, Calendar, Dumbbell, Loader2, LogIn, MessageCircle, Trash2 } from 'lucide-react';
 import { useUser, useClerk } from '@clerk/clerk-react';
 import { SectionHeading } from '@/components/SectionHeading';
 import { EventStatusBadge } from '@/components/EventStatusBadge';
 import { EventModal } from '@/components/EventModal';
 import { ProfileDetailsForm } from '@/components/ProfileDetailsForm';
 import { AnimatedPageBackground } from '@/components/AnimatedPageBackground';
+import { CommentsModal } from '@/components/community/CommentsModal';
 import { useMyEnrollments, type Enrollment } from '@/lib/enrollments';
+import { useMyPosts, deletePost } from '@/lib/communityPosts';
+import { findGroup } from '@/lib/communityGroups';
 import { events } from '@/data/events';
 import { getEventStatus } from '@/lib/events';
+import { timeAgo } from '@/lib/timeAgo';
 import { useReveal } from '@/lib/useReveal';
 import { useTilt } from '@/lib/useTilt';
 import { useRouter } from '@/lib/router';
-import type { FitnessEvent } from '@/data/types';
+import type { CommunityPost, FitnessEvent } from '@/data/types';
 
 function formatJoinedDate(iso: string): string {
   return new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
@@ -77,12 +81,94 @@ function EventEnrollmentCard({ enrollment, onOpen }: { enrollment: Enrollment; o
   );
 }
 
+function MyPostCard({
+  post,
+  onOpen,
+  onDelete,
+}: {
+  post: CommunityPost;
+  onOpen: () => void;
+  onDelete: () => Promise<void>;
+}) {
+  const tiltRef = useTilt<HTMLDivElement>();
+  const [confirming, setConfirming] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const group = findGroup(post.groupType, post.groupKey);
+
+  return (
+    <div ref={tiltRef} className="card card-hover tilt-glow flex flex-col p-6">
+      <div className="flex items-start justify-between gap-3">
+        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-orange-100 text-orange-600 dark:bg-orange-500/15 dark:text-orange-400">
+          <MessageCircle className="h-6 w-6" />
+        </span>
+        {group && (
+          <span className="badge bg-orange-100 text-orange-700 dark:bg-orange-500/15 dark:text-orange-400">
+            {group.label}
+          </span>
+        )}
+      </div>
+      {post.body && (
+        <p className="mt-4 line-clamp-3 whitespace-pre-line text-sm text-gray-700 dark:text-gray-300">{post.body}</p>
+      )}
+      {post.imageUrl && <img src={post.imageUrl} alt="" className="mt-3 h-32 w-full rounded-xl object-cover" />}
+      <p className="mt-3 text-xs text-gray-400 dark:text-gray-500">
+        {timeAgo(post.createdAt)} &middot; {post.commentCount} comment{post.commentCount === 1 ? '' : 's'}
+      </p>
+      <div className="mt-5 flex items-center justify-between gap-3">
+        <button
+          onClick={onOpen}
+          className="inline-flex items-center gap-1.5 text-sm font-semibold text-green-600 transition-colors hover:text-green-700 dark:text-green-400"
+        >
+          View &amp; comment <ArrowRight className="h-4 w-4" />
+        </button>
+        {confirming ? (
+          <div className="flex items-center gap-2 text-xs">
+            <button
+              onClick={async () => {
+                setDeleting(true);
+                await onDelete();
+                setDeleting(false);
+              }}
+              disabled={deleting}
+              className="font-semibold text-red-500 hover:text-red-600 disabled:opacity-60"
+            >
+              {deleting ? 'Deleting...' : 'Confirm'}
+            </button>
+            <button
+              onClick={() => setConfirming(false)}
+              className="font-semibold text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+            >
+              Cancel
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={() => setConfirming(true)}
+            aria-label="Delete post"
+            className="flex h-8 w-8 items-center justify-center rounded-full text-gray-300 transition hover:bg-red-50 hover:text-red-500 dark:text-gray-600 dark:hover:bg-red-500/10 dark:hover:text-red-400"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export function ProfilePage() {
   const { user, isSignedIn, isLoaded } = useUser();
   const { openSignIn } = useClerk();
   const ref = useReveal<HTMLDivElement>();
   const { enrollments, loading, isEnrolledIn, refresh } = useMyEnrollments();
+  const { posts: myPosts, loading: postsLoading, refresh: refreshPosts } = useMyPosts();
   const [selectedEvent, setSelectedEvent] = useState<FitnessEvent | null>(null);
+  const [activePost, setActivePost] = useState<CommunityPost | null>(null);
+
+  const handleDeletePost = async (postId: number) => {
+    if (!user) return;
+    await deletePost(postId, user.id);
+    await refreshPosts();
+  };
 
   if (isLoaded && !isSignedIn) {
     return (
@@ -191,7 +277,7 @@ export function ProfilePage() {
           </div>
 
           <div>
-            <SectionHeading eyebrow="Community" title="My Events" center={false} />
+            <SectionHeading eyebrow="Events" title="My Events" center={false} />
             {loading ? (
               <div className="mt-8 flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
                 <Loader2 className="h-4 w-4 animate-spin" /> Loading...
@@ -206,6 +292,23 @@ export function ProfilePage() {
               <EmptyState message="You haven't joined an event yet." ctaLabel="Browse events" ctaPath="/events" />
             )}
           </div>
+
+          <div>
+            <SectionHeading eyebrow="Community" title="My Posts" center={false} />
+            {postsLoading ? (
+              <div className="mt-8 flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                <Loader2 className="h-4 w-4 animate-spin" /> Loading...
+              </div>
+            ) : myPosts.length > 0 ? (
+              <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {myPosts.map((p) => (
+                  <MyPostCard key={p.id} post={p} onOpen={() => setActivePost(p)} onDelete={() => handleDeletePost(p.id)} />
+                ))}
+              </div>
+            ) : (
+              <EmptyState message="You haven't posted in the community yet." ctaLabel="Go to Community" ctaPath="/community" />
+            )}
+          </div>
         </div>
       </section>
 
@@ -216,6 +319,10 @@ export function ProfilePage() {
           onEnrolled={refresh}
           onClose={() => setSelectedEvent(null)}
         />
+      )}
+
+      {activePost && (
+        <CommentsModal post={activePost} onClose={() => setActivePost(null)} onChanged={refreshPosts} />
       )}
     </div>
   );

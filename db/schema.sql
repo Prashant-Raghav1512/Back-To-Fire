@@ -73,22 +73,83 @@ CREATE TABLE IF NOT EXISTS community_profiles (
   updated_at timestamptz NOT NULL DEFAULT now()
 );
 
--- Community board posts. `display_name` and `state` are a snapshot taken at
--- post time (same reasoning as enrollments' item_title/item_detail
+-- Community board chat messages. `display_name` and `state` are a snapshot
+-- taken at post time (same reasoning as enrollments' item_title/item_detail
 -- snapshot) — a message's shown state shouldn't retroactively change if the
 -- poster later updates their community_profiles row, and the feed should
 -- still read sensibly even if community_profiles is ever cleared.
+--
+-- `group_type`/`group_key` identify which room a message belongs to —
+-- 'state'/<state name>, 'india'/'india', 'age'/<age group id>,
+-- 'interest'/<interest id>, or 'event'/<event id> (see
+-- src/lib/communityGroups.ts). Each room's messages are fully isolated
+-- (WHERE group_type = ... AND group_key = ...) — notably 'india' is its own
+-- real room with its own messages now, not just an unfiltered view over
+-- every state's posts the way it worked before this column existed.
 CREATE TABLE IF NOT EXISTS community_messages (
   id bigserial PRIMARY KEY,
   clerk_user_id text NOT NULL,
   display_name text NOT NULL,
   state text NOT NULL,
+  group_type text NOT NULL DEFAULT 'state',
+  group_key text NOT NULL DEFAULT '',
   message text NOT NULL,
   created_at timestamptz NOT NULL DEFAULT now()
 );
 
-CREATE INDEX IF NOT EXISTS community_messages_state_idx ON community_messages (state);
-CREATE INDEX IF NOT EXISTS community_messages_created_at_idx ON community_messages (created_at DESC);
+-- Backfills for databases created before group_type/group_key existed —
+-- no-ops on a fresh database (the columns above already exist with these
+-- defaults), but bring an existing database up to date. Every message that
+-- predates this column was, in effect, a post to its author's own state
+-- room (see the old, unfiltered 'india' behavior noted above), so that's
+-- exactly what the backfill assigns.
+ALTER TABLE community_messages ADD COLUMN IF NOT EXISTS group_type text NOT NULL DEFAULT 'state';
+ALTER TABLE community_messages ADD COLUMN IF NOT EXISTS group_key text NOT NULL DEFAULT '';
+UPDATE community_messages SET group_type = 'state', group_key = state WHERE group_key = '';
+
+CREATE INDEX IF NOT EXISTS community_messages_group_idx ON community_messages (group_type, group_key, created_at DESC);
+
+-- Community board posts — a separate, slower-paced feed from the live chat
+-- above, supporting an optional image. `display_name`/`state` snapshot the
+-- same way community_messages does; `group_type`/`group_key` scope a post
+-- to whichever room it was posted in, same model as community_messages.
+--
+-- The image is stored inline as a base64 data URI in `image_url` rather
+-- than in real object storage (S3, Cloudinary, etc.) — this project has no
+-- backend to sign such an upload with, and no third-party image-host
+-- credentials exist for it either, so this reuses the same "ship it
+-- straight from the browser" tradeoff already made for
+-- VITE_NEON_CONTACT_URL/VITE_GROQ_API_KEY (see CLAUDE.md, "No backend, by
+-- design"). src/lib/imageUpload.ts downscales/compresses every image
+-- client-side before it's ever sent, to keep these rows small.
+CREATE TABLE IF NOT EXISTS community_posts (
+  id bigserial PRIMARY KEY,
+  clerk_user_id text NOT NULL,
+  display_name text NOT NULL,
+  state text NOT NULL,
+  group_type text NOT NULL,
+  group_key text NOT NULL,
+  body text NOT NULL,
+  image_url text,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS community_posts_group_idx ON community_posts (group_type, group_key, created_at DESC);
+CREATE INDEX IF NOT EXISTS community_posts_user_idx ON community_posts (clerk_user_id, created_at DESC);
+
+-- Comments on a community_posts row. Deleting a post cascades to its
+-- comments — there is no standalone reason to keep orphaned comments around
+-- once their post is gone.
+CREATE TABLE IF NOT EXISTS community_post_comments (
+  id bigserial PRIMARY KEY,
+  post_id bigint NOT NULL REFERENCES community_posts (id) ON DELETE CASCADE,
+  clerk_user_id text NOT NULL,
+  display_name text NOT NULL,
+  body text NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS community_post_comments_post_idx ON community_post_comments (post_id, created_at ASC);
 
 -- Programs -------------------------------------------------------------
 

@@ -1,7 +1,6 @@
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { ChatWidget } from '@/components/ChatWidget';
-import { CommunityWidget } from '@/components/CommunityWidget';
 import { ScrollProgressBar } from '@/components/ScrollProgressBar';
 import { BackToTop } from '@/components/BackToTop';
 import { RouterProvider, useRouter } from '@/lib/router';
@@ -12,6 +11,7 @@ import { ProgramsPage } from '@/pages/ProgramsPage';
 import { ExercisesPage } from '@/pages/ExercisesPage';
 import { EventsPage } from '@/pages/EventsPage';
 import { ArticlesPage } from '@/pages/ArticlesPage';
+import { CommunityPage } from '@/pages/CommunityPage';
 import { ProfilePage } from '@/pages/ProfilePage';
 import { ContactPage } from '@/pages/ContactPage';
 import { ToolsPage } from '@/pages/ToolsPage';
@@ -34,6 +34,8 @@ function Routes() {
         return <EventsPage />;
       case '/articles':
         return <ArticlesPage />;
+      case '/community':
+        return <CommunityPage />;
       case '/profile':
         return <ProfilePage />;
       case '/contact':
@@ -54,7 +56,6 @@ function Routes() {
       </main>
       <Footer />
       <ChatWidget />
-      <CommunityWidget />
       <BackToTop />
     </div>
   );

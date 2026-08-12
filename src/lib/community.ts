@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { neon } from '@neondatabase/serverless';
 import { useUser } from '@clerk/clerk-react';
-import type { CommunityMessage, CommunityProfile, CommunityScope, Gender } from '@/data/types';
+import type { CommunityGroupType, CommunityMessage, CommunityProfile, Gender } from '@/data/types';
 
 // SECURITY NOTE: reuses the same browser-exposed connection as the contact
 // form and enrollments (src/lib/contact.ts, src/lib/enrollments.ts) rather
@@ -39,6 +39,8 @@ interface MessageRow {
   clerk_user_id: string;
   display_name: string;
   state: string;
+  group_type: CommunityGroupType;
+  group_key: string;
   message: string;
   created_at: string;
 }
@@ -91,6 +93,8 @@ export interface PostMessageParams {
   clerkUserId: string;
   displayName: string;
   state: string;
+  groupType: CommunityGroupType;
+  groupKey: string;
   message: string;
 }
 
@@ -102,31 +106,22 @@ export async function postMessage(params: PostMessageParams): Promise<void> {
 
   const sql = client();
   await sql`
-    INSERT INTO community_messages (clerk_user_id, display_name, state, message)
-    VALUES (${params.clerkUserId}, ${params.displayName}, ${params.state}, ${trimmed})
+    INSERT INTO community_messages (clerk_user_id, display_name, state, group_type, group_key, message)
+    VALUES (${params.clerkUserId}, ${params.displayName}, ${params.state}, ${params.groupType}, ${params.groupKey}, ${trimmed})
   `;
 }
 
 const MESSAGE_LIMIT = 50;
 
-export async function getMessages(scope: CommunityScope, state: string): Promise<CommunityMessage[]> {
+export async function getMessages(groupType: CommunityGroupType, groupKey: string): Promise<CommunityMessage[]> {
   const sql = client();
-  const rows = (
-    scope === 'state'
-      ? await sql`
-          SELECT id, clerk_user_id, display_name, state, message, created_at
-          FROM community_messages
-          WHERE state = ${state}
-          ORDER BY created_at DESC
-          LIMIT ${MESSAGE_LIMIT}
-        `
-      : await sql`
-          SELECT id, clerk_user_id, display_name, state, message, created_at
-          FROM community_messages
-          ORDER BY created_at DESC
-          LIMIT ${MESSAGE_LIMIT}
-        `
-  ) as MessageRow[];
+  const rows = (await sql`
+    SELECT id, clerk_user_id, display_name, state, group_type, group_key, message, created_at
+    FROM community_messages
+    WHERE group_type = ${groupType} AND group_key = ${groupKey}
+    ORDER BY created_at DESC
+    LIMIT ${MESSAGE_LIMIT}
+  `) as MessageRow[];
 
   return rows
     .map((row) => ({
@@ -134,6 +129,8 @@ export async function getMessages(scope: CommunityScope, state: string): Promise
       clerkUserId: row.clerk_user_id,
       displayName: row.display_name,
       state: row.state,
+      groupType: row.group_type,
+      groupKey: row.group_key,
       message: row.message,
       createdAt: row.created_at,
     }))
@@ -203,37 +200,36 @@ export function useCommunityProfile() {
   return { profile, loading, saveState, saveDetails, refresh };
 }
 
-// Polls for new messages every 7s while mounted (only while the Community
-// panel is actually open — the caller controls that by mounting/unmounting
-// this) — there's no backend to push updates from, so a short poll is the
+// Polls for new messages every 7s while mounted (only while a group's chat
+// is actually open — the caller controls that by mounting/unmounting this)
+// — there's no backend to push updates from, so a short poll is the
 // closest this can get to "near real-time" without one.
 const POLL_INTERVAL_MS = 7000;
 
-export function useCommunityMessages(scope: CommunityScope, state: string | null) {
+export function useCommunityMessages(groupType: CommunityGroupType, groupKey: string) {
   const [messages, setMessages] = useState<CommunityMessage[]>([]);
   const [loading, setLoading] = useState(false);
-  const stateRef = useRef(state);
-  stateRef.current = state;
+  const keyRef = useRef(groupKey);
+  keyRef.current = groupKey;
 
   const refresh = useCallback(async () => {
-    const currentState = stateRef.current;
-    if (scope === 'state' && !currentState) {
+    if (!keyRef.current) {
       setMessages([]);
       return;
     }
     setLoading(true);
     try {
-      setMessages(await getMessages(scope, currentState ?? ''));
+      setMessages(await getMessages(groupType, keyRef.current));
     } finally {
       setLoading(false);
     }
-  }, [scope]);
+  }, [groupType]);
 
   useEffect(() => {
     refresh();
     const id = window.setInterval(refresh, POLL_INTERVAL_MS);
     return () => window.clearInterval(id);
-  }, [refresh]);
+  }, [refresh, groupKey]);
 
   return { messages, loading, refresh };
 }
