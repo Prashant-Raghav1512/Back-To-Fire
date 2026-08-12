@@ -1,27 +1,22 @@
-// SECURITY NOTE: reuses the main site chatbot's Groq key
-// (VITE_GROQ_API_KEY, see src/lib/groqChat.ts) rather than provisioning a
-// third one — unlike the Tools page's protein chatbot, which deliberately
-// gets its own key, this environment has no credentials for the Groq
-// dashboard to create a new one. Same shipped-to-the-browser tradeoff and
-// free-tier reasoning as every other Groq/Neon key in this app (see
-// CLAUDE.md, "No backend, by design").
-const API_KEY = import.meta.env.VITE_GROQ_API_KEY;
+// SECURITY NOTE: its own dedicated Groq key (VITE_GROQ_TRANSLATE_API_KEY),
+// separate from the main chatbot's VITE_GROQ_API_KEY and the Tools page's
+// VITE_GROQ_PROTEIN_API_KEY, so it can be rotated independently and
+// doesn't compete with the chatbot's live traffic for rate-limit budget.
+// Same shipped-to-the-browser tradeoff and free-tier reasoning as every
+// other Groq/Neon key in this app (see CLAUDE.md, "No backend, by design").
+const API_KEY = import.meta.env.VITE_GROQ_TRANSLATE_API_KEY;
 const MODEL = 'llama-3.3-70b-versatile';
 
 // Long articles (~28 paragraphs) are translated in chunks rather than one
 // giant request - a single call risks the model truncating a
 // multi-thousand-word JSON response mid-string, which breaks parsing
-// entirely. A bigger chunk means fewer total requests per article, which
-// matters a lot here since this key is shared with the main site chatbot's
-// live traffic (see the SECURITY NOTE above) - every request this feature
-// doesn't need to make is rate-limit budget left for real chatbot users.
+// entirely.
 const PARAGRAPHS_PER_CHUNK = 10;
 
 // Firing every chunk request at once (a plain Promise.all burst) reliably
-// tripped Groq's free-tier rate limit (HTTP 429) during testing. Running
-// at most two in flight — plus exponential backoff on 429/5xx generous
-// enough to ride out a shared free-tier key already under other load —
-// fixed it.
+// tripped Groq's free-tier per-second rate limit (HTTP 429) during
+// testing, even on a dedicated key. Running at most two in flight, plus
+// exponential backoff on 429/5xx, fixed it.
 const MAX_CONCURRENT_REQUESTS = 2;
 const MAX_RETRIES = 5;
 const RETRY_BASE_DELAY_MS = 1500;
