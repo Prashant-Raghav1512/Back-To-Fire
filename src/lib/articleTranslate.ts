@@ -1,25 +1,18 @@
-// SECURITY NOTE: its own dedicated Groq key (VITE_GROQ_TRANSLATE_API_KEY),
-// separate from the main chatbot's VITE_GROQ_API_KEY and the Tools page's
-// VITE_GROQ_PROTEIN_API_KEY, so it can be rotated independently and
-// doesn't compete with the chatbot's live traffic for rate-limit budget.
-// Same shipped-to-the-browser tradeoff and free-tier reasoning as every
-// other Groq/Neon key in this app (see CLAUDE.md, "No backend, by design").
-const API_KEY = import.meta.env.VITE_GROQ_TRANSLATE_API_KEY;
-const MODEL = 'llama-3.3-70b-versatile';
+import { neon } from '@neondatabase/serverless';
 
-// Long articles (~28 paragraphs) are translated in chunks rather than one
-// giant request - a single call risks the model truncating a
-// multi-thousand-word JSON response mid-string, which breaks parsing
-// entirely.
-const PARAGRAPHS_PER_CHUNK = 10;
+// SECURITY NOTE: reuses the same browser-exposed Neon connection as every
+// other Community/contact feature (src/lib/community.ts, contact.ts) — see
+// those files' own SECURITY NOTE comments for why a separate role wouldn't
+// add real access restriction on this project. This table is just a
+// shared translation cache, not user data.
+const connectionString = import.meta.env.VITE_NEON_CONTACT_URL;
 
-// Firing every chunk request at once (a plain Promise.all burst) reliably
-// tripped Groq's free-tier per-second rate limit (HTTP 429) during
-// testing, even on a dedicated key. Running at most two in flight, plus
-// exponential backoff on 429/5xx, fixed it.
-const MAX_CONCURRENT_REQUESTS = 2;
-const MAX_RETRIES = 5;
-const RETRY_BASE_DELAY_MS = 1500;
+function client() {
+  if (!connectionString) {
+    throw new Error('Translation is not configured (VITE_NEON_CONTACT_URL is unset).');
+  }
+  return neon(connectionString);
+}
 
 export interface TranslatableArticle {
   title: string;
@@ -31,70 +24,88 @@ export interface TranslatedArticle {
   content: string[];
 }
 
-class RetryableGroqError extends Error {}
+interface TranslationRow {
+  title: string;
+  content: string[];
+}
+
+async function getCachedTranslation(articleId: string, languageCode: string): Promise<TranslatedArticle | null> {
+  const sql = client();
+  const rows = (await sql`
+    SELECT title, content FROM article_translations
+    WHERE article_id = ${articleId} AND language_code = ${languageCode}
+  `) as TranslationRow[];
+  const row = rows[0];
+  return row ? { title: row.title, content: row.content } : null;
+}
+
+async function saveCachedTranslation(articleId: string, languageCode: string, translated: TranslatedArticle): Promise<void> {
+  const sql = client();
+  await sql`
+    INSERT INTO article_translations (article_id, language_code, title, content)
+    VALUES (${articleId}, ${languageCode}, ${translated.title}, ${translated.content})
+    ON CONFLICT (article_id, language_code) DO UPDATE SET
+      title = ${translated.title},
+      content = ${translated.content},
+      created_at = now()
+  `;
+}
+
+// --- Machine translation --------------------------------------------
+//
+// Calls Google Translate's free, keyless "translate_a/single" endpoint
+// directly from the browser (the same one Google's own web UI uses
+// internally) rather than a paid/keyed API — this app has no backend to
+// hide a real Cloud Translation API key behind, and this endpoint needs
+// none. It's unofficial and undocumented, so it could change or go away,
+// but it's been stable in practice for years and (unlike an LLM-based
+// translator) has no per-token quota to run out of mid-day. An earlier
+// Groq-based translator was replaced with this after testing showed both
+// Groq's free-tier daily token budget and a free crowd-sourced-memory
+// alternative (MyMemory) were too unreliable for production use — see
+// db/schema.sql's article_translations comment.
+const TRANSLATE_ENDPOINT = 'https://translate.googleapis.com/translate_a/single';
+const REQUEST_CONCURRENCY = 5;
+const MAX_RETRIES = 2;
+const RETRY_DELAY_MS = 1000;
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function callGroqJsonOnce<T>(systemPrompt: string, userPrompt: string, maxTokens: number): Promise<T> {
-  const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${API_KEY}`,
-    },
-    body: JSON.stringify({
-      model: MODEL,
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt },
-      ],
-      temperature: 0.2,
-      max_tokens: maxTokens,
-      response_format: { type: 'json_object' },
-    }),
-  });
+async function translateTextOnce(text: string, languageCode: string): Promise<string> {
+  const url = new URL(TRANSLATE_ENDPOINT);
+  url.searchParams.set('client', 'gtx');
+  url.searchParams.set('sl', 'en');
+  url.searchParams.set('tl', languageCode);
+  url.searchParams.set('dt', 't');
+  url.searchParams.set('q', text);
 
+  const res = await fetch(url.toString());
   if (!res.ok) {
-    const body: { error?: { message?: string } } = await res.json().catch(() => ({}));
-    const message = body.error?.message ?? `Groq request failed with status ${res.status}`;
-    if (res.status === 429 || res.status >= 500) throw new RetryableGroqError(message);
-    throw new Error(message);
+    throw new Error(`Translation request failed with status ${res.status}`);
   }
 
-  const data: { choices: { message: { content: string } }[] } = await res.json();
-  const raw = data.choices[0]?.message.content?.trim();
-  if (!raw) throw new Error('Groq returned an empty response.');
-
-  try {
-    return JSON.parse(raw) as T;
-  } catch {
-    throw new Error('Could not parse the translation - please try again.');
+  // Response shape: [[[translatedSegment, originalSegment, ...], ...], ...]
+  // — Google splits long text into sentence-level segments; joining them
+  // back with spaces reconstructs the full paragraph.
+  const data: [[string, string, ...unknown[]][], ...unknown[]] = await res.json();
+  const segments = data[0];
+  if (!Array.isArray(segments) || segments.length === 0) {
+    throw new Error('Translation returned an unexpected response.');
   }
+  return segments.map((seg) => seg[0]).join(' ');
 }
 
-async function callGroqJson<T>(systemPrompt: string, userPrompt: string, maxTokens: number): Promise<T> {
-  if (!API_KEY) {
-    throw new Error('Translation is not configured (VITE_GROQ_API_KEY is unset).');
-  }
+async function translateText(text: string, languageCode: string): Promise<string> {
   for (let attempt = 0; ; attempt++) {
     try {
-      return await callGroqJsonOnce<T>(systemPrompt, userPrompt, maxTokens);
+      return await translateTextOnce(text, languageCode);
     } catch (err) {
-      if (!(err instanceof RetryableGroqError)) throw err;
-      if (attempt >= MAX_RETRIES) {
-        throw new Error('Translation is busy right now - please try again in a minute.');
-      }
-      await sleep(RETRY_BASE_DELAY_MS * 2 ** attempt);
+      if (attempt >= MAX_RETRIES) throw err;
+      await sleep(RETRY_DELAY_MS * (attempt + 1));
     }
   }
-}
-
-function chunk<T>(items: T[], size: number): T[][] {
-  const out: T[][] = [];
-  for (let i = 0; i < items.length; i += size) out.push(items.slice(i, i + size));
-  return out;
 }
 
 // Runs `tasks` with at most `limit` in flight at once, preserving result
@@ -113,37 +124,22 @@ async function runLimited<T>(tasks: (() => Promise<T>)[], limit: number): Promis
   return results;
 }
 
-export async function translateArticle(article: TranslatableArticle, languageName: string): Promise<TranslatedArticle> {
-  const systemPrompt = `You are a professional translator. Translate the given English fitness-article text into ${languageName}, one of India's official languages. Translate naturally and fluently, the way a native speaker would write it - not a literal word-for-word translation. Keep the brand name "Born to Fire" unchanged wherever it appears. Respond with ONLY a single valid JSON object in the exact shape requested - no commentary, no markdown fences.`;
+// Checks Neon's cache first - the common case after the very first reader
+// of a given (article, language) pair, which never touches the network
+// translation endpoint at all. Only a cache miss actually calls Google and
+// then persists the result for every future reader.
+export async function translateArticle(
+  articleId: string,
+  article: TranslatableArticle,
+  languageCode: string
+): Promise<TranslatedArticle> {
+  const cached = await getCachedTranslation(articleId, languageCode);
+  if (cached) return cached;
 
-  const titleTask = () =>
-    callGroqJson<{ title: string }>(
-      systemPrompt,
-      `Translate this article title into ${languageName}. Respond as JSON: {"title": "..."}\n\nTitle: ${article.title}`,
-      300
-    );
+  const tasks = [article.title, ...article.content].map((text) => () => translateText(text, languageCode));
+  const [title, ...content] = await runLimited(tasks, REQUEST_CONCURRENCY);
 
-  const chunks = chunk(article.content, PARAGRAPHS_PER_CHUNK);
-  const chunkTasks = chunks.map((group) => () =>
-    callGroqJson<{ paragraphs: string[] }>(
-      systemPrompt,
-      `Translate each of the following ${group.length} paragraph(s) into ${languageName}. Keep them as separate paragraphs, in the same order. Respond as JSON: {"paragraphs": ["...", ...]} with exactly ${group.length} item(s).\n\n${group
-        .map((p, i) => `Paragraph ${i + 1}: ${p}`)
-        .join('\n\n')}`,
-      4000
-    )
-  );
-
-  // Title and content chunks share one concurrency-limited pool (rather
-  // than two separate pools) so the request count that matters for
-  // Groq's rate limit is "chunks + 1", not "chunks" twice over.
-  type Result = { title: string } | { paragraphs: string[] };
-  const [titleResult, ...chunkResults] = await runLimited<Result>([titleTask, ...chunkTasks], MAX_CONCURRENT_REQUESTS);
-
-  const content = chunkResults.flatMap((r) => ('paragraphs' in r ? r.paragraphs : []));
-  if (content.length === 0) {
-    throw new Error('Translation came back empty - please try again.');
-  }
-
-  return { title: 'title' in titleResult ? titleResult.title : article.title, content };
+  const translated: TranslatedArticle = { title, content };
+  await saveCachedTranslation(articleId, languageCode, translated);
+  return translated;
 }

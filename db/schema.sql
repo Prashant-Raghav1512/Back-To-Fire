@@ -196,6 +196,24 @@ CREATE TABLE IF NOT EXISTS direct_messages (
 CREATE INDEX IF NOT EXISTS direct_messages_pair_idx
   ON direct_messages (LEAST(sender_clerk_user_id, recipient_clerk_user_id), GREATEST(sender_clerk_user_id, recipient_clerk_user_id), created_at);
 
+-- Caches one article's translated title/content per (article, language)
+-- pair the first time anyone requests it (see src/lib/articleTranslate.ts).
+-- The Articles translator calls Google's free, keyless translate_a/single
+-- endpoint directly from the browser — no API key to manage, but also no
+-- guaranteed uptime/rate limit contract since it's unofficial, so caching
+-- every result here means it only ever needs to succeed ONCE per article
+-- per language, no matter how many visitors read that translation
+-- afterward. This replaced an earlier Groq-based (LLM) translator that
+-- proved unreliable in practice — see git history if that's ever revisited.
+CREATE TABLE IF NOT EXISTS article_translations (
+  article_id text NOT NULL,
+  language_code text NOT NULL,
+  title text NOT NULL,
+  content text[] NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (article_id, language_code)
+);
+
 -- Programs -------------------------------------------------------------
 
 INSERT INTO programs (id, title, duration, difficulty, description, features, icon, sort_order) VALUES

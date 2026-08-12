@@ -39,7 +39,7 @@ export function ArticleModal({ article, onClose }: ArticleModalProps) {
 
     setTranslating(true);
     try {
-      const translated = await translateArticle({ title: article.title, content: article.content }, language.name);
+      const translated = await translateArticle(article.id, { title: article.title, content: article.content }, language.code);
       setCache((prev) => ({ ...prev, [code]: translated }));
     } catch (err) {
       setTranslationError(err instanceof Error ? err.message : 'Could not translate, please try again.');

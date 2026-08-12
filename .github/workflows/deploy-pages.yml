@@ -45,9 +45,10 @@ jobs:
           # A second, separate Groq API key for the Tools page's
           # food-to-protein chatbot — see src/lib/proteinChat.ts.
           VITE_GROQ_PROTEIN_API_KEY: ${{ secrets.VITE_GROQ_PROTEIN_API_KEY }}
-          # A third, separate Groq API key for the Articles page's
-          # per-article translator — see src/lib/articleTranslate.ts.
-          VITE_GROQ_TRANSLATE_API_KEY: ${{ secrets.VITE_GROQ_TRANSLATE_API_KEY }}
+          # Note: the Articles page's translator (src/lib/articleTranslate.ts)
+          # needs no key of its own — it calls Google Translate's free
+          # endpoint directly and caches results via VITE_NEON_CONTACT_URL
+          # above.
           # Clerk publishable key powering sign-in/sign-up. Public by
           # design — see src/main.tsx.
           VITE_CLERK_PUBLISHABLE_KEY: ${{ secrets.VITE_CLERK_PUBLISHABLE_KEY }}
