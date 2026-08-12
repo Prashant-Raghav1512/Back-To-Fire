@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { User, Building2, Users, Check, Loader2, Search, Trash2, IdCard } from 'lucide-react';
+import { User, Building2, Users, Check, Loader2, Search, Trash2, IdCard, XCircle } from 'lucide-react';
 import { useUser, useClerk } from '@clerk/clerk-react';
 import { SectionHeading } from '@/components/SectionHeading';
 import { AnimatedPageBackground } from '@/components/AnimatedPageBackground';
@@ -9,6 +9,7 @@ import { FriendActionButton } from '@/components/community/FriendActionButton';
 import {
   useMembership,
   createMembership,
+  cancelMembership,
   addFamilyMember,
   removeFamilyMember,
   findMemberByMemberId,
@@ -102,6 +103,10 @@ export function MembershipPage() {
   const [searchError, setSearchError] = useState<string | null>(null);
   const [searchResult, setSearchResult] = useState<MemberSearchResult | null>(null);
   const [friendBusy, setFriendBusy] = useState(false);
+
+  const [confirmCancel, setConfirmCancel] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
+  const [cancelError, setCancelError] = useState<string | null>(null);
 
   const selectedTypeInfo = selectedType ? membershipTypes.find((t) => t.id === selectedType) ?? null : null;
   const selectedTypeIsPaid = selectedTypeInfo ? selectedTypeInfo.price !== null : false;
@@ -210,6 +215,21 @@ export function MembershipPage() {
       await friends.refresh();
     } finally {
       setFriendBusy(false);
+    }
+  };
+
+  const handleCancelMembership = async () => {
+    if (!user || cancelling) return;
+    setCancelling(true);
+    setCancelError(null);
+    try {
+      await cancelMembership(user.id);
+      await refresh();
+      setConfirmCancel(false);
+    } catch (err) {
+      setCancelError(err instanceof Error ? err.message : 'Could not cancel, please try again.');
+    } finally {
+      setCancelling(false);
     }
   };
 
@@ -400,6 +420,42 @@ export function MembershipPage() {
                       </li>
                     ))}
                   </ul>
+                </div>
+
+                <div className="mt-8 border-t border-gray-100 pt-6 dark:border-gray-800">
+                  {confirmCancel ? (
+                    <div className="rounded-2xl bg-red-50 p-4 dark:bg-red-500/10">
+                      <p className="text-sm text-red-700 dark:text-red-400">
+                        Cancel your membership? You'll lose your Member ID and member benefits
+                        {membership.membershipType === 'family' ? ', and your registered family members will be removed' : ''}.
+                        This can't be undone.
+                      </p>
+                      <div className="mt-3 flex items-center gap-3">
+                        <button
+                          onClick={handleCancelMembership}
+                          disabled={cancelling}
+                          className="text-sm font-semibold text-red-600 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-60 dark:text-red-400"
+                        >
+                          {cancelling ? 'Cancelling...' : 'Yes, cancel membership'}
+                        </button>
+                        <button
+                          onClick={() => setConfirmCancel(false)}
+                          disabled={cancelling}
+                          className="text-sm font-semibold text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                        >
+                          Never mind
+                        </button>
+                      </div>
+                      {cancelError && <p className="mt-2 text-xs text-red-500">{cancelError}</p>}
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setConfirmCancel(true)}
+                      className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-400 transition-colors hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400"
+                    >
+                      <XCircle className="h-4 w-4" /> Cancel membership
+                    </button>
+                  )}
                 </div>
               </div>
 

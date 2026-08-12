@@ -131,6 +131,21 @@ export async function createMembership(params: CreateMembershipParams): Promise<
   return rowToMembership(rows[0]);
 }
 
+// Scoped to the owner (WHERE ... AND clerk_user_id = ...) even though every
+// visitor's browser already has full write access to this table directly
+// (see the SECURITY NOTE above) — this isn't real access control, just a
+// guard against the app's own UI deleting the wrong row, same pattern as
+// deletePost/deleteComment in communityPosts.ts. `family_members` rows
+// cascade-delete automatically (see db/schema.sql's ON DELETE CASCADE) —
+// canceling a family membership also clears its registered family members.
+// The freed-up member_id is never reused (it's derived from the row's own
+// bigserial id, which keeps incrementing), so re-joining later always gets
+// a brand new one.
+export async function cancelMembership(clerkUserId: string): Promise<void> {
+  const sql = client();
+  await sql`DELETE FROM memberships WHERE clerk_user_id = ${clerkUserId}`;
+}
+
 const MAX_FAMILY_MEMBERS = 4;
 
 export interface AddFamilyMemberParams {
