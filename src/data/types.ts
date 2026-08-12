@@ -98,6 +98,8 @@ export interface Article {
   summary: string;
   readTime: string;
   icon: string;
+  /** Path relative to public/, e.g. "articles/some-slug.jpg" — resolved against BASE_URL where rendered, same pattern as exercises.json's image field. */
+  image: string;
   /** Ordered paragraphs making up the full article, shown in ArticleModal. */
   content: string[];
 }

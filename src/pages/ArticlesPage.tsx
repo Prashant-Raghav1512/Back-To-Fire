@@ -34,26 +34,36 @@ function ArticleCard({ article, onSelect }: { article: Article; onSelect: (a: Ar
       }}
       role="button"
       tabIndex={0}
-      className="card card-hover tilt-glow flex cursor-pointer flex-col p-6 text-left"
+      className="card card-hover tilt-glow group flex cursor-pointer flex-col overflow-hidden text-left"
     >
-      <div className="flex items-start justify-between gap-3">
+      <div className="relative h-40 overflow-hidden">
+        <img
+          src={`${import.meta.env.BASE_URL}${article.image}`}
+          alt={article.title}
+          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+        />
+        <span className={`badge absolute right-3 top-3 ${categoryStyles[article.category]}`}>
+          {article.category}
+        </span>
+      </div>
+
+      <div className="flex flex-1 flex-col p-6">
         <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-green-100 text-green-600 dark:bg-green-500/15 dark:text-green-400">
           <Icon className="h-6 w-6" />
         </span>
-        <span className={`badge ${categoryStyles[article.category]}`}>{article.category}</span>
-      </div>
 
-      <h3 className="mt-4 font-display text-lg font-bold text-gray-900 dark:text-white">{article.title}</h3>
-      <p className="mt-2 flex-1 text-sm leading-relaxed text-gray-600 dark:text-gray-400">{article.summary}</p>
+        <h3 className="mt-4 font-display text-lg font-bold text-gray-900 dark:text-white">{article.title}</h3>
+        <p className="mt-2 flex-1 text-sm leading-relaxed text-gray-600 dark:text-gray-400">{article.summary}</p>
 
-      <div className="mt-4 flex items-center justify-between gap-3">
-        <span className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
-          <Clock className="h-3.5 w-3.5" />
-          {article.readTime}
-        </span>
-        <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-green-600 dark:text-green-400">
-          Read <ArrowRight className="h-4 w-4" />
-        </span>
+        <div className="mt-4 flex items-center justify-between gap-3">
+          <span className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
+            <Clock className="h-3.5 w-3.5" />
+            {article.readTime}
+          </span>
+          <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-green-600 dark:text-green-400">
+            Read <ArrowRight className="h-4 w-4" />
+          </span>
+        </div>
       </div>
     </div>
   );

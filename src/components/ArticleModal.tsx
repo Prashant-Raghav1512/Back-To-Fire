@@ -47,15 +47,23 @@ export function ArticleModal({ article, onClose }: ArticleModalProps) {
         className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-3xl bg-white shadow-2xl dark:bg-gray-800"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="relative p-6 sm:p-8">
+        <div className="relative h-56 sm:h-64">
+          <img
+            src={`${import.meta.env.BASE_URL}${article.image}`}
+            alt={article.title}
+            className="h-full w-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/0 to-black/10" />
           <button
             onClick={onClose}
             aria-label="Close"
-            className="absolute right-5 top-5 flex h-9 w-9 items-center justify-center rounded-full text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-700 dark:hover:text-gray-300"
+            className="absolute right-5 top-5 flex h-9 w-9 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur transition hover:bg-black/60"
           >
             <X className="h-5 w-5" />
           </button>
+        </div>
 
+        <div className="relative p-6 sm:p-8">
           <div className="flex items-center gap-3">
             <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-green-100 text-green-600 dark:bg-green-500/15 dark:text-green-400">
               <Icon className="h-5 w-5" />
