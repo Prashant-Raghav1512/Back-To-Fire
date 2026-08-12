@@ -233,7 +233,14 @@ CREATE TABLE IF NOT EXISTS article_translations (
 -- coordination. `company_name` only applies to `membership_type =
 -- 'corporate'`; that's an application-level rule (src/lib/membership.ts),
 -- not a CHECK constraint, same "guardrail not real enforcement" pattern
--- used throughout this backend-less app.
+-- used throughout this backend-less app. `monthly_price` snapshots
+-- membershipTypes.ts's price for the chosen type *at join time* in INR
+-- (null for `corporate`, which is custom/negotiated, not a fixed fee) —
+-- same "snapshot, don't drift if the source data changes later" reasoning
+-- as enrollments.item_detail. `payment_method` is the visitor's stated
+-- preference from `PaymentMethodSelector` — presentational only, same
+-- "no real payment gateway wired up" caveat as `MembershipPlans.tsx`'s
+-- (see `src/data/paymentMethods.ts`).
 CREATE TABLE IF NOT EXISTS memberships (
   id bigserial PRIMARY KEY,
   clerk_user_id text NOT NULL UNIQUE,
@@ -241,8 +248,15 @@ CREATE TABLE IF NOT EXISTS memberships (
   membership_type text NOT NULL CHECK (membership_type IN ('normal', 'corporate', 'family')),
   display_name text NOT NULL,
   company_name text,
+  monthly_price integer,
+  payment_method text,
   created_at timestamptz NOT NULL DEFAULT now()
 );
+
+-- Backfills for databases created before monthly_price/payment_method
+-- existed — no-ops on a fresh database (the columns above already exist).
+ALTER TABLE memberships ADD COLUMN IF NOT EXISTS monthly_price integer;
+ALTER TABLE memberships ADD COLUMN IF NOT EXISTS payment_method text;
 
 CREATE UNIQUE INDEX IF NOT EXISTS memberships_member_id_idx ON memberships (member_id);
 

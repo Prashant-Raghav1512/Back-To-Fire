@@ -31,6 +31,9 @@ export interface Membership {
   membershipType: MembershipType;
   displayName: string;
   companyName: string | null;
+  /** Snapshot of the type's price (INR/month) at join time — null for corporate's custom pricing. */
+  monthlyPrice: number | null;
+  paymentMethod: string | null;
   createdAt: string;
   familyMembers: FamilyMember[];
 }
@@ -42,6 +45,8 @@ interface MembershipRow {
   membership_type: MembershipType;
   display_name: string;
   company_name: string | null;
+  monthly_price: number | null;
+  payment_method: string | null;
   created_at: string;
 }
 
@@ -82,6 +87,8 @@ async function rowToMembership(row: MembershipRow): Promise<Membership> {
     membershipType: row.membership_type,
     displayName: row.display_name,
     companyName: row.company_name,
+    monthlyPrice: row.monthly_price,
+    paymentMethod: row.payment_method,
     createdAt: row.created_at,
     familyMembers,
   };
@@ -90,7 +97,7 @@ async function rowToMembership(row: MembershipRow): Promise<Membership> {
 export async function getMyMembership(clerkUserId: string): Promise<Membership | null> {
   const sql = client();
   const rows = (await sql`
-    SELECT id, member_id, clerk_user_id, membership_type, display_name, company_name, created_at
+    SELECT id, member_id, clerk_user_id, membership_type, display_name, company_name, monthly_price, payment_method, created_at
     FROM memberships WHERE clerk_user_id = ${clerkUserId}
   `) as MembershipRow[];
   const row = rows[0];
@@ -102,14 +109,24 @@ export interface CreateMembershipParams {
   displayName: string;
   membershipType: MembershipType;
   companyName?: string;
+  /** INR/month, omit or pass null for corporate's custom pricing. */
+  monthlyPrice?: number | null;
+  paymentMethod?: string | null;
 }
 
 export async function createMembership(params: CreateMembershipParams): Promise<Membership> {
   const sql = client();
   const rows = (await sql`
-    INSERT INTO memberships (clerk_user_id, membership_type, display_name, company_name)
-    VALUES (${params.clerkUserId}, ${params.membershipType}, ${params.displayName}, ${params.companyName ?? null})
-    RETURNING id, member_id, clerk_user_id, membership_type, display_name, company_name, created_at
+    INSERT INTO memberships (clerk_user_id, membership_type, display_name, company_name, monthly_price, payment_method)
+    VALUES (
+      ${params.clerkUserId},
+      ${params.membershipType},
+      ${params.displayName},
+      ${params.companyName ?? null},
+      ${params.monthlyPrice ?? null},
+      ${params.paymentMethod ?? null}
+    )
+    RETURNING id, member_id, clerk_user_id, membership_type, display_name, company_name, monthly_price, payment_method, created_at
   `) as MembershipRow[];
   return rowToMembership(rows[0]);
 }

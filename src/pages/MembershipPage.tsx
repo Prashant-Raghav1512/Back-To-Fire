@@ -3,6 +3,8 @@ import { User, Building2, Users, Check, Loader2, Search, Trash2, IdCard } from '
 import { useUser, useClerk } from '@clerk/clerk-react';
 import { SectionHeading } from '@/components/SectionHeading';
 import { AnimatedPageBackground } from '@/components/AnimatedPageBackground';
+import { PaymentMethodSelector } from '@/components/PaymentMethodSelector';
+import { paymentMethods } from '@/data/paymentMethods';
 import { FriendActionButton } from '@/components/community/FriendActionButton';
 import {
   useMembership,
@@ -36,9 +38,25 @@ function TypePickerCard({
       onClick={onSelect}
       className={`card card-hover flex flex-col p-6 text-left transition-all ${selected ? '!ring-2 ring-orange-400' : ''}`}
     >
-      <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-100 text-orange-600 dark:bg-orange-500/15 dark:text-orange-400">
-        <TypeIcon name={type.icon} className="h-6 w-6" />
-      </span>
+      <div className="flex items-start justify-between gap-3">
+        <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-100 text-orange-600 dark:bg-orange-500/15 dark:text-orange-400">
+          <TypeIcon name={type.icon} className="h-6 w-6" />
+        </span>
+        <p className="text-right">
+          {type.price !== null ? (
+            <>
+              <span className="font-display text-xl font-extrabold text-gray-900 dark:text-white">
+                &#8377;{type.price.toLocaleString('en-IN')}
+              </span>
+              <span className="block text-xs text-gray-500 dark:text-gray-400">/month</span>
+            </>
+          ) : (
+            <span className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+              Custom pricing
+            </span>
+          )}
+        </p>
+      </div>
       <h3 className="mt-4 font-display text-lg font-bold text-gray-900 dark:text-white">{type.label}</h3>
       <p className="mt-1.5 text-sm text-gray-500 dark:text-gray-400">{type.tagline}</p>
       <ul className="mt-4 space-y-2">
@@ -55,9 +73,12 @@ function TypePickerCard({
 // Reached from navLinks (`/membership`) and summarized on the Profile page.
 // Three states: pick a type (signed in, no membership yet), a loading
 // spinner, or the full member card + family manager + find-a-member search
-// once a membership exists. There's no real payment - joining is
-// registration-only, same "no backend to safely process a real checkout"
-// reasoning as MembershipPlans.tsx's payment method selector on /programs.
+// once a membership exists. Normal/Family are paid (a fixed monthly price,
+// gated behind picking a PaymentMethodSelector option); Corporate is
+// custom/negotiated, no fixed price or payment method. None of this is a
+// real charge - same "no backend to safely process a real checkout, so the
+// payment method is just a recorded preference" reasoning as
+// MembershipPlans.tsx's selector on /programs.
 export function MembershipPage() {
   const { user, isSignedIn, isLoaded } = useUser();
   const { openSignIn } = useClerk();
@@ -66,6 +87,7 @@ export function MembershipPage() {
 
   const [selectedType, setSelectedType] = useState<MembershipType | null>(null);
   const [companyName, setCompanyName] = useState('');
+  const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
   const [joining, setJoining] = useState(false);
   const [joinError, setJoinError] = useState<string | null>(null);
 
@@ -81,10 +103,17 @@ export function MembershipPage() {
   const [searchResult, setSearchResult] = useState<MemberSearchResult | null>(null);
   const [friendBusy, setFriendBusy] = useState(false);
 
+  const selectedTypeInfo = selectedType ? membershipTypes.find((t) => t.id === selectedType) ?? null : null;
+  const selectedTypeIsPaid = selectedTypeInfo ? selectedTypeInfo.price !== null : false;
+
   const handleJoin = async () => {
-    if (!user || !selectedType || joining) return;
+    if (!user || !selectedType || !selectedTypeInfo || joining) return;
     if (selectedType === 'corporate' && !companyName.trim()) {
       setJoinError('Please enter your company name.');
+      return;
+    }
+    if (selectedTypeIsPaid && !selectedMethod) {
+      setJoinError('Please select a payment method.');
       return;
     }
     setJoining(true);
@@ -95,6 +124,8 @@ export function MembershipPage() {
         displayName: user.fullName ?? user.username ?? 'Born to Fire member',
         membershipType: selectedType,
         companyName: selectedType === 'corporate' ? companyName.trim() : undefined,
+        monthlyPrice: selectedTypeInfo.price,
+        paymentMethod: selectedTypeIsPaid ? selectedMethod : undefined,
       });
       await refresh();
     } catch (err) {
@@ -257,35 +288,55 @@ export function MembershipPage() {
                     selected={selectedType === type.id}
                     onSelect={() => {
                       setSelectedType(type.id);
+                      setSelectedMethod(null);
                       setJoinError(null);
                     }}
                   />
                 ))}
               </div>
 
-              {selectedType && (
-                <div className="mx-auto mt-8 max-w-md rounded-3xl bg-gray-50 p-6 text-center dark:bg-gray-800/60">
+              {selectedType && selectedTypeInfo && (
+                <div className="mx-auto mt-8 max-w-md rounded-3xl bg-gray-50 p-6 dark:bg-gray-800/60">
                   {selectedType === 'corporate' && (
-                    <input
-                      type="text"
-                      value={companyName}
-                      onChange={(e) => setCompanyName(e.target.value)}
-                      placeholder="Company name"
-                      className="mb-4 w-full rounded-full border-0 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none ring-1 ring-gray-200 transition focus:ring-orange-500 dark:bg-gray-700 dark:text-white dark:ring-gray-600"
-                    />
+                    <>
+                      <input
+                        type="text"
+                        value={companyName}
+                        onChange={(e) => setCompanyName(e.target.value)}
+                        placeholder="Company name"
+                        className="w-full rounded-full border-0 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none ring-1 ring-gray-200 transition focus:ring-orange-500 dark:bg-gray-700 dark:text-white dark:ring-gray-600"
+                      />
+                      <p className="mt-3 text-center text-xs text-gray-500 dark:text-gray-400">
+                        Custom pricing - our team will reach out to discuss a plan for your team size.
+                      </p>
+                    </>
                   )}
+
+                  {selectedTypeIsPaid && (
+                    <div className={selectedType === 'corporate' ? 'mt-4' : ''}>
+                      <p className="text-center text-sm text-gray-500 dark:text-gray-400">
+                        <span className="font-display text-2xl font-extrabold text-gray-900 dark:text-white">
+                          &#8377;{selectedTypeInfo.price?.toLocaleString('en-IN')}
+                        </span>{' '}
+                        /month
+                      </p>
+                      <div className="mt-4">
+                        <PaymentMethodSelector selected={selectedMethod} onSelect={setSelectedMethod} />
+                      </div>
+                    </div>
+                  )}
+
                   <button
                     onClick={handleJoin}
-                    disabled={joining}
-                    className="btn-primary w-full disabled:cursor-not-allowed disabled:opacity-60"
+                    disabled={joining || (selectedTypeIsPaid && !selectedMethod)}
+                    className="btn-primary mt-5 w-full disabled:cursor-not-allowed disabled:opacity-60"
                   >
-                    {joining ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      `Join as ${membershipTypes.find((t) => t.id === selectedType)?.label}`
-                    )}
+                    {joining ? <Loader2 className="h-4 w-4 animate-spin" /> : `Join as ${selectedTypeInfo.label}`}
                   </button>
-                  {joinError && <p className="mt-3 text-xs text-red-500">{joinError}</p>}
+                  {selectedTypeIsPaid && !selectedMethod && !joinError && (
+                    <p className="mt-2 text-center text-xs text-gray-400">Select a payment method to continue</p>
+                  )}
+                  {joinError && <p className="mt-3 text-center text-xs text-red-500">{joinError}</p>}
                 </div>
               )}
 
@@ -323,6 +374,19 @@ export function MembershipPage() {
                   <p className="mt-1 font-display text-3xl font-extrabold tracking-wider">{membership.memberId}</p>
                   <p className="mt-4 text-sm text-white/80">{membership.displayName}</p>
                   {membership.companyName && <p className="text-xs text-white/60">{membership.companyName}</p>}
+                  {membership.monthlyPrice !== null && (
+                    <p className="mt-3 flex items-baseline gap-1.5 border-t border-white/10 pt-3 text-sm">
+                      <span className="font-display text-lg font-bold">
+                        &#8377;{membership.monthlyPrice.toLocaleString('en-IN')}
+                      </span>
+                      <span className="text-white/60">/month</span>
+                      {membership.paymentMethod && (
+                        <span className="ml-auto text-xs text-white/60">
+                          via {paymentMethods.find((m) => m.id === membership.paymentMethod)?.label ?? membership.paymentMethod}
+                        </span>
+                      )}
+                    </p>
+                  )}
                 </div>
 
                 <div className="mt-6">

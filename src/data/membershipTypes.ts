@@ -5,6 +5,8 @@ export interface MembershipTypeInfo {
   label: string;
   tagline: string;
   icon: string;
+  /** Monthly price in INR, or null for custom/negotiated pricing (corporate). */
+  price: number | null;
   /** Benefits specific to this type, shown in addition to sharedMemberBenefits below. */
   benefits: string[];
 }
@@ -27,6 +29,7 @@ export const membershipTypes: MembershipTypeInfo[] = [
     label: 'Normal Membership',
     tagline: 'For individual members training on their own.',
     icon: 'User',
+    price: 499,
     benefits: ['One free guest pass every month', 'Personal progress dashboard'],
   },
   {
@@ -34,6 +37,7 @@ export const membershipTypes: MembershipTypeInfo[] = [
     label: 'Corporate Membership',
     tagline: 'For companies sponsoring their team’s fitness.',
     icon: 'Building2',
+    price: null,
     benefits: [
       'Bulk-rate pricing for your whole team',
       'Company leaderboard and team challenges',
@@ -45,6 +49,7 @@ export const membershipTypes: MembershipTypeInfo[] = [
     label: 'Family Membership',
     tagline: 'One membership, up to 4 family members covered.',
     icon: 'Users',
+    price: 1299,
     benefits: [
       'Register up to 4 family members - no separate account needed for each',
       'Shared family workout challenges',
