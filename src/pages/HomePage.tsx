@@ -56,7 +56,10 @@ export function HomePage() {
                 <span className="flex h-2 w-2 rounded-full bg-green-400" />
                 Calisthenics for India - train anywhere
               </span>
-              <h1 className="mt-6 font-display text-4xl font-extrabold leading-[1.05] tracking-tight text-white sm:text-6xl lg:text-7xl">
+              <p className="mt-4 font-display text-lg font-bold italic tracking-tight text-orange-400 sm:text-xl">
+                Reignite your passion.
+              </p>
+              <h1 className="mt-3 font-display text-4xl font-extrabold leading-[1.05] tracking-tight text-white sm:text-6xl lg:text-7xl">
                 No weights.
                 <br />
                 No limits.
