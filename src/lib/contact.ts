@@ -10,9 +10,15 @@ import { neon } from '@neondatabase/serverless';
 // in this database via this credential.
 const connectionString = import.meta.env.VITE_NEON_CONTACT_URL;
 
+export type ContactPurpose = 'Membership' | 'Program' | 'Event' | 'Others';
+
 export interface ContactPayload {
   name: string;
   email: string;
+  phone: string;
+  purpose: ContactPurpose;
+  /** Only meaningful (and only ever sent) when purpose is 'Others'. */
+  purposeDetail: string;
   message: string;
 }
 
@@ -22,7 +28,14 @@ export async function submitContact(payload: ContactPayload): Promise<void> {
   }
   const sql = neon(connectionString);
   await sql`
-    INSERT INTO contact_submissions (name, email, message)
-    VALUES (${payload.name.trim()}, ${payload.email.trim()}, ${payload.message.trim()})
+    INSERT INTO contact_submissions (name, email, phone, purpose, purpose_detail, message)
+    VALUES (
+      ${payload.name.trim()},
+      ${payload.email.trim()},
+      ${payload.phone.trim() || null},
+      ${payload.purpose},
+      ${payload.purpose === 'Others' ? payload.purposeDetail.trim() || null : null},
+      ${payload.message.trim()}
+    )
   `;
 }

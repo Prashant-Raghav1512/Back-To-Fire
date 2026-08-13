@@ -28,6 +28,11 @@ CREATE TABLE IF NOT EXISTS contact_submissions (
   id bigserial PRIMARY KEY,
   name text NOT NULL,
   email text NOT NULL,
+  phone text,
+  -- 'Membership' | 'Program' | 'Event' | 'Others'; purpose_detail is only
+  -- ever populated when purpose is 'Others' (the form's free-text follow-up).
+  purpose text NOT NULL DEFAULT 'Others',
+  purpose_detail text,
   message text NOT NULL,
   created_at timestamptz NOT NULL DEFAULT now()
 );
@@ -257,6 +262,12 @@ CREATE TABLE IF NOT EXISTS memberships (
 -- existed — no-ops on a fresh database (the columns above already exist).
 ALTER TABLE memberships ADD COLUMN IF NOT EXISTS monthly_price integer;
 ALTER TABLE memberships ADD COLUMN IF NOT EXISTS payment_method text;
+
+-- Backfills for databases created before the contact form's purpose
+-- dropdown/phone field existed — no-ops on a fresh database.
+ALTER TABLE contact_submissions ADD COLUMN IF NOT EXISTS phone text;
+ALTER TABLE contact_submissions ADD COLUMN IF NOT EXISTS purpose text NOT NULL DEFAULT 'Others';
+ALTER TABLE contact_submissions ADD COLUMN IF NOT EXISTS purpose_detail text;
 
 CREATE UNIQUE INDEX IF NOT EXISTS memberships_member_id_idx ON memberships (member_id);
 

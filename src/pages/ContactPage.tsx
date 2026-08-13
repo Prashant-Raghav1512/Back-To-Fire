@@ -6,17 +6,25 @@ import { useReveal } from '@/lib/useReveal';
 import { useTilt } from '@/lib/useTilt';
 import { useParallax } from '@/lib/useParallax';
 import { submitContact } from '@/lib/contact';
+import type { ContactPurpose } from '@/lib/contact';
 import { AnimatedPageBackground } from '@/components/AnimatedPageBackground';
+
+const CONTACT_PURPOSES: ContactPurpose[] = ['Membership', 'Program', 'Event', 'Others'];
 
 interface FormState {
   name: string;
   email: string;
+  phone: string;
+  purpose: ContactPurpose | '';
+  purposeDetail: string;
   message: string;
 }
 
 interface FormErrors {
   name?: string;
   email?: string;
+  purpose?: string;
+  purposeDetail?: string;
   message?: string;
 }
 
@@ -47,7 +55,14 @@ export function ContactPage() {
   const heroImgRef = useParallax<HTMLImageElement>();
   const { isSignedIn } = useUser();
   const { openSignIn } = useClerk();
-  const [form, setForm] = useState<FormState>({ name: '', email: '', message: '' });
+  const [form, setForm] = useState<FormState>({
+    name: '',
+    email: '',
+    phone: '',
+    purpose: '',
+    purposeDetail: '',
+    message: '',
+  });
   const [errors, setErrors] = useState<FormErrors>({});
   const [sent, setSent] = useState(false);
   const [sending, setSending] = useState(false);
@@ -58,6 +73,9 @@ export function ContactPage() {
     if (!form.name.trim()) e.name = 'Please enter your name';
     if (!form.email.trim()) e.email = 'Please enter your email';
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = 'Enter a valid email address';
+    if (!form.purpose) e.purpose = 'Please choose what this is about';
+    else if (form.purpose === 'Others' && !form.purposeDetail.trim())
+      e.purposeDetail = 'Please tell us what this is about';
     if (!form.message.trim()) e.message = 'Please enter a message';
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -74,9 +92,9 @@ export function ContactPage() {
     setSending(true);
     setSubmitError(null);
     try {
-      await submitContact(form);
+      await submitContact({ ...form, purpose: form.purpose as ContactPurpose });
       setSent(true);
-      setForm({ name: '', email: '', message: '' });
+      setForm({ name: '', email: '', phone: '', purpose: '', purposeDetail: '', message: '' });
       setTimeout(() => setSent(false), 5000);
     } catch (err) {
       setSubmitError(
@@ -244,6 +262,61 @@ export function ContactPage() {
                     />
                     {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email}</p>}
                   </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Phone <span className="font-normal text-gray-400">(optional)</span>
+                    </label>
+                    <input
+                      type="tel"
+                      value={form.phone}
+                      onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                      placeholder="+91 98765 43210"
+                      className="mt-1.5 w-full rounded-2xl border-0 bg-gray-100 px-4 py-3 text-sm text-gray-900 outline-none ring-1 ring-transparent transition focus:ring-green-500 dark:bg-gray-700 dark:text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      What is this about?
+                    </label>
+                    <select
+                      value={form.purpose}
+                      onChange={(e) =>
+                        setForm({ ...form, purpose: e.target.value as ContactPurpose, purposeDetail: '' })
+                      }
+                      className={`mt-1.5 w-full rounded-2xl border-0 bg-gray-100 px-4 py-3 text-sm text-gray-900 outline-none ring-1 transition focus:ring-green-500 dark:bg-gray-700 dark:text-white ${
+                        errors.purpose ? 'ring-red-400' : 'ring-transparent'
+                      }`}
+                    >
+                      <option value="" disabled>
+                        Select a purpose
+                      </option>
+                      {CONTACT_PURPOSES.map((p) => (
+                        <option key={p} value={p}>
+                          {p}
+                        </option>
+                      ))}
+                    </select>
+                    {errors.purpose && <p className="mt-1 text-xs text-red-500">{errors.purpose}</p>}
+                  </div>
+                  {form.purpose === 'Others' && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Tell us what it's about
+                      </label>
+                      <input
+                        type="text"
+                        value={form.purposeDetail}
+                        onChange={(e) => setForm({ ...form, purposeDetail: e.target.value })}
+                        placeholder="e.g. partnership inquiry, feedback, press"
+                        className={`mt-1.5 w-full rounded-2xl border-0 bg-gray-100 px-4 py-3 text-sm text-gray-900 outline-none ring-1 transition focus:ring-green-500 dark:bg-gray-700 dark:text-white ${
+                          errors.purposeDetail ? 'ring-red-400' : 'ring-transparent'
+                        }`}
+                      />
+                      {errors.purposeDetail && (
+                        <p className="mt-1 text-xs text-red-500">{errors.purposeDetail}</p>
+                      )}
+                    </div>
+                  )}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                       Message
