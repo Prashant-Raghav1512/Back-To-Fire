@@ -166,6 +166,27 @@ CREATE TABLE IF NOT EXISTS community_post_comments (
 
 CREATE INDEX IF NOT EXISTS community_post_comments_post_idx ON community_post_comments (post_id, created_at ASC);
 
+-- One row per signed-in visitor, get-or-created the moment
+-- src/lib/friendId.ts's getOrCreateFriendId is called for them — unlike
+-- community_profiles (only created by saving Personal Details) or
+-- memberships (only created by joining), this happens silently in the
+-- background (see FriendIdBootstrap.tsx, mounted app-wide) so genuinely
+-- every visitor has a Friend ID as soon as they load any page while signed
+-- in, not just members or people who filled in a form. `friend_id` is a
+-- GENERATED column derived from the row's own bigserial id, same pattern as
+-- memberships.member_id, but with a distinct "BTF-U" prefix so the two id
+-- schemes are never visually confused. `display_name` is refreshed on every
+-- get-or-create call (ON CONFLICT DO UPDATE) rather than a one-time
+-- snapshot, since creation isn't a deliberate user action the way joining a
+-- membership is.
+CREATE TABLE IF NOT EXISTS user_ids (
+  id bigserial PRIMARY KEY,
+  clerk_user_id text NOT NULL UNIQUE,
+  friend_id text GENERATED ALWAYS AS ('BTF-U' || LPAD(id::text, 6, '0')) STORED,
+  display_name text NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+
 -- One row per friend relationship, in every state it's ever been —
 -- 'pending' (a request awaiting a response), 'accepted', or 'declined'.
 -- `requester_*`/`recipient_*` snapshot display names the same way every

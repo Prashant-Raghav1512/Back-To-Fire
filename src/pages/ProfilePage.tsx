@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowRight, Calendar, Dumbbell, IdCard, Loader2, LogIn, MessageCircle, Trash2 } from 'lucide-react';
+import { ArrowRight, Calendar, Check, Copy, Dumbbell, IdCard, Loader2, LogIn, MessageCircle, Trash2, UserRound } from 'lucide-react';
 import { useUser, useClerk } from '@clerk/clerk-react';
 import { SectionHeading } from '@/components/SectionHeading';
 import { EventStatusBadge } from '@/components/EventStatusBadge';
@@ -11,6 +11,7 @@ import { useMyEnrollments, type Enrollment } from '@/lib/enrollments';
 import { useMyPosts, deletePost } from '@/lib/communityPosts';
 import { findGroup } from '@/lib/communityGroups';
 import { useMembership } from '@/lib/membership';
+import { useFriendId } from '@/lib/friendId';
 import { membershipTypes } from '@/data/membershipTypes';
 import { events } from '@/data/events';
 import { getEventStatus } from '@/lib/events';
@@ -165,8 +166,18 @@ export function ProfilePage() {
   const { enrollments, loading, isEnrolledIn, refresh } = useMyEnrollments();
   const { posts: myPosts, loading: postsLoading, refresh: refreshPosts } = useMyPosts();
   const { membership, loading: membershipLoading } = useMembership();
+  const { friendId } = useFriendId();
   const [selectedEvent, setSelectedEvent] = useState<FitnessEvent | null>(null);
   const [activePost, setActivePost] = useState<CommunityPost | null>(null);
+  const [friendIdCopied, setFriendIdCopied] = useState(false);
+
+  const handleCopyFriendId = () => {
+    if (!friendId) return;
+    navigator.clipboard.writeText(friendId).then(() => {
+      setFriendIdCopied(true);
+      setTimeout(() => setFriendIdCopied(false), 2000);
+    });
+  };
 
   const handleDeletePost = async (postId: number) => {
     if (!user) return;
@@ -230,6 +241,21 @@ export function ProfilePage() {
             {user?.firstName ? `Hey, ${user.firstName}` : 'Your training hub'}
           </h1>
           <p className="mt-3 text-gray-300">{user?.primaryEmailAddress?.emailAddress}</p>
+          {friendId && (
+            <button
+              onClick={handleCopyFriendId}
+              className="mt-4 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-sm font-medium text-white ring-1 ring-white/15 backdrop-blur transition hover:bg-white/15"
+              title="Copy your Friend ID"
+            >
+              <UserRound className="h-3.5 w-3.5 text-green-400" />
+              Friend ID: <span className="font-mono font-semibold tracking-wider">{friendId}</span>
+              {friendIdCopied ? (
+                <Check className="h-3.5 w-3.5 text-green-400" />
+              ) : (
+                <Copy className="h-3.5 w-3.5 text-gray-300" />
+              )}
+            </button>
+          )}
         </div>
       </section>
 

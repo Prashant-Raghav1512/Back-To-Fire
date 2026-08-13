@@ -1,11 +1,19 @@
 import { useState } from 'react';
-import { Check, X, Clock } from 'lucide-react';
+import { Check, X, Clock, Search, Loader2 } from 'lucide-react';
 import { useUser } from '@clerk/clerk-react';
-import { cancelFriendRequest, respondToFriendRequest, type UseFriendsResult } from '@/lib/friends';
+import { cancelFriendRequest, respondToFriendRequest, sendFriendRequest, type UseFriendsResult } from '@/lib/friends';
+import { findUserByFriendId, type FriendIdSearchResult } from '@/lib/friendId';
+import { FriendActionButton } from '@/components/community/FriendActionButton';
 
 export function FriendRequestsPanel({ friends }: { friends: UseFriendsResult }) {
   const { user } = useUser();
   const [busyId, setBusyId] = useState<number | null>(null);
+
+  const [searchId, setSearchId] = useState('');
+  const [searching, setSearching] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
+  const [searchResult, setSearchResult] = useState<FriendIdSearchResult | null>(null);
+  const [searchFriendBusy, setSearchFriendBusy] = useState(false);
 
   const handleRespond = async (requestId: number, accept: boolean) => {
     if (!user || busyId !== null) return;
@@ -29,9 +37,106 @@ export function FriendRequestsPanel({ friends }: { friends: UseFriendsResult }) 
     }
   };
 
+  const handleSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!searchId.trim() || searching) return;
+    setSearching(true);
+    setSearchError(null);
+    setSearchResult(null);
+    try {
+      const result = await findUserByFriendId(searchId);
+      if (!result) {
+        setSearchError('No one found with that Friend ID.');
+      } else {
+        setSearchResult(result);
+      }
+    } catch (err) {
+      setSearchError(err instanceof Error ? err.message : 'Could not search, please try again.');
+    } finally {
+      setSearching(false);
+    }
+  };
+
+  const handleSendRequest = async () => {
+    if (!user || !searchResult || searchFriendBusy) return;
+    setSearchFriendBusy(true);
+    try {
+      await sendFriendRequest({
+        fromUserId: user.id,
+        fromDisplayName: user.fullName ?? user.username ?? 'A Born to Fire member',
+        toUserId: searchResult.clerkUserId,
+        toDisplayName: searchResult.displayName,
+      });
+      await friends.refresh();
+    } catch {
+      // Button reflects the current state - not worth a dedicated error UI for a secondary action.
+    } finally {
+      setSearchFriendBusy(false);
+    }
+  };
+
+  const handleAcceptFromSearch = async (requestId: number) => {
+    if (!user || searchFriendBusy) return;
+    setSearchFriendBusy(true);
+    try {
+      await respondToFriendRequest(requestId, user.id, true);
+      await friends.refresh();
+    } finally {
+      setSearchFriendBusy(false);
+    }
+  };
+
   return (
     <div className="flex-1 space-y-6 overflow-y-auto p-4">
       <div>
+        <p className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+          Add by Friend ID
+        </p>
+        <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
+          Every member has a unique Friend ID — find yours at the top of your Profile page.
+        </p>
+        <form onSubmit={handleSearch} className="mt-3 flex gap-2">
+          <div className="relative flex-1">
+            <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            <input
+              value={searchId}
+              onChange={(e) => setSearchId(e.target.value)}
+              placeholder="e.g. BTF-U000123"
+              className="w-full rounded-full border-0 bg-gray-100 py-2.5 pl-10 pr-4 text-sm text-gray-900 outline-none ring-1 ring-transparent transition focus:ring-orange-500 dark:bg-gray-700 dark:text-white"
+            />
+          </div>
+          <button
+            type="submit"
+            disabled={searching || !searchId.trim()}
+            className="btn-primary shrink-0 !py-2.5 text-sm disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {searching ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Search'}
+          </button>
+        </form>
+        {searchError && <p className="mt-2 text-xs text-red-500">{searchError}</p>}
+        {searchResult && (
+          <div className="mt-3 flex items-center justify-between gap-3 rounded-xl bg-gray-50 px-3.5 py-2.5 dark:bg-gray-700/40">
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold text-gray-900 dark:text-white">
+                {searchResult.displayName}
+              </p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">{searchResult.friendId}</p>
+            </div>
+            {searchResult.clerkUserId === user?.id ? (
+              <span className="shrink-0 text-xs font-medium text-gray-400">That's you</span>
+            ) : (
+              <FriendActionButton
+                friendStatus={friends.statusFor(searchResult.clerkUserId)}
+                onSend={handleSendRequest}
+                onAccept={handleAcceptFromSearch}
+                busy={searchFriendBusy}
+              />
+            )}
+          </div>
+        )}
+      </div>
+
+      <div className="border-t border-gray-100 pt-6 dark:border-gray-700">
         <p className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
           Incoming ({friends.incoming.length})
         </p>

@@ -1,6 +1,7 @@
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { ChatWidget } from '@/components/ChatWidget';
+import { FriendIdBootstrap } from '@/components/FriendIdBootstrap';
 import { ScrollProgressBar } from '@/components/ScrollProgressBar';
 import { BackToTop } from '@/components/BackToTop';
 import { RouterProvider, useRouter } from '@/lib/router';
@@ -68,6 +69,7 @@ function Routes() {
       </main>
       <Footer />
       <ChatWidget />
+      <FriendIdBootstrap />
       <BackToTop />
     </div>
   );
