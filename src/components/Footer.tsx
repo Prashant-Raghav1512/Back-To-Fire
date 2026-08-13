@@ -28,7 +28,10 @@ export function Footer() {
                 Born to <span className="text-green-500">fire</span>
               </span>
             </button>
-            <p className="mt-4 text-sm leading-relaxed text-gray-400">
+            <p className="mt-3 font-display text-sm font-bold italic tracking-tight text-orange-400">
+              Reignite your passion.
+            </p>
+            <p className="mt-2 text-sm leading-relaxed text-gray-400">
               No weights. No limits. Master the machine you were born in. Calisthenics for every
               body, made for India.
             </p>

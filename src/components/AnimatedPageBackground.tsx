@@ -18,20 +18,34 @@ interface AnimatedPageBackgroundProps {
   blobs: Blob[];
 }
 
-// A page-local (not fixed) animated backdrop: soft, blurred color blobs that
-// slowly drift and pulse using the `motion` library, sitting behind a
-// section's real content. Meant to be the first child of a `relative
-// overflow-hidden` section, with the section's content wrapper given
-// `relative z-10` so it paints on top. Distinct from HomeFrameBackground
-// (the Home page's own full-page video background, left untouched) — this
-// is the lighter-weight, per-section treatment used on every other page.
-// Respects prefers-reduced-motion by freezing the blobs in their starting
-// position instead of animating them.
+// A page-local (not fixed) animated backdrop: a faint dot-grid texture plus
+// soft, blurred color blobs that slowly drift and pulse using the `motion`
+// library, sitting behind a section's real content. Meant to be the first
+// child of a `relative overflow-hidden` section, with the section's content
+// wrapper given `relative z-10` so it paints on top. Distinct from
+// HomeFrameBackground (the Home page's own full-page video background, left
+// untouched) — this is the lighter-weight, per-section treatment used on
+// every other page. Respects prefers-reduced-motion by freezing the blobs in
+// their starting position instead of animating them.
 export function AnimatedPageBackground({ blobs }: AnimatedPageBackgroundProps) {
   const reduceMotion = useReducedMotion();
 
   return (
     <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
+      {/* Dot-grid texture, faded toward the edges via a radial mask so it
+          reads as depth rather than a hard-edged tile — the same "pro SaaS"
+          background technique used underneath gradient blobs on sites like
+          Linear/Vercel. Sits below the blobs, above the section's own bg
+          color. */}
+      <div
+        className="absolute inset-0 opacity-[0.35] dark:opacity-[0.12]"
+        style={{
+          backgroundImage: 'radial-gradient(circle, #64748b 1px, transparent 1px)',
+          backgroundSize: '26px 26px',
+          maskImage: 'radial-gradient(ellipse 80% 65% at 50% 40%, black 40%, transparent 90%)',
+          WebkitMaskImage: 'radial-gradient(ellipse 80% 65% at 50% 40%, black 40%, transparent 90%)',
+        }}
+      />
       {blobs.map((b, i) => (
         <motion.div
           key={i}
