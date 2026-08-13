@@ -1,13 +1,15 @@
 import { useState } from 'react';
-import type { ComponentType, SVGProps } from 'react';
-import { Mail, Phone, MapPin, Send, Instagram, Youtube, Facebook, Twitter, Check, AlertCircle, Lock } from 'lucide-react';
+import type { ComponentType, SVGProps, MouseEvent } from 'react';
+import { Mail, Phone, MapPin, Headset, Send, Instagram, Youtube, Facebook, Twitter, Check, AlertCircle, Lock } from 'lucide-react';
 import { useUser, useClerk } from '@clerk/clerk-react';
 import { useReveal } from '@/lib/useReveal';
 import { useTilt } from '@/lib/useTilt';
 import { useParallax } from '@/lib/useParallax';
+import { useRouter } from '@/lib/router';
 import { submitContact } from '@/lib/contact';
 import type { ContactPurpose } from '@/lib/contact';
 import { AnimatedPageBackground } from '@/components/AnimatedPageBackground';
+import { gymBranches } from '@/data/gymBranches';
 
 const CONTACT_PURPOSES: ContactPurpose[] = ['Membership', 'Program', 'Event', 'Others'];
 
@@ -33,12 +35,13 @@ interface ContactInfoCardProps {
   label: string;
   value: string;
   href: string;
+  onClick?: (ev: MouseEvent<HTMLAnchorElement>) => void;
 }
 
-function ContactInfoCard({ Icon, label, value, href }: ContactInfoCardProps) {
+function ContactInfoCard({ Icon, label, value, href, onClick }: ContactInfoCardProps) {
   const tiltRef = useTilt<HTMLAnchorElement>();
   return (
-    <a ref={tiltRef} href={href} className="card card-hover tilt-glow flex items-start gap-4 p-5">
+    <a ref={tiltRef} href={href} onClick={onClick} className="card card-hover tilt-glow flex items-start gap-4 p-5">
       <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-green-100 text-green-600 dark:bg-green-500/15 dark:text-green-400">
         <Icon className="h-6 w-6" />
       </span>
@@ -50,11 +53,14 @@ function ContactInfoCard({ Icon, label, value, href }: ContactInfoCardProps) {
   );
 }
 
+const branchLocalities = gymBranches.map((b) => b.locality).join(' · ');
+
 export function ContactPage() {
   const ref = useReveal<HTMLDivElement>();
   const heroImgRef = useParallax<HTMLImageElement>();
   const { isSignedIn } = useUser();
   const { openSignIn } = useClerk();
+  const { navigate } = useRouter();
   const [form, setForm] = useState<FormState>({
     name: '',
     email: '',
@@ -161,9 +167,25 @@ export function ContactPage() {
               {[
                 { Icon: Mail, label: 'Email', value: 'hello@borntofire.in', href: 'mailto:hello@borntofire.in' },
                 { Icon: Phone, label: 'Phone', value: '+91 98765 43210', href: 'tel:+919876543210' },
-                { Icon: MapPin, label: 'Address', value: 'Indiranagar, Bengaluru, Karnataka 560038', href: '#' },
+                {
+                  Icon: Headset,
+                  label: '24x7 Support',
+                  value: '24x7 support available',
+                  href: '#',
+                  onClick: (ev: MouseEvent<HTMLAnchorElement>) => ev.preventDefault(),
+                },
+                {
+                  Icon: MapPin,
+                  label: 'Our Branches',
+                  value: branchLocalities,
+                  href: '#',
+                  onClick: (ev: MouseEvent<HTMLAnchorElement>) => {
+                    ev.preventDefault();
+                    navigate('/programs');
+                  },
+                },
               ].map((c) => (
-                <ContactInfoCard key={c.label} Icon={c.Icon} label={c.label} value={c.value} href={c.href} />
+                <ContactInfoCard key={c.label} Icon={c.Icon} label={c.label} value={c.value} href={c.href} onClick={c.onClick} />
               ))}
 
               <div className="card p-5">
@@ -171,11 +193,17 @@ export function ContactPage() {
                   Follow us
                 </p>
                 <div className="mt-3 flex gap-3">
-                  {[Instagram, Youtube, Facebook, Twitter].map((Icon, i) => (
+                  {[
+                    { Icon: Instagram, label: 'Instagram', bg: 'bg-gradient-to-tr from-amber-400 via-pink-500 to-purple-600' },
+                    { Icon: Youtube, label: 'YouTube', bg: 'bg-red-600' },
+                    { Icon: Facebook, label: 'Facebook', bg: 'bg-blue-600' },
+                    { Icon: Twitter, label: 'Twitter', bg: 'bg-sky-500' },
+                  ].map(({ Icon, label, bg }) => (
                     <a
-                      key={i}
+                      key={label}
                       href="#"
-                      className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-gray-600 transition-all duration-300 hover:bg-green-500 hover:text-white dark:bg-gray-700 dark:text-gray-300"
+                      aria-label={label}
+                      className={`flex h-10 w-10 items-center justify-center rounded-full text-white shadow-sm transition-transform duration-300 hover:scale-110 hover:shadow-md ${bg}`}
                     >
                       <Icon className="h-5 w-5" />
                     </a>
