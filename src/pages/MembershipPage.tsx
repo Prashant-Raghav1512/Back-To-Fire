@@ -360,19 +360,28 @@ export function MembershipPage() {
                 </div>
               )}
 
-              <div className="mx-auto mt-14 max-w-2xl">
+              <div className="mt-14">
                 <h3 className="text-center font-display text-lg font-bold text-gray-900 dark:text-white">
                   Every member gets
                 </h3>
-                <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                  {sharedMemberBenefits.map((b) => (
-                    <div
-                      key={b}
-                      className="flex items-start gap-2.5 rounded-2xl bg-gray-50 p-3.5 text-sm text-gray-600 dark:bg-gray-800/60 dark:text-gray-300"
-                    >
-                      <Check className="mt-0.5 h-4 w-4 shrink-0 text-green-500" /> {b}
-                    </div>
-                  ))}
+                {/* Horizontally looping strip: the benefit list is rendered
+                    twice back-to-back and the whole track animates from 0 to
+                    -50%, so the moment it snaps back the second copy lines up
+                    exactly where the first started — an invisible seam,
+                    reading as a continuous spin rather than a reset. Paused
+                    on hover so a visitor can actually read a card, and
+                    frozen entirely for prefers-reduced-motion. */}
+                <div className="relative mx-auto mt-5 max-w-4xl overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)]">
+                  <div className="flex w-max animate-marquee gap-3 hover:[animation-play-state:paused] motion-reduce:animate-none">
+                    {[...sharedMemberBenefits, ...sharedMemberBenefits].map((b, i) => (
+                      <div
+                        key={i}
+                        className="flex w-72 shrink-0 items-start gap-2.5 rounded-2xl bg-gray-50 p-3.5 text-sm text-gray-600 dark:bg-gray-800/60 dark:text-gray-300"
+                      >
+                        <Check className="mt-0.5 h-4 w-4 shrink-0 text-green-500" /> {b}
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>

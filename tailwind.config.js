@@ -20,9 +20,14 @@ export default {
           '0%, 100%': { transform: 'translateY(0)' },
           '50%': { transform: 'translateY(-12px)' },
         },
+        marquee: {
+          '0%': { transform: 'translateX(0)' },
+          '100%': { transform: 'translateX(-50%)' },
+        },
       },
       animation: {
         float: 'float 5s ease-in-out infinite',
+        marquee: 'marquee 26s linear infinite',
       },
     },
   },
