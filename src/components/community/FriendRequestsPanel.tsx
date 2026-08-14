@@ -92,7 +92,7 @@ export function FriendRequestsPanel({ friends }: { friends: UseFriendsResult }) 
         <p className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
           Add by Friend ID
         </p>
-        <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
+        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
           Every member has a unique Friend ID — find yours at the top of your Profile page.
         </p>
         <form onSubmit={handleSearch} className="mt-3 flex gap-2">
@@ -123,7 +123,7 @@ export function FriendRequestsPanel({ friends }: { friends: UseFriendsResult }) 
               <p className="text-xs text-gray-500 dark:text-gray-400">{searchResult.friendId}</p>
             </div>
             {searchResult.clerkUserId === user?.id ? (
-              <span className="shrink-0 text-xs font-medium text-gray-400">That's you</span>
+              <span className="shrink-0 text-xs font-medium text-gray-500 dark:text-gray-400">That's you</span>
             ) : (
               <FriendActionButton
                 friendStatus={friends.statusFor(searchResult.clerkUserId)}
@@ -141,7 +141,7 @@ export function FriendRequestsPanel({ friends }: { friends: UseFriendsResult }) 
           Incoming ({friends.incoming.length})
         </p>
         {friends.incoming.length === 0 ? (
-          <p className="mt-2 text-sm text-gray-400 dark:text-gray-500">No pending requests.</p>
+          <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">No pending requests.</p>
         ) : (
           <div className="mt-2 space-y-2">
             {friends.incoming.map((r) => (
@@ -179,7 +179,7 @@ export function FriendRequestsPanel({ friends }: { friends: UseFriendsResult }) 
           Sent ({friends.outgoing.length})
         </p>
         {friends.outgoing.length === 0 ? (
-          <p className="mt-2 text-sm text-gray-400 dark:text-gray-500">You haven't sent any requests.</p>
+          <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">You haven't sent any requests.</p>
         ) : (
           <div className="mt-2 space-y-2">
             {friends.outgoing.map((r) => (
@@ -191,7 +191,7 @@ export function FriendRequestsPanel({ friends }: { friends: UseFriendsResult }) 
                 <button
                   onClick={() => handleCancel(r.requestId)}
                   disabled={busyId === r.requestId}
-                  className="flex shrink-0 items-center gap-1 text-xs font-semibold text-gray-400 hover:text-red-500 disabled:opacity-60 dark:text-gray-500"
+                  className="flex shrink-0 items-center gap-1 text-xs font-semibold text-gray-500 hover:text-red-500 disabled:opacity-60 dark:text-gray-400"
                 >
                   <Clock className="h-3 w-3" /> Cancel
                 </button>

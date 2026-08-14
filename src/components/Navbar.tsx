@@ -51,7 +51,7 @@ export function Navbar() {
                 onClick={() => go(link.path)}
                 className={`relative rounded-full px-4 py-2 text-sm font-medium transition-colors duration-200 ${
                   active
-                    ? 'text-green-600 dark:text-green-400'
+                    ? 'text-green-700 dark:text-green-400'
                     : 'text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white'
                 }`}
               >
@@ -121,7 +121,7 @@ export function Navbar() {
                 onClick={() => go(link.path)}
                 className={`flex w-full items-center rounded-2xl px-4 py-3 text-left text-base font-medium transition-colors ${
                   active
-                    ? 'bg-green-50 text-green-600 dark:bg-green-500/10 dark:text-green-400'
+                    ? 'bg-green-50 text-green-700 dark:bg-green-500/10 dark:text-green-400'
                     : 'text-gray-700 hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-700/50'
                 }`}
               >

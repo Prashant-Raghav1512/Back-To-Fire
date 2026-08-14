@@ -38,11 +38,17 @@ export function MembershipPlans() {
             onClick={() => setActiveGroup(g.id)}
             className={`rounded-full px-5 py-2.5 text-sm font-semibold transition-all duration-200 ${
               g.id === activeGroup
-                ? 'bg-green-500 text-white shadow-md shadow-green-500/30'
+                ? 'bg-green-500 text-gray-900 shadow-md shadow-green-500/30'
                 : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
             }`}
           >
-            {g.label} <span className="opacity-75">({g.ageRange})</span>
+            {/* Explicit colors, not opacity-75 — opacity blends toward the
+                background and quietly drops contrast below WCAG AA (the
+                active state's white-at-75%-over-green measured ~1.84:1). */}
+            {g.label}{' '}
+            <span className={g.id === activeGroup ? 'text-gray-800' : 'text-gray-600 dark:text-gray-300'}>
+              ({g.ageRange})
+            </span>
           </button>
         ))}
       </div>

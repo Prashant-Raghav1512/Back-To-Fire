@@ -84,7 +84,7 @@ export function ProteinChatBot() {
             <div
               className={`max-w-[85%] whitespace-pre-line rounded-2xl px-4 py-3 text-sm leading-relaxed ${
                 m.role === 'user'
-                  ? 'bg-green-500 text-white'
+                  ? 'bg-green-500 text-gray-900'
                   : 'bg-gray-100 text-gray-700 dark:bg-gray-700/50 dark:text-gray-300'
               }`}
             >

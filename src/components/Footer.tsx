@@ -139,7 +139,10 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-gray-800 pt-6 text-sm text-gray-500 sm:flex-row">
+        {/* text-gray-400, not -500: this bar's bg is a fixed dark gray-900
+            regardless of site theme, and gray-500 on it measures only
+            3.66:1 (below WCAG AA's 4.5:1) — gray-400 clears it (~7:1). */}
+        <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-gray-800 pt-6 text-sm text-gray-400 sm:flex-row">
           <p className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5">
             <span>© {new Date().getFullYear()} Born to Fire. All rights reserved.</span>
             <button onClick={() => navigate('/terms')} className="transition-colors hover:text-green-400">

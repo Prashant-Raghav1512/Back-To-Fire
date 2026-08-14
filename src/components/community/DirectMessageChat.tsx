@@ -51,7 +51,7 @@ export function DirectMessageChat({ friend, profile }: DirectMessageChatProps) {
     <div className="flex h-full flex-col">
       <div className="flex-1 space-y-3 overflow-y-auto p-4">
         {messages.length === 0 && (
-          <p className="mt-4 text-center text-sm text-gray-400 dark:text-gray-500">
+          <p className="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">
             No messages yet with {friend.displayName} - say hi!
           </p>
         )}
@@ -61,10 +61,10 @@ export function DirectMessageChat({ friend, profile }: DirectMessageChatProps) {
             <div key={m.id} className={`flex ${mine ? 'justify-end' : 'justify-start'}`}>
               <div
                 className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
-                  mine ? 'bg-orange-500 text-white' : 'bg-gray-100 text-gray-700 dark:bg-gray-700/50 dark:text-gray-300'
+                  mine ? 'bg-orange-500 text-gray-900' : 'bg-gray-100 text-gray-700 dark:bg-gray-700/50 dark:text-gray-300'
                 }`}
               >
-                <p className={`text-xs font-semibold ${mine ? 'text-white/80' : 'text-gray-500 dark:text-gray-400'}`}>
+                <p className={`text-xs font-semibold ${mine ? 'text-gray-900/70' : 'text-gray-500 dark:text-gray-400'}`}>
                   {m.senderDisplayName} <span className="font-normal opacity-70">&middot; {timeAgo(m.createdAt)}</span>
                 </p>
                 <p className="mt-0.5 whitespace-pre-line">{m.message}</p>

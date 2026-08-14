@@ -78,14 +78,14 @@ function GroupRow({ group, active, onSelect }: { group: CommunityGroupOption; ac
       onClick={onSelect}
       className={`flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm transition-colors ${
         active
-          ? 'bg-orange-500 text-white font-semibold shadow-sm shadow-orange-500/30'
+          ? 'bg-orange-500 text-gray-900 font-semibold shadow-sm shadow-orange-500/30'
           : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700/60'
       }`}
     >
       <GroupIcon name={group.icon} className="h-4 w-4 shrink-0" />
       <span className="min-w-0 flex-1 truncate">{group.label}</span>
       {group.sublabel && (
-        <span className={`shrink-0 text-xs ${active ? 'text-white/70' : 'text-gray-400 dark:text-gray-500'}`}>
+        <span className={`shrink-0 text-xs ${active ? 'text-gray-900/70' : 'text-gray-500 dark:text-gray-400'}`}>
           {group.sublabel}
         </span>
       )}
@@ -96,7 +96,7 @@ function GroupRow({ group, active, onSelect }: { group: CommunityGroupOption; ac
 function SidebarSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div>
-      <p className="px-3 text-xs font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500">{title}</p>
+      <p className="px-3 text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">{title}</p>
       <div className="mt-2 space-y-1">{children}</div>
     </div>
   );
@@ -197,7 +197,7 @@ export function CommunityPage() {
                       onClick={() => setPanel({ kind: 'requests' })}
                       className={`flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm transition-colors ${
                         panel.kind === 'requests'
-                          ? 'bg-orange-500 text-white font-semibold shadow-sm shadow-orange-500/30'
+                          ? 'bg-orange-500 text-gray-900 font-semibold shadow-sm shadow-orange-500/30'
                           : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700/60'
                       }`}
                     >
@@ -206,7 +206,7 @@ export function CommunityPage() {
                       {friends.incoming.length > 0 && (
                         <span
                           className={`flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full px-1 text-[10px] font-bold ${
-                            panel.kind === 'requests' ? 'bg-white/20 text-white' : 'bg-orange-500 text-white'
+                            panel.kind === 'requests' ? 'bg-gray-900/15 text-gray-900' : 'bg-orange-500 text-gray-900'
                           }`}
                         >
                           {friends.incoming.length}
@@ -219,7 +219,7 @@ export function CommunityPage() {
                         onClick={() => setPanel({ kind: 'dm', friend: f })}
                         className={`flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm transition-colors ${
                           panel.kind === 'dm' && panel.friend.clerkUserId === f.clerkUserId
-                            ? 'bg-orange-500 text-white font-semibold shadow-sm shadow-orange-500/30'
+                            ? 'bg-orange-500 text-gray-900 font-semibold shadow-sm shadow-orange-500/30'
                             : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700/60'
                         }`}
                       >
@@ -228,7 +228,7 @@ export function CommunityPage() {
                       </button>
                     ))}
                     {friends.friends.length === 0 && (
-                      <p className="px-3 py-1 text-xs text-gray-400 dark:text-gray-500">
+                      <p className="px-3 py-1 text-xs text-gray-500 dark:text-gray-400">
                         No friends yet - add someone from a group chat or post.
                       </p>
                     )}
@@ -265,14 +265,14 @@ export function CommunityPage() {
                   ) : (
                     <button
                       onClick={() => setPickingState(true)}
-                      className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm font-medium text-orange-600 hover:bg-orange-50 dark:text-orange-400 dark:hover:bg-orange-500/10"
+                      className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm font-medium text-orange-700 hover:bg-orange-50 dark:text-orange-400 dark:hover:bg-orange-500/10"
                     >
                       <MapPin className="h-4 w-4 shrink-0" /> Set your state
                     </button>
                   )}
                   <button
                     onClick={() => setPickingState((v) => !v)}
-                    className="flex w-full items-center gap-2 rounded-xl px-3 py-1.5 text-left text-xs font-semibold text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
+                    className="flex w-full items-center gap-2 rounded-xl px-3 py-1.5 text-left text-xs font-semibold text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
                   >
                     <Pencil className="h-3 w-3" /> {profile ? 'Change / browse all states' : 'Browse all states'}
                   </button>
@@ -363,7 +363,7 @@ export function CommunityPage() {
                     <button
                       onClick={() => setTab('chat')}
                       className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
-                        tab === 'chat' ? 'bg-white text-gray-900 shadow-sm dark:bg-gray-800 dark:text-white' : 'text-gray-500 dark:text-gray-400'
+                        tab === 'chat' ? 'bg-white text-gray-900 shadow-sm dark:bg-gray-800 dark:text-white' : 'text-gray-600 dark:text-gray-400'
                       }`}
                     >
                       <MessageSquare className="h-3.5 w-3.5" /> Chat
@@ -371,7 +371,7 @@ export function CommunityPage() {
                     <button
                       onClick={() => setTab('posts')}
                       className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
-                        tab === 'posts' ? 'bg-white text-gray-900 shadow-sm dark:bg-gray-800 dark:text-white' : 'text-gray-500 dark:text-gray-400'
+                        tab === 'posts' ? 'bg-white text-gray-900 shadow-sm dark:bg-gray-800 dark:text-white' : 'text-gray-600 dark:text-gray-400'
                       }`}
                     >
                       <Sparkles className="h-3.5 w-3.5" /> Posts
@@ -391,7 +391,7 @@ export function CommunityPage() {
                       </button>
                       <button
                         onClick={() => setConfirmRemove(false)}
-                        className="font-semibold text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                        className="font-semibold text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
                       >
                         Cancel
                       </button>

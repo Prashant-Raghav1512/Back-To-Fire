@@ -46,7 +46,7 @@ function ContactInfoCard({ Icon, label, value, href, onClick }: ContactInfoCardP
         <Icon className="h-6 w-6" />
       </span>
       <div>
-        <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">{label}</p>
+        <p className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">{label}</p>
         <p className="mt-1 font-medium text-gray-900 dark:text-white">{value}</p>
       </div>
     </a>
@@ -189,7 +189,7 @@ export function ContactPage() {
               ))}
 
               <div className="card p-5">
-                <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">
+                <p className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                   Follow us
                 </p>
                 <div className="mt-3 flex gap-3">
@@ -292,7 +292,7 @@ export function ContactPage() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Phone <span className="font-normal text-gray-400">(optional)</span>
+                      Phone <span className="font-normal text-gray-500 dark:text-gray-400">(optional)</span>
                     </label>
                     <input
                       type="tel"

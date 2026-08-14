@@ -29,9 +29,29 @@ export function Logo({ onClick, onHero }: LogoProps) {
             onHero ? 'text-white' : 'text-gray-900 dark:text-white'
           }`}
         >
-          Born to <span className="text-green-500">fire</span>
+          Born to{' '}
+          {/* onHero keeps the original vibrant green-500 — it's only ever
+              rendered over Home's own dark hero image, where it already has
+              excellent contrast. Every other case (every other page, or
+              Home once scrolled) uses a darker green-700 in light mode:
+              green-500/600 text on a white navbar bg fails WCAG AA
+              (2.28/3.30:1 vs the 4.5:1 required). */}
+          <span className={onHero ? 'text-green-500' : 'text-green-700 dark:text-green-500'}>
+            fire
+          </span>
         </span>
-        <span className="text-[10px] font-medium uppercase tracking-[0.18em] text-gray-400 dark:text-gray-500">
+        {/* Same onHero guard as "fire" above — the un-guarded pairing here
+            was gray-400/dark:gray-500, which happened to still read fine
+            over Home's dark hero in light theme (lighter gray-400) even
+            though it wasn't designed for that case on purpose. Swapping the
+            pair to fix contrast elsewhere would have made it darker (worse)
+            specifically in that one Home-hero scenario, so it's frozen to
+            its original value there and only fixed for every other case. */}
+        <span
+          className={`text-[10px] font-medium uppercase tracking-[0.18em] ${
+            onHero ? 'text-gray-400 dark:text-gray-500' : 'text-gray-500 dark:text-gray-400'
+          }`}
+        >
           calisthenics
         </span>
       </span>
