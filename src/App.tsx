@@ -1,3 +1,5 @@
+import { lazy, Suspense } from 'react';
+import { Loader2 } from 'lucide-react';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { ChatWidget } from '@/components/ChatWidget';
@@ -6,19 +8,36 @@ import { ScrollProgressBar } from '@/components/ScrollProgressBar';
 import { BackToTop } from '@/components/BackToTop';
 import { RouterProvider, useRouter } from '@/lib/router';
 import { useGlobalRipple } from '@/lib/useGlobalRipple';
+// Home stays a static import — it's the page the overwhelming majority of
+// visits land on, so eagerly bundling it avoids a loading flash on the
+// single most common first paint. Every other page is lazy — before this,
+// the whole app (chatbot, community, membership, translator, everything)
+// shipped as one ~950KB chunk regardless of which page a visitor opened.
 import { HomePage } from '@/pages/HomePage';
-import { AboutPage } from '@/pages/AboutPage';
-import { ProgramsPage } from '@/pages/ProgramsPage';
-import { ExercisesPage } from '@/pages/ExercisesPage';
-import { ArticlesPage } from '@/pages/ArticlesPage';
-import { CommunityPage } from '@/pages/CommunityPage';
-import { MembershipPage } from '@/pages/MembershipPage';
-import { ProfilePage } from '@/pages/ProfilePage';
-import { ContactPage } from '@/pages/ContactPage';
-import { ToolsPage } from '@/pages/ToolsPage';
-import { AppComingSoonPage } from '@/pages/AppComingSoonPage';
-import { TermsPage } from '@/pages/TermsPage';
-import { PrivacyPolicyPage } from '@/pages/PrivacyPolicyPage';
+const AboutPage = lazy(() => import('@/pages/AboutPage').then((m) => ({ default: m.AboutPage })));
+const ProgramsPage = lazy(() => import('@/pages/ProgramsPage').then((m) => ({ default: m.ProgramsPage })));
+const ExercisesPage = lazy(() => import('@/pages/ExercisesPage').then((m) => ({ default: m.ExercisesPage })));
+const ArticlesPage = lazy(() => import('@/pages/ArticlesPage').then((m) => ({ default: m.ArticlesPage })));
+const CommunityPage = lazy(() => import('@/pages/CommunityPage').then((m) => ({ default: m.CommunityPage })));
+const MembershipPage = lazy(() => import('@/pages/MembershipPage').then((m) => ({ default: m.MembershipPage })));
+const ProfilePage = lazy(() => import('@/pages/ProfilePage').then((m) => ({ default: m.ProfilePage })));
+const ContactPage = lazy(() => import('@/pages/ContactPage').then((m) => ({ default: m.ContactPage })));
+const ToolsPage = lazy(() => import('@/pages/ToolsPage').then((m) => ({ default: m.ToolsPage })));
+const AppComingSoonPage = lazy(() =>
+  import('@/pages/AppComingSoonPage').then((m) => ({ default: m.AppComingSoonPage }))
+);
+const TermsPage = lazy(() => import('@/pages/TermsPage').then((m) => ({ default: m.TermsPage })));
+const PrivacyPolicyPage = lazy(() =>
+  import('@/pages/PrivacyPolicyPage').then((m) => ({ default: m.PrivacyPolicyPage }))
+);
+
+function PageLoadingFallback() {
+  return (
+    <div className="flex min-h-[60vh] items-center justify-center">
+      <Loader2 className="h-8 w-8 animate-spin text-green-500" />
+    </div>
+  );
+}
 
 function Routes() {
   const { path } = useRouter();
@@ -65,7 +84,7 @@ function Routes() {
       <ScrollProgressBar />
       <Navbar />
       <main key={path} className="page-transition flex-1">
-        {page}
+        <Suspense fallback={<PageLoadingFallback />}>{page}</Suspense>
       </main>
       <Footer />
       <ChatWidget />

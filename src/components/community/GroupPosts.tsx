@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { ImagePlus, MessageCircle, X } from 'lucide-react';
+import { ImagePlus, MessageCircle, Sparkles, X } from 'lucide-react';
 import { useUser, useClerk } from '@clerk/clerk-react';
 import { createPost, usePosts } from '@/lib/communityPosts';
 import { compressImageToDataUrl } from '@/lib/imageUpload';
@@ -160,9 +160,19 @@ export function GroupPosts({ groupType, groupKey, groupLabel, profile, friends }
 
       <div className="flex-1 space-y-4 p-4">
         {posts.length === 0 && (
-          <p className="mt-4 text-center text-sm text-gray-400 dark:text-gray-500">
-            No posts yet in {groupLabel} - share the first one.
-          </p>
+          <div className="flex flex-col items-center justify-center gap-3 px-6 py-14 text-center">
+            <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-orange-100 text-orange-500 dark:bg-orange-500/15 dark:text-orange-400">
+              <Sparkles className="h-7 w-7" />
+            </span>
+            <div>
+              <p className="font-display text-base font-bold text-gray-900 dark:text-white">
+                No posts in {groupLabel} yet
+              </p>
+              <p className="mt-1 max-w-xs text-sm text-gray-500 dark:text-gray-400">
+                Share a win, a question, or a photo — yours could be the first thing people see here.
+              </p>
+            </div>
+          </div>
         )}
         {posts.map((p) => {
           const mine = p.clerkUserId === user?.id;

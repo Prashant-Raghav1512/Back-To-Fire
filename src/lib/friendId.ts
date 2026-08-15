@@ -55,6 +55,39 @@ export async function findUserByFriendId(friendId: string): Promise<FriendIdSear
   return { clerkUserId: row.clerk_user_id, displayName: row.display_name, friendId: row.friend_id };
 }
 
+// A real, live count of everyone who's ever signed in (every signed-in
+// visitor gets a user_ids row, see getOrCreateFriendId above) — used on the
+// Community page as honest social proof instead of a fabricated number.
+// Deliberately not scoped to "has posted" or "has a friend" — this counts
+// registered visitors, not activity, so it stays meaningful even on a
+// freshly-launched deployment where every group's chat/posts feed is still
+// empty.
+export async function getTotalMemberCount(): Promise<number> {
+  const sql = client();
+  const rows = (await sql`SELECT count(*)::int AS count FROM user_ids`) as { count: number }[];
+  return rows[0]?.count ?? 0;
+}
+
+export function useMemberCount() {
+  const [count, setCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    getTotalMemberCount()
+      .then((c) => {
+        if (!cancelled) setCount(c);
+      })
+      .catch(() => {
+        // Purely decorative stat - fail silently rather than showing an error UI.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  return count;
+}
+
 // Ensures the signed-in visitor has a Friend ID and returns it. Cheap
 // enough (one upsert) to call from multiple mounted components at once —
 // see FriendIdBootstrap.tsx, mounted app-wide so the row exists as early as

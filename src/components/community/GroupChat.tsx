@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Send, MapPin } from 'lucide-react';
+import { Send, MapPin, MessageSquare } from 'lucide-react';
 import { useUser, useClerk } from '@clerk/clerk-react';
 import { postMessage, useCommunityMessages } from '@/lib/community';
 import { sendFriendRequest, respondToFriendRequest, type UseFriendsResult } from '@/lib/friends';
@@ -131,9 +131,19 @@ export function GroupChat({ groupType, groupKey, groupLabel, profile, friends }:
     <div className="flex h-full flex-col">
       <div className="flex-1 space-y-3 overflow-y-auto p-4">
         {messages.length === 0 && (
-          <p className="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">
-            No messages yet in {groupLabel} - be the first to say hi.
-          </p>
+          <div className="flex h-full flex-col items-center justify-center gap-3 px-6 py-10 text-center">
+            <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-orange-100 text-orange-500 dark:bg-orange-500/15 dark:text-orange-400">
+              <MessageSquare className="h-7 w-7" />
+            </span>
+            <div>
+              <p className="font-display text-base font-bold text-gray-900 dark:text-white">
+                {groupLabel} is quiet for now
+              </p>
+              <p className="mt-1 max-w-xs text-sm text-gray-500 dark:text-gray-400">
+                Every conversation starts somewhere — be the first to say hi.
+              </p>
+            </div>
+          </div>
         )}
         {messages.map((m) => (
           <MessageBubble

@@ -33,6 +33,7 @@ import { DirectMessageChat } from '@/components/community/DirectMessageChat';
 import { useCommunityProfile } from '@/lib/community';
 import { useFriends, removeFriend, type FriendView } from '@/lib/friends';
 import { useMembership } from '@/lib/membership';
+import { useMemberCount } from '@/lib/friendId';
 import {
   INDIA_GROUP,
   MEMBERS_GROUP,
@@ -108,6 +109,7 @@ export function CommunityPage() {
   const { profile, saveState } = useCommunityProfile();
   const friends = useFriends();
   const { membership } = useMembership();
+  const memberCount = useMemberCount();
   const [panel, setPanel] = useState<Panel>({ kind: 'group', group: INDIA_GROUP });
   const [tab, setTab] = useState<'chat' | 'posts'>('chat');
   const [pickingState, setPickingState] = useState(false);
@@ -159,6 +161,17 @@ export function CommunityPage() {
             Chat and post with members nationwide, from your state, in your age group, or around a
             shared interest or event - pick a group on the left to get started.
           </p>
+          {/* A real, live count from user_ids (every signed-in visitor gets
+              a row there automatically) — not seeded/fabricated, so it
+              stays honest, and it stays meaningful even before any group's
+              chat/posts feed has real activity yet. */}
+          {memberCount !== null && memberCount > 0 && (
+            <p className="mt-4 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-sm font-medium text-white ring-1 ring-white/15">
+              <Users className="h-4 w-4 text-orange-300" />
+              {memberCount.toLocaleString('en-IN')} {memberCount === 1 ? 'person has' : 'people have'} joined Born
+              to Fire
+            </p>
+          )}
         </div>
       </section>
 
