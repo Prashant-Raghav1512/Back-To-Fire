@@ -5,7 +5,8 @@ import { QRCode } from '@/components/QRCode';
 import { NewsletterForm } from '@/components/NewsletterForm';
 
 export function Footer() {
-  const { navigate } = useRouter();
+  const { navigate, path } = useRouter();
+  const isHome = path === '/';
   // Absolute URL so a phone camera scanning the printed/rendered QR code
   // lands on the real deployed site, not a relative path that means
   // nothing outside this page - correct under both the local dev origin
@@ -14,7 +15,15 @@ export function Footer() {
   const appUrl = `${window.location.origin}${import.meta.env.BASE_URL}app`;
 
   return (
-    <footer className="bg-gray-900 text-gray-300">
+    <footer
+      className={
+        isHome
+          ? 'bg-gray-900 text-gray-300'
+          : // Cyan in light mode on every page except Home; dark mode (and
+            // Home, in either theme) keeps the original near-black footer.
+            'bg-cyan-950 text-cyan-100 dark:bg-gray-900 dark:text-gray-300'
+      }
+    >
       <div className="container-x mx-auto px-5 py-14 sm:px-8 sm:py-16">
         <div className="grid gap-10 md:grid-cols-4">
           <div className="md:col-span-1">

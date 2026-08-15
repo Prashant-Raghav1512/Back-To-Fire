@@ -231,8 +231,9 @@ export function ProfilePage() {
   return (
     <div className="pt-16 sm:pt-20">
       {/* Hero */}
-      <section className="relative overflow-hidden bg-gray-900 py-16 sm:py-20">
-        <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-900/95 to-green-900/60" />
+      <section className="relative overflow-hidden bg-cyan-950 py-16 dark:bg-gray-900 sm:py-20">
+        {/* Cyan in light mode, unchanged (green-tinted near-black) in dark mode. */}
+        <div className="absolute inset-0 bg-gradient-to-br from-cyan-950 via-cyan-900/95 to-cyan-700/50 dark:from-gray-900 dark:via-gray-900/95 dark:to-green-900/60" />
         <div className="relative container-x mx-auto px-5 sm:px-8">
           <span className="inline-block rounded-full bg-green-500/15 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-green-300 ring-1 ring-green-500/20">
             Your profile

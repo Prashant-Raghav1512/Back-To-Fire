@@ -12,14 +12,17 @@ interface LegalPageLayoutProps {
 // prose content, so this is just the hero + tinted background shell each
 // one drops its sections into, mirroring every other page's
 // hero-then-section-pad structure without needing a photo (these are
-// utility pages, not marketing ones). Neutral slate/gray tones on purpose
-// - every other page's tint ties to that page's own topic/brand color,
-// and legal content deliberately doesn't need one.
+// utility pages, not marketing ones). Dark mode keeps a neutral
+// slate/gray tint (legal content doesn't tie to a topic/brand color the
+// way other pages' dark-mode accents do); light mode uses the same cyan
+// every other non-Home page's hero uses.
 export function LegalPageLayout({ eyebrow, title, lastUpdated, children }: LegalPageLayoutProps) {
   return (
     <div className="pt-16 sm:pt-20">
-      <section className="relative overflow-hidden bg-gray-900 py-16 sm:py-20">
-        <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-900/95 to-slate-800/60" />
+      <section className="relative overflow-hidden bg-cyan-950 py-16 dark:bg-gray-900 sm:py-20">
+        {/* Cyan in light mode (matching every other page's hero), unchanged
+            (slate-tinted near-black) in dark mode. */}
+        <div className="absolute inset-0 bg-gradient-to-br from-cyan-950 via-cyan-900/95 to-cyan-700/50 dark:from-gray-900 dark:via-gray-900/95 dark:to-slate-800/60" />
         <div className="relative container-x mx-auto px-5 sm:px-8">
           <span className="inline-block rounded-full bg-slate-500/15 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-slate-300 ring-1 ring-slate-500/20">
             {eyebrow}

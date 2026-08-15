@@ -23,7 +23,7 @@ export function AboutPage() {
   return (
     <div className="pt-16 sm:pt-20">
       {/* Hero */}
-      <section className="relative overflow-hidden bg-gray-900 py-20 sm:py-28">
+      <section className="relative overflow-hidden bg-cyan-950 py-20 dark:bg-gray-900 sm:py-28">
         <div className="absolute inset-0">
           <img
             ref={heroImgRef}
@@ -31,7 +31,8 @@ export function AboutPage() {
             alt="Athlete exercising on outdoor bars"
             className="h-full w-full object-cover opacity-25"
           />
-          <div className="absolute inset-0 bg-gradient-to-br from-gray-900/95 via-gray-900/85 to-green-900/60" />
+          {/* Cyan in light mode, unchanged (green-tinted near-black) in dark mode. */}
+          <div className="absolute inset-0 bg-gradient-to-br from-cyan-950/95 via-cyan-900/85 to-cyan-700/50 dark:from-gray-900/95 dark:via-gray-900/85 dark:to-green-900/60" />
         </div>
         <div className="relative container-x mx-auto px-5 text-center sm:px-8">
           <span className="inline-block rounded-full bg-green-500/15 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-green-300 ring-1 ring-green-500/20">
