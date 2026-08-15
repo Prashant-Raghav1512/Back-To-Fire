@@ -1,4 +1,8 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700;800&display=swap');
+/* Google Fonts are loaded from index.html via <link rel="preconnect"> +
+   <link rel="stylesheet"> instead of a CSS @import here — @import forces
+   the browser to fully fetch and parse this stylesheet before it can even
+   discover the font stylesheet URL, adding a full extra network
+   round-trip before font loading starts at all. */
 
 @tailwind base;
 @tailwind components;
