@@ -1,13 +1,11 @@
 import { searchKnowledgeBase } from '@/lib/search';
 
-// SECURITY NOTE: this key is shipped in the client bundle and is visible to
-// anyone who opens devtools — there is no backend on this static site to
-// hide it behind. It's a Groq free-tier key, so the realistic worst case is
-// someone burning your rate limit rather than a real bill, but rotate it via
-// GroqCloud (console.groq.com/keys) and update the VITE_GROQ_API_KEY secret
-// if it's ever abused.
-const API_KEY = import.meta.env.VITE_GROQ_API_KEY;
-const MODEL = 'llama-3.3-70b-versatile';
+// Calls the Groq proxy (cloudflare-worker/, see its README for deployment)
+// instead of Groq directly — the API key lives server-side as a Worker
+// secret now, not in this bundle. The browser still does all the RAG work
+// (BM25 search below, system prompt, history slicing) exactly as before;
+// only the final "send this to Groq" call moved behind the proxy.
+const PROXY_URL = import.meta.env.VITE_GROQ_PROXY_URL;
 const CONTEXT_CHUNKS = 3;
 const HISTORY_TURNS = 6;
 
@@ -24,8 +22,8 @@ export async function generateChatResponse(
   userMessage: string,
   history: ChatTurn[]
 ): Promise<string> {
-  if (!API_KEY) {
-    throw new Error('Chat is not configured (VITE_GROQ_API_KEY is unset).');
+  if (!PROXY_URL) {
+    throw new Error('Chat is not configured (VITE_GROQ_PROXY_URL is unset).');
   }
 
   const matches = searchKnowledgeBase(userMessage, CONTEXT_CHUNKS);
@@ -39,14 +37,10 @@ export async function generateChatResponse(
     { role: 'user', content: userMessage },
   ];
 
-  const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+  const res = await fetch(`${PROXY_URL}/chat`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${API_KEY}`,
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      model: MODEL,
       messages,
       temperature: 0.3,
       max_tokens: 300,

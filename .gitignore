@@ -27,3 +27,8 @@ dist-ssr
 
 .vercel
 .env*
+
+# Cloudflare Worker local dev secrets/build cache (cloudflare-worker/) —
+# real secrets live on Cloudflare via `wrangler secret put`, never here.
+.dev.vars
+.wrangler

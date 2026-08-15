@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ArrowRight, Dumbbell, Activity, Calendar, Move, Check, Star, Clock, MapPin, Volume2, VolumeX } from 'lucide-react';
 import { SectionHeading } from '@/components/SectionHeading';
 import { DifficultyBadge } from '@/components/DifficultyBadge';
@@ -36,6 +36,32 @@ export function HomePage() {
   const closingCtaRef = useMagnetic<HTMLSpanElement>();
   const videoRef = useReveal<HTMLDivElement>();
   const [videoMuted, setVideoMuted] = useState(true);
+  // The showcase video is a 2.7MB file that would otherwise start
+  // downloading the instant Home mounts (autoplay + no preload hint tells
+  // most browsers to fetch eagerly) even though this section sits below
+  // the fold — a big, unnecessary hit to initial load. Deferring the src
+  // itself until the section is actually about to scroll into view keeps
+  // autoplay/loop/muted working exactly as before once it does.
+  const [videoInView, setVideoInView] = useState(false);
+  const videoWrapRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = videoWrapRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setVideoInView(true);
+            obs.unobserve(entry.target);
+          }
+        });
+      },
+      { rootMargin: '200px' }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
 
   return (
     // Forces this page's existing dark: styling on unconditionally, since
@@ -134,17 +160,20 @@ export function HomePage() {
                 </button>
               </span>
             </div>
-            <div className="relative order-1 mx-auto w-full max-w-xs lg:order-2">
+            <div ref={videoWrapRef} className="relative order-1 mx-auto w-full max-w-xs lg:order-2">
               <div className="absolute -inset-4 rounded-[2.5rem] bg-gradient-to-br from-green-400/30 to-orange-400/20 blur-xl" />
-              <div className="group relative aspect-[9/16] w-full overflow-hidden rounded-[2rem] shadow-2xl ring-4 ring-white/10">
-                <video
-                  src={`${import.meta.env.BASE_URL}videos/btf-showcase.mp4`}
-                  autoPlay
-                  muted={videoMuted}
-                  loop
-                  playsInline
-                  className="h-full w-full object-cover"
-                />
+              <div className="group relative aspect-[9/16] w-full overflow-hidden rounded-[2rem] bg-gray-900 shadow-2xl ring-4 ring-white/10">
+                {videoInView && (
+                  <video
+                    src={`${import.meta.env.BASE_URL}videos/btf-showcase.mp4`}
+                    autoPlay
+                    muted={videoMuted}
+                    loop
+                    playsInline
+                    preload="none"
+                    className="h-full w-full object-cover"
+                  />
+                )}
                 <button
                   onClick={() => setVideoMuted((m) => !m)}
                   aria-label={videoMuted ? 'Unmute video' : 'Mute video'}

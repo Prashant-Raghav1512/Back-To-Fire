@@ -38,13 +38,13 @@ jobs:
           # contact form. Deliberately baked into the public JS bundle —
           # see src/lib/contact.ts for why.
           VITE_NEON_CONTACT_URL: ${{ secrets.VITE_NEON_CONTACT_URL }}
-          # Groq API key used directly from the browser by the chatbot.
-          # Deliberately baked into the public JS bundle — see
-          # src/lib/groqChat.ts for why.
-          VITE_GROQ_API_KEY: ${{ secrets.VITE_GROQ_API_KEY }}
-          # A second, separate Groq API key for the Tools page's
-          # food-to-protein chatbot — see src/lib/proteinChat.ts.
-          VITE_GROQ_PROTEIN_API_KEY: ${{ secrets.VITE_GROQ_PROTEIN_API_KEY }}
+          # URL of the Groq proxy Cloudflare Worker (cloudflare-worker/) that
+          # both the chatbot (src/lib/groqChat.ts) and the Tools page's
+          # protein estimator (proteinChat.ts) call — NOT a secret itself,
+          # the actual Groq keys live server-side as the Worker's own
+          # secrets (see cloudflare-worker/README.md). This var only exists
+          # after that Worker has been deployed at least once.
+          VITE_GROQ_PROXY_URL: ${{ secrets.VITE_GROQ_PROXY_URL }}
           # Note: the Articles page's translator (src/lib/articleTranslate.ts)
           # needs no key of its own — it calls Google Translate's free
           # endpoint directly and caches results via VITE_NEON_CONTACT_URL

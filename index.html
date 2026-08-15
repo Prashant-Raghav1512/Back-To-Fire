@@ -2,10 +2,41 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="%BASE_URL%vite.svg" />
+    <link rel="icon" type="image/png" href="%BASE_URL%logo.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Born to Fire — Calisthenics & Home Fitness for India</title>
     <meta name="description" content="No weights. No limits. Master the machine you were born in. Beginner-friendly calisthenics and bodyweight training programs for India." />
+    <!-- Preconnect + real <link rel="stylesheet"> instead of a CSS @import
+         (see index.css) — this lets the browser start the font stylesheet
+         request in parallel with everything else instead of discovering it
+         only after downloading and parsing the app's own CSS first. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700;800&display=swap"
+    />
+    <!-- GitHub Pages can't set real HTTP response headers (no server-side
+         config of any kind), so a <meta> CSP is the only header-adjacent
+         protection available here — it can't cover frame-ancestors (silently
+         ignored in a meta tag per spec, HTTP-header-only), but everything
+         else below is real. Origins are scoped to exactly what this app
+         talks to: Clerk (auth, dynamic *.clerk.accounts.dev subdomain +
+         img.clerk.com avatars), Neon (*.neon.tech, the browser-direct DB
+         calls documented in CLAUDE.md's "No backend, by design"), Groq
+         (api.groq.com — direct for now; https://*.workers.dev and
+         http://localhost:8787 are pre-allowed too for when the Groq proxy
+         Worker in cloudflare-worker/ is deployed and the client switches
+         over, see that directory's README — once that's live, api.groq.com
+         can be removed from here), Google Translate's keyless endpoint
+         (articles), and Google Fonts. 'unsafe-inline' stays on script-src
+         and style-src because Clerk's embedded widget injects both at
+         runtime — blocking it would break sign-in outright, which is a
+         worse outcome than the reduced inline-script protection. -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'unsafe-inline' https://*.clerk.accounts.dev https://*.clerk.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://*.neon.tech https://api.groq.com https://*.workers.dev http://localhost:8787 https://translate.googleapis.com https://*.clerk.accounts.dev https://*.clerk.com; frame-src https://*.clerk.accounts.dev https://*.clerk.com; worker-src 'self' blob:;"
+    />
   </head>
   <body>
     <div id="root"></div>
