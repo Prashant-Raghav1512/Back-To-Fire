@@ -19,7 +19,7 @@ const SUGGESTIONS = [
 const ERROR_PREFIX = "Sorry, I couldn't reach the chat service just now.";
 
 const GREETING =
-  'RAM RAM BHAI SAREYANE! 🙏 Main Ankit Baiyanpuria, tera calisthenics wala saathi. Ask me anything about Born to Fire - programs, exercises, events, or general questions.';
+  'RAM RAM BHAI SAREYANE! 🙏 Main Uncle Baiyanpuria, tera calisthenics wala saathi. Ask me anything about Born to Fire - programs, exercises, events, or general questions.';
 
 // Body only — no card chrome or header of its own. Mounted inside the
 // floating window frame in src/components/ChatWidget.tsx, which owns the

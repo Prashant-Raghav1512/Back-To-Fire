@@ -17,7 +17,7 @@ export function ChatWidget() {
               <Flame className="h-[18px] w-[18px]" />
             </span>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-bold text-white">Ankit Baiyanpuria</p>
+              <p className="truncate text-sm font-bold text-white">Uncle Baiyanpuria</p>
               <p className="flex items-center gap-1.5 text-xs text-gray-300">
                 <span className="h-1.5 w-1.5 rounded-full bg-green-400" /> Online now
               </p>
@@ -38,7 +38,7 @@ export function ChatWidget() {
 
       <button
         onClick={() => setOpen((o) => !o)}
-        aria-label={open ? 'Close chat' : 'Chat with Ankit Baiyanpuria'}
+        aria-label={open ? 'Close chat' : 'Chat with Uncle Baiyanpuria'}
         className="flex h-14 w-14 items-center justify-center rounded-full bg-green-500 text-white shadow-lg shadow-green-500/40 transition-all duration-300 hover:bg-green-600 active:scale-95"
       >
         {open ? <X className="h-6 w-6" /> : <MessageCircle className="h-6 w-6" />}
