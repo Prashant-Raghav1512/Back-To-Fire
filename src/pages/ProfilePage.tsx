@@ -7,12 +7,14 @@ import { EventModal } from '@/components/EventModal';
 import { ProfileDetailsForm } from '@/components/ProfileDetailsForm';
 import { AnimatedPageBackground } from '@/components/AnimatedPageBackground';
 import { CommentsModal } from '@/components/community/CommentsModal';
+import { InvoiceButton } from '@/components/InvoiceButton';
 import { useMyEnrollments, type Enrollment } from '@/lib/enrollments';
 import { useMyPosts, deletePost } from '@/lib/communityPosts';
 import { findGroup } from '@/lib/communityGroups';
 import { useMembership } from '@/lib/membership';
 import { useFriendId } from '@/lib/friendId';
 import { membershipTypes } from '@/data/membershipTypes';
+import { paidPlans } from '@/data/paidPlans';
 import { events } from '@/data/events';
 import { getEventStatus } from '@/lib/events';
 import { timeAgo } from '@/lib/timeAgo';
@@ -25,9 +27,21 @@ function formatJoinedDate(iso: string): string {
   return new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
+// Free programs and paid plans (see paidPlans.ts) share the same
+// `enrollments` table/itemType ('program') - only paid-plan enrollments get
+// an invoice option, matched here by looking the enrollment's itemId back
+// up against the static paidPlans catalog. Free programs have no price, so
+// there's nothing to invoice.
 function ProgramEnrollmentCard({ enrollment }: { enrollment: Enrollment }) {
   const { navigate } = useRouter();
+  const { user } = useUser();
   const tiltRef = useTilt<HTMLDivElement>();
+  const plan = paidPlans.find((p) => p.id === enrollment.itemId);
+  // itemDetail is a composed string this same codebase writes (see
+  // MembershipPlans.tsx), e.g. "Rs. 3,999/mo · Adults · Premium · Pay via
+  // UPI" - safe to parse back out since we control the exact format.
+  const paymentMethod = enrollment.itemDetail?.match(/Pay via (.+)$/i)?.[1];
+
   return (
     <div ref={tiltRef} className="card card-hover tilt-glow flex flex-col p-6">
       <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-green-100 text-green-600 dark:bg-green-500/15 dark:text-green-400">
@@ -42,12 +56,33 @@ function ProgramEnrollmentCard({ enrollment }: { enrollment: Enrollment }) {
       <p className="mt-3 text-xs text-gray-400 dark:text-gray-500">
         Enrolled {formatJoinedDate(enrollment.createdAt)}
       </p>
-      <button
-        onClick={() => navigate('/programs')}
-        className="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-green-600 transition-colors hover:text-green-700 dark:text-green-400"
-      >
-        View program <ArrowRight className="h-4 w-4" />
-      </button>
+      <div className="mt-5 flex items-center justify-between gap-3">
+        <button
+          onClick={() => navigate('/programs')}
+          className="inline-flex items-center gap-1.5 text-sm font-semibold text-green-600 transition-colors hover:text-green-700 dark:text-green-400"
+        >
+          View program <ArrowRight className="h-4 w-4" />
+        </button>
+        {plan && (
+          <InvoiceButton
+            label="Invoice"
+            invoice={{
+              invoiceNumber: `BTF-INV-E${enrollment.id}`,
+              invoiceDate: new Date(enrollment.createdAt),
+              billedToName: user?.fullName ?? user?.username ?? 'Born to Fire member',
+              billedToEmail: user?.primaryEmailAddress?.emailAddress,
+              items: [
+                {
+                  description: plan.title,
+                  detail: `${plan.tier} plan · Monthly coaching membership`,
+                  amount: plan.price,
+                },
+              ],
+              paymentMethod,
+            }}
+          />
+        )}
+      </div>
     </div>
   );
 }

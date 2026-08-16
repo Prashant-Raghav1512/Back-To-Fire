@@ -4,6 +4,7 @@ import { useUser, useClerk } from '@clerk/clerk-react';
 import { SectionHeading } from '@/components/SectionHeading';
 import { AnimatedPageBackground } from '@/components/AnimatedPageBackground';
 import { PaymentMethodSelector } from '@/components/PaymentMethodSelector';
+import { InvoiceButton } from '@/components/InvoiceButton';
 import { paymentMethods } from '@/data/paymentMethods';
 import { FriendActionButton } from '@/components/community/FriendActionButton';
 import {
@@ -418,6 +419,31 @@ export function MembershipPage() {
                     </p>
                   )}
                 </div>
+
+                {membership.monthlyPrice !== null && (
+                  <div className="mt-4">
+                    <InvoiceButton
+                      label="Download invoice"
+                      invoice={{
+                        invoiceNumber: `BTF-INV-M${membership.id}`,
+                        invoiceDate: new Date(membership.createdAt),
+                        billedToName: membership.displayName,
+                        billedToEmail: user?.primaryEmailAddress?.emailAddress,
+                        memberId: membership.memberId,
+                        items: [
+                          {
+                            description: `${activeTypeInfo.label} Membership`,
+                            detail: 'Monthly recurring membership',
+                            amount: membership.monthlyPrice,
+                          },
+                        ],
+                        paymentMethod: membership.paymentMethod
+                          ? paymentMethods.find((m) => m.id === membership.paymentMethod)?.label ?? membership.paymentMethod
+                          : undefined,
+                      }}
+                    />
+                  </div>
+                )}
 
                 <div className="mt-6">
                   <h3 className="font-display text-sm font-bold uppercase tracking-wider text-gray-900 dark:text-white">
