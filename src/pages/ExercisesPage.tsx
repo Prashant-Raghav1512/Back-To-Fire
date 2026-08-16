@@ -67,10 +67,12 @@ export function ExercisesPage() {
 
   const filtered = useMemo(() => {
     return exercises.filter((e) => {
+      const q = query.trim().toLowerCase();
       const matchesQuery =
-        !query ||
-        e.name.toLowerCase().includes(query.toLowerCase()) ||
-        e.description.toLowerCase().includes(query.toLowerCase());
+        !q ||
+        e.name.toLowerCase().includes(q) ||
+        e.description.toLowerCase().includes(q) ||
+        e.muscleGroup.toLowerCase().includes(q);
       const matchesDiff = diff === 'All' || e.difficulty === diff;
       const matchesMuscle = muscle === 'All' || e.muscleGroup === muscle;
       return matchesQuery && matchesDiff && matchesMuscle;
