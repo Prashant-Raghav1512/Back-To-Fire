@@ -4,7 +4,7 @@ import { useEffect, useRef } from 'react';
 // own z-50) that fills left-to-right with how far down the page the visitor
 // has scrolled. Width is driven imperatively via a ref so it updates every
 // scroll frame without a React re-render — same "costs nothing while idle"
-// contract as useParallax/FrameScrubSection.
+// contract as useParallax.
 export function ScrollProgressBar() {
   const barRef = useRef<HTMLDivElement>(null);
 

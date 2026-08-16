@@ -6,7 +6,7 @@ import { EventStatusBadge } from '@/components/EventStatusBadge';
 import { EventModal } from '@/components/EventModal';
 import { TiltCard } from '@/components/TiltCard';
 import { AnimatedCounter } from '@/components/AnimatedCounter';
-import { HomeFrameBackground } from '@/components/HomeFrameBackground';
+import { HomeVideoBackground } from '@/components/HomeVideoBackground';
 import { benefits, programs } from '@/data/content';
 import { groupEventsByStatus, formatEventDateRange, getEventStatus } from '@/lib/events';
 import { useMyEnrollments } from '@/lib/enrollments';
@@ -71,7 +71,7 @@ export function HomePage() {
     // doesn't touch the site-wide light/dark toggle used on every other
     // page.
     <div className="dark relative">
-      <HomeFrameBackground />
+      <HomeVideoBackground />
 
       {/* HERO */}
       <section className="relative pt-24 sm:pt-28">

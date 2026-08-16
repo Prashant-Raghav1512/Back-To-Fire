@@ -23,7 +23,7 @@ interface AnimatedPageBackgroundProps {
 // library, sitting behind a section's real content. Meant to be the first
 // child of a `relative overflow-hidden` section, with the section's content
 // wrapper given `relative z-10` so it paints on top. Distinct from
-// HomeFrameBackground (the Home page's own full-page video background, left
+// HomeVideoBackground (the Home page's own full-page video background, left
 // untouched) — this is the lighter-weight, per-section treatment used on
 // every other page. Respects prefers-reduced-motion by freezing the blobs in
 // their starting position instead of animating them.
