@@ -1,4 +1,5 @@
 export type MembershipType = 'normal' | 'corporate' | 'family';
+export type BillingCycle = 'monthly' | 'yearly';
 
 export interface MembershipTypeInfo {
   id: MembershipType;
@@ -7,6 +8,11 @@ export interface MembershipTypeInfo {
   icon: string;
   /** Monthly price in INR, or null for custom/negotiated pricing (corporate). */
   price: number | null;
+  /**
+   * Yearly price in INR — a discounted total, not `price * 12` (roughly
+   * two months free), or null for custom/negotiated pricing (corporate).
+   */
+  yearlyPrice: number | null;
   /** Benefits specific to this type, shown in addition to sharedMemberBenefits below. */
   benefits: string[];
 }
@@ -30,6 +36,7 @@ export const membershipTypes: MembershipTypeInfo[] = [
     tagline: 'For individual members training on their own.',
     icon: 'User',
     price: 499,
+    yearlyPrice: 4999,
     benefits: ['One free guest pass every month', 'Personal progress dashboard'],
   },
   {
@@ -38,6 +45,7 @@ export const membershipTypes: MembershipTypeInfo[] = [
     tagline: 'For companies sponsoring their team’s fitness.',
     icon: 'Building2',
     price: null,
+    yearlyPrice: null,
     benefits: [
       'Bulk-rate pricing for your whole team',
       'Company leaderboard and team challenges',
@@ -50,6 +58,7 @@ export const membershipTypes: MembershipTypeInfo[] = [
     tagline: 'One membership, up to 4 family members covered.',
     icon: 'Users',
     price: 1299,
+    yearlyPrice: 12999,
     benefits: [
       'Register up to 4 family members - no separate account needed for each',
       'Shared family workout challenges',

@@ -260,10 +260,17 @@ CREATE TABLE IF NOT EXISTS article_translations (
 -- 'corporate'`; that's an application-level rule (src/lib/membership.ts),
 -- not a CHECK constraint, same "guardrail not real enforcement" pattern
 -- used throughout this backend-less app. `monthly_price` snapshots
--- membershipTypes.ts's price for the chosen type *at join time* in INR
--- (null for `corporate`, which is custom/negotiated, not a fixed fee) —
--- same "snapshot, don't drift if the source data changes later" reasoning
--- as enrollments.item_detail. `payment_method` is the visitor's stated
+-- membershipTypes.ts's price for the chosen type/billing_cycle *at join
+-- time* in INR (null for `corporate`, which is custom/negotiated, not a
+-- fixed fee) — same "snapshot, don't drift if the source data changes
+-- later" reasoning as enrollments.item_detail. Despite the column's name
+-- (kept as-is rather than renamed, to avoid an extra migration), it holds
+-- whatever the chosen billing_cycle's price actually is — the discounted
+-- yearly total when billing_cycle = 'yearly', not that figure divided by
+-- 12; src/lib/membership.ts maps it to the TS field `price`, not
+-- `monthlyPrice`, precisely because it isn't always a monthly figure.
+-- `billing_cycle` is null only for `corporate` (custom/negotiated, no
+-- fixed recurring cycle). `payment_method` is the visitor's stated
 -- preference from `PaymentMethodSelector` — presentational only, same
 -- "no real payment gateway wired up" caveat as `MembershipPlans.tsx`'s
 -- (see `src/data/paymentMethods.ts`).
@@ -275,14 +282,17 @@ CREATE TABLE IF NOT EXISTS memberships (
   display_name text NOT NULL,
   company_name text,
   monthly_price integer,
+  billing_cycle text CHECK (billing_cycle IN ('monthly', 'yearly')),
   payment_method text,
   created_at timestamptz NOT NULL DEFAULT now()
 );
 
--- Backfills for databases created before monthly_price/payment_method
--- existed — no-ops on a fresh database (the columns above already exist).
+-- Backfills for databases created before monthly_price/payment_method/
+-- billing_cycle existed — no-ops on a fresh database (the columns above
+-- already exist).
 ALTER TABLE memberships ADD COLUMN IF NOT EXISTS monthly_price integer;
 ALTER TABLE memberships ADD COLUMN IF NOT EXISTS payment_method text;
+ALTER TABLE memberships ADD COLUMN IF NOT EXISTS billing_cycle text CHECK (billing_cycle IN ('monthly', 'yearly'));
 
 -- Backfills for databases created before the contact form's purpose
 -- dropdown/phone field existed — no-ops on a fresh database.

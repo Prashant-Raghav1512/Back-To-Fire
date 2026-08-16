@@ -17,7 +17,13 @@ import {
   type MemberSearchResult,
 } from '@/lib/membership';
 import { useFriends, sendFriendRequest, respondToFriendRequest } from '@/lib/friends';
-import { membershipTypes, sharedMemberBenefits, type MembershipType, type MembershipTypeInfo } from '@/data/membershipTypes';
+import {
+  membershipTypes,
+  sharedMemberBenefits,
+  type BillingCycle,
+  type MembershipType,
+  type MembershipTypeInfo,
+} from '@/data/membershipTypes';
 import { useTilt } from '@/lib/useTilt';
 
 const TYPE_ICONS = { User, Building2, Users } as const;
@@ -27,16 +33,59 @@ function TypeIcon({ name, className }: { name: string; className?: string }) {
   return <Icon className={className} />;
 }
 
+// Shared by the type-picker cards, the confirmation panel, and the joined
+// member card, so the three spots showing a price never drift out of sync
+// about what "the yearly price" means for a given type.
+function priceForCycle(type: MembershipTypeInfo, cycle: BillingCycle): number | null {
+  return cycle === 'yearly' ? type.yearlyPrice : type.price;
+}
+
+function BillingCycleToggle({ value, onChange }: { value: BillingCycle; onChange: (cycle: BillingCycle) => void }) {
+  return (
+    <div className="mx-auto flex w-fit gap-1 rounded-full bg-gray-100 p-1 dark:bg-gray-800">
+      {(['monthly', 'yearly'] as const).map((cycle) => (
+        <button
+          key={cycle}
+          onClick={() => onChange(cycle)}
+          className={`flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-semibold transition-all duration-200 ${
+            value === cycle
+              ? 'bg-amber-500 text-gray-900 shadow-md shadow-amber-500/30'
+              : 'text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white'
+          }`}
+        >
+          {cycle === 'monthly' ? 'Monthly' : 'Yearly'}
+          {cycle === 'yearly' && (
+            <span
+              className={`rounded-full px-2 py-0.5 text-xs font-bold ${
+                value === 'yearly' ? 'bg-gray-900/10 text-gray-900' : 'bg-green-100 text-green-700 dark:bg-green-500/15 dark:text-green-400'
+              }`}
+            >
+              2 months free
+            </span>
+          )}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 function TypePickerCard({
   type,
+  billingCycle,
   selected,
   onSelect,
 }: {
   type: MembershipTypeInfo;
+  billingCycle: BillingCycle;
   selected: boolean;
   onSelect: () => void;
 }) {
   const tiltRef = useTilt<HTMLButtonElement>();
+  const price = priceForCycle(type, billingCycle);
+  const savings =
+    billingCycle === 'yearly' && type.price !== null && type.yearlyPrice !== null
+      ? type.price * 12 - type.yearlyPrice
+      : null;
   return (
     <button
       ref={tiltRef}
@@ -48,12 +97,19 @@ function TypePickerCard({
           <TypeIcon name={type.icon} className="h-6 w-6" />
         </span>
         <p className="text-right">
-          {type.price !== null ? (
+          {price !== null ? (
             <>
               <span className="font-display text-xl font-extrabold text-gray-900 dark:text-white">
-                &#8377;{type.price.toLocaleString('en-IN')}
+                &#8377;{price.toLocaleString('en-IN')}
               </span>
-              <span className="block text-xs text-gray-500 dark:text-gray-400">/month</span>
+              <span className="block text-xs text-gray-500 dark:text-gray-400">
+                /{billingCycle === 'yearly' ? 'year' : 'month'}
+              </span>
+              {savings !== null && savings > 0 && (
+                <span className="mt-0.5 block text-xs font-semibold text-green-600 dark:text-green-400">
+                  Save &#8377;{savings.toLocaleString('en-IN')}
+                </span>
+              )}
             </>
           ) : (
             <span className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
@@ -91,6 +147,7 @@ export function MembershipPage() {
   const friends = useFriends();
 
   const [selectedType, setSelectedType] = useState<MembershipType | null>(null);
+  const [billingCycle, setBillingCycle] = useState<BillingCycle>('monthly');
   const [companyName, setCompanyName] = useState('');
   const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
   const [joining, setJoining] = useState(false);
@@ -114,6 +171,7 @@ export function MembershipPage() {
 
   const selectedTypeInfo = selectedType ? membershipTypes.find((t) => t.id === selectedType) ?? null : null;
   const selectedTypeIsPaid = selectedTypeInfo ? selectedTypeInfo.price !== null : false;
+  const selectedPrice = selectedTypeInfo ? priceForCycle(selectedTypeInfo, billingCycle) : null;
 
   const handleJoin = async () => {
     if (!user || !selectedType || !selectedTypeInfo || joining) return;
@@ -133,7 +191,8 @@ export function MembershipPage() {
         displayName: user.fullName ?? user.username ?? 'Born to Fire member',
         membershipType: selectedType,
         companyName: selectedType === 'corporate' ? companyName.trim() : undefined,
-        monthlyPrice: selectedTypeInfo.price,
+        price: selectedPrice,
+        billingCycle: selectedTypeIsPaid ? billingCycle : undefined,
         paymentMethod: selectedTypeIsPaid ? selectedMethod : undefined,
       });
       await refresh();
@@ -305,11 +364,15 @@ export function MembershipPage() {
                 title="Which membership fits you?"
                 subtitle="Every membership includes the shared benefits below, plus what's listed on each card."
               />
-              <div className="mt-10 grid gap-6 md:grid-cols-3">
+              <div className="mt-8">
+                <BillingCycleToggle value={billingCycle} onChange={setBillingCycle} />
+              </div>
+              <div className="mt-6 grid gap-6 md:grid-cols-3">
                 {membershipTypes.map((type) => (
                   <TypePickerCard
                     key={type.id}
                     type={type}
+                    billingCycle={billingCycle}
                     selected={selectedType === type.id}
                     onSelect={() => {
                       setSelectedType(type.id);
@@ -341,9 +404,9 @@ export function MembershipPage() {
                     <div className={selectedType === 'corporate' ? 'mt-4' : ''}>
                       <p className="text-center text-sm text-gray-500 dark:text-gray-400">
                         <span className="font-display text-2xl font-extrabold text-gray-900 dark:text-white">
-                          &#8377;{selectedTypeInfo.price?.toLocaleString('en-IN')}
+                          &#8377;{selectedPrice?.toLocaleString('en-IN')}
                         </span>{' '}
-                        /month
+                        /{billingCycle === 'yearly' ? 'year' : 'month'}
                       </p>
                       <div className="mt-4">
                         <PaymentMethodSelector selected={selectedMethod} onSelect={setSelectedMethod} />
@@ -408,12 +471,12 @@ export function MembershipPage() {
                   <p className="mt-1 font-display text-3xl font-extrabold tracking-wider">{membership.memberId}</p>
                   <p className="mt-4 text-sm text-white/80">{membership.displayName}</p>
                   {membership.companyName && <p className="text-xs text-white/60">{membership.companyName}</p>}
-                  {membership.monthlyPrice !== null && (
+                  {membership.price !== null && (
                     <p className="mt-3 flex items-baseline gap-1.5 border-t border-white/10 pt-3 text-sm">
                       <span className="font-display text-lg font-bold">
-                        &#8377;{membership.monthlyPrice.toLocaleString('en-IN')}
+                        &#8377;{membership.price.toLocaleString('en-IN')}
                       </span>
-                      <span className="text-white/60">/month</span>
+                      <span className="text-white/60">/{membership.billingCycle === 'yearly' ? 'year' : 'month'}</span>
                       {membership.paymentMethod && (
                         <span className="ml-auto text-xs text-white/60">
                           via {paymentMethods.find((m) => m.id === membership.paymentMethod)?.label ?? membership.paymentMethod}
@@ -423,7 +486,7 @@ export function MembershipPage() {
                   )}
                 </div>
 
-                {membership.monthlyPrice !== null && (
+                {membership.price !== null && (
                   <div className="mt-4">
                     <InvoiceButton
                       label="Download invoice"
@@ -436,8 +499,8 @@ export function MembershipPage() {
                         items: [
                           {
                             description: `${activeTypeInfo.label} Membership`,
-                            detail: 'Monthly recurring membership',
-                            amount: membership.monthlyPrice,
+                            detail: membership.billingCycle === 'yearly' ? 'Yearly recurring membership' : 'Monthly recurring membership',
+                            amount: membership.price,
                           },
                         ],
                         paymentMethod: membership.paymentMethod
