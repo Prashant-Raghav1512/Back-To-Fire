@@ -52,7 +52,7 @@ export function Navbar() {
                 className={`relative rounded-full px-4 py-2 text-sm font-medium transition-colors duration-200 ${
                   active
                     ? 'text-green-700 dark:text-green-400'
-                    : 'text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white'
+                    : 'nav-link-hover text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white'
                 }`}
               >
                 {link.label}

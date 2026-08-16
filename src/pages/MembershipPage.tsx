@@ -18,6 +18,7 @@ import {
 } from '@/lib/membership';
 import { useFriends, sendFriendRequest, respondToFriendRequest } from '@/lib/friends';
 import { membershipTypes, sharedMemberBenefits, type MembershipType, type MembershipTypeInfo } from '@/data/membershipTypes';
+import { useTilt } from '@/lib/useTilt';
 
 const TYPE_ICONS = { User, Building2, Users } as const;
 
@@ -35,10 +36,12 @@ function TypePickerCard({
   selected: boolean;
   onSelect: () => void;
 }) {
+  const tiltRef = useTilt<HTMLButtonElement>();
   return (
     <button
+      ref={tiltRef}
       onClick={onSelect}
-      className={`card card-hover flex flex-col p-6 text-left transition-all ${selected ? '!ring-2 ring-orange-400' : ''}`}
+      className={`card card-hover tilt-glow flex flex-col p-6 text-left transition-all ${selected ? '!ring-2 ring-orange-400' : ''}`}
     >
       <div className="flex items-start justify-between gap-3">
         <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-100 text-orange-600 dark:bg-orange-500/15 dark:text-orange-400">

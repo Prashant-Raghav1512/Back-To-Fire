@@ -134,6 +134,28 @@
     @apply inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold;
   }
 
+  /* Playful nav-link underline — grows in from the center on hover, distinct
+     from the always-visible bar Navbar.tsx renders under the active link. */
+  .nav-link-hover {
+    position: relative;
+  }
+  .nav-link-hover::after {
+    content: '';
+    position: absolute;
+    left: 1rem;
+    right: 1rem;
+    bottom: -1px;
+    height: 2px;
+    border-radius: 9999px;
+    background: currentColor;
+    opacity: 0.45;
+    transform: scaleX(0);
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .nav-link-hover:hover::after {
+    transform: scaleX(1);
+  }
+
   .section-pad {
     @apply px-5 py-16 sm:px-8 sm:py-20 lg:py-24;
   }
@@ -149,16 +171,21 @@
 ::-webkit-scrollbar-thumb { @apply bg-green-400 rounded-full; }
 ::-webkit-scrollbar-thumb:hover { @apply bg-green-500; }
 
-/* Reveal animation */
+/* Reveal animation — a playful overshoot (position + scale bounce past
+   100% before settling) rather than a flat ease-out, using the same
+   cubic-bezier(0.34, 1.56, 0.64, 1) "back" curve as .animate-success-pop
+   and useMagnetic's snap-back, so every scroll-reveal across the site
+   reads as bouncing into place, not just fading in. */
 @keyframes fadeUp {
-  from { opacity: 0; transform: translateY(24px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translateY(32px) scale(0.96); }
+  60% { opacity: 1; }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 .reveal {
   opacity: 0;
 }
 .reveal.in-view {
-  animation: fadeUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: fadeUp 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
 /* Hero gradient pulse */
@@ -195,11 +222,41 @@
 /* Route-change transition — src/App.tsx remounts <main> on every path
    change (via `key={path}`), which retriggers this animation for free. */
 @keyframes pageIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translateY(16px) scale(0.99); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 .page-transition {
-  animation: pageIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: pageIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* Modal entrance — overlay fades in while the panel pops in with the same
+   overshoot bounce as .reveal, applied via .modal-overlay-in/.modal-panel-in
+   on every full-screen modal (Exercise/Event/Article/Comments) so they all
+   share one consistent, lively open transition. */
+@keyframes modalOverlayIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes modalPanelIn {
+  from { opacity: 0; transform: scale(0.9) translateY(20px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+.modal-overlay-in {
+  animation: modalOverlayIn 0.2s ease-out both;
+}
+.modal-panel-in {
+  animation: modalPanelIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* Gentle idle bob for decorative hero icons/badges — a small, continuous
+   touch of motion on first paint rather than something that only fires on
+   scroll or hover. Kept subtle (6px, 3s) so it reads as lively, not busy. */
+@keyframes floatY {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+.animate-float {
+  animation: floatY 3s ease-in-out infinite;
 }
 
 /* Success confirmation bounce — see EnrollButton.tsx, applied briefly right
@@ -219,9 +276,16 @@
     opacity: 1;
     animation: none !important;
   }
+  .reveal {
+    opacity: 1;
+  }
+  .reveal.in-view,
   .page-transition,
   .animate-success-pop,
-  .btn-ripple {
+  .btn-ripple,
+  .modal-overlay-in,
+  .modal-panel-in,
+  .animate-float {
     animation: none !important;
   }
 }

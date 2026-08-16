@@ -129,7 +129,7 @@ export function HomePage() {
               </div>
             </div>
 
-            <div className="relative mx-auto hidden aspect-square w-full max-w-sm lg:block">
+            <div className="animate-float relative mx-auto hidden aspect-square w-full max-w-sm lg:block">
               <div className="absolute -inset-4 rounded-full bg-gradient-to-br from-green-400/30 to-orange-400/20 blur-xl" />
               <div className="group relative h-full w-full overflow-hidden rounded-full shadow-2xl ring-4 ring-white/15">
                 <img
@@ -216,7 +216,7 @@ export function HomePage() {
                 Learn more <ArrowRight className="h-4 w-4" />
               </button>
             </div>
-            <div className="relative mx-auto aspect-square w-full max-w-md">
+            <div className="animate-float relative mx-auto aspect-square w-full max-w-md">
               <div className="absolute -inset-4 rounded-full bg-gradient-to-br from-green-400/30 to-orange-400/20 blur-xl" />
               <div className="group relative h-full w-full overflow-hidden rounded-full shadow-2xl ring-4 ring-white dark:ring-gray-800">
                 <img

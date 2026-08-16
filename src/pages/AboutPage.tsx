@@ -4,6 +4,7 @@ import { TiltCard } from '@/components/TiltCard';
 import { AnimatedPageBackground } from '@/components/AnimatedPageBackground';
 import { useReveal } from '@/lib/useReveal';
 import { useParallax } from '@/lib/useParallax';
+import { useMagnetic } from '@/lib/useMagnetic';
 import { useRouter } from '@/lib/router';
 
 const advantages = [
@@ -19,6 +20,7 @@ export function AboutPage() {
   const mvRef = useReveal<HTMLDivElement>();
   const { navigate } = useRouter();
   const heroImgRef = useParallax<HTMLImageElement>();
+  const ctaRef = useMagnetic<HTMLSpanElement>();
 
   return (
     <div className="pt-16 sm:pt-20">
@@ -217,9 +219,11 @@ export function AboutPage() {
           </div>
 
           <div className="mt-8 text-center">
-            <button onClick={() => navigate('/programs')} className="btn-primary">
-              See the programs <Dumbbell className="h-5 w-5" />
-            </button>
+            <span ref={ctaRef} className="inline-block">
+              <button onClick={() => navigate('/programs')} className="btn-primary">
+                See the programs <Dumbbell className="h-5 w-5" />
+              </button>
+            </span>
           </div>
         </div>
       </section>
