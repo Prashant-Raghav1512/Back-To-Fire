@@ -9,7 +9,9 @@ import { useEffect, useRef, useState } from 'react';
 // of stutter (browsers aren't built for frame-precise seeking the way a
 // canvas swapping still images is), so this just autoplays on a loop
 // instead - smooth and simple, at the cost of the old "scroll to reveal"
-// interaction.
+// interaction. `object-contain` (not `cover`) keeps the whole video visible
+// within the fixed viewport box, "windowed" rather than cropped edge to
+// edge — the same fit the old canvas frames used.
 export function HomeVideoBackground() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [reducedMotion, setReducedMotion] = useState(false);
@@ -32,7 +34,7 @@ export function HomeVideoBackground() {
       <video
         ref={videoRef}
         src={`${import.meta.env.BASE_URL}videos/home-background.mp4`}
-        className="h-full w-full object-cover"
+        className="h-full w-full object-contain"
         muted
         loop
         playsInline
