@@ -135,6 +135,9 @@ export function CommentsModal({ post, onClose, onChanged }: CommentsModalProps) 
           {post.imageUrl && (
             <img src={post.imageUrl} alt="" className="mt-3 max-h-80 w-full rounded-2xl object-cover" />
           )}
+          {post.videoUrl && (
+            <video src={post.videoUrl} controls className="mt-3 max-h-80 w-full rounded-2xl bg-black" />
+          )}
 
           {user?.id === post.clerkUserId && (
             <div className="mt-4">

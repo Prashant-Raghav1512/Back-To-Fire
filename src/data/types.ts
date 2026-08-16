@@ -148,6 +148,8 @@ export interface CommunityMessage {
   groupType: CommunityGroupType;
   groupKey: string;
   message: string;
+  /** Base64 data URI, or null if the message has no photo — see src/lib/imageUpload.ts. */
+  imageUrl: string | null;
   createdAt: string;
 }
 
@@ -160,8 +162,10 @@ export interface CommunityPost {
   groupType: CommunityGroupType;
   groupKey: string;
   body: string;
-  /** Base64 data URI, or null if the post has no image — see src/lib/imageUpload.ts. */
+  /** Base64 data URI, or null if the post has no image — see src/lib/imageUpload.ts. A post has at most one of imageUrl/videoUrl. */
   imageUrl: string | null;
+  /** Base64 data URI, or null if the post has no video — see src/lib/videoUpload.ts. */
+  videoUrl: string | null;
   createdAt: string;
   commentCount: number;
 }

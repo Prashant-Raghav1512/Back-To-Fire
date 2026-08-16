@@ -25,6 +25,7 @@ interface PostRow {
   group_key: string;
   body: string;
   image_url: string | null;
+  video_url: string | null;
   created_at: string;
   comment_count: string; // COUNT(...) comes back as a string from the driver
 }
@@ -39,6 +40,7 @@ function rowToPost(row: PostRow): CommunityPost {
     groupKey: row.group_key,
     body: row.body,
     imageUrl: row.image_url,
+    videoUrl: row.video_url,
     createdAt: row.created_at,
     commentCount: Number(row.comment_count),
   };
@@ -53,14 +55,16 @@ export interface CreatePostParams {
   groupType: CommunityGroupType;
   groupKey: string;
   body: string;
-  /** Base64 data URI from compressImageToDataUrl, or omitted for a text-only post. */
+  /** Base64 data URI from compressImageToDataUrl, or omitted for no image. Mutually exclusive with videoDataUrl. */
   imageDataUrl?: string | null;
+  /** Base64 data URI from videoFileToDataUrl, or omitted for no video. Mutually exclusive with imageDataUrl. */
+  videoDataUrl?: string | null;
 }
 
 export async function createPost(params: CreatePostParams): Promise<void> {
   const trimmed = params.body.trim();
-  if (!trimmed && !params.imageDataUrl) {
-    throw new Error('Write something or add an image before posting.');
+  if (!trimmed && !params.imageDataUrl && !params.videoDataUrl) {
+    throw new Error('Write something or add a photo/video before posting.');
   }
   if (trimmed.length > POST_BODY_LIMIT) {
     throw new Error(`Keep posts under ${POST_BODY_LIMIT} characters.`);
@@ -68,8 +72,8 @@ export async function createPost(params: CreatePostParams): Promise<void> {
 
   const sql = client();
   await sql`
-    INSERT INTO community_posts (clerk_user_id, display_name, state, group_type, group_key, body, image_url)
-    VALUES (${params.clerkUserId}, ${params.displayName}, ${params.state}, ${params.groupType}, ${params.groupKey}, ${trimmed}, ${params.imageDataUrl ?? null})
+    INSERT INTO community_posts (clerk_user_id, display_name, state, group_type, group_key, body, image_url, video_url)
+    VALUES (${params.clerkUserId}, ${params.displayName}, ${params.state}, ${params.groupType}, ${params.groupKey}, ${trimmed}, ${params.imageDataUrl ?? null}, ${params.videoDataUrl ?? null})
   `;
 }
 
@@ -78,7 +82,7 @@ const POST_LIMIT = 100;
 export async function getPosts(groupType: CommunityGroupType, groupKey: string): Promise<CommunityPost[]> {
   const sql = client();
   const rows = (await sql`
-    SELECT p.id, p.clerk_user_id, p.display_name, p.state, p.group_type, p.group_key, p.body, p.image_url, p.created_at,
+    SELECT p.id, p.clerk_user_id, p.display_name, p.state, p.group_type, p.group_key, p.body, p.image_url, p.video_url, p.created_at,
       COUNT(c.id) AS comment_count
     FROM community_posts p
     LEFT JOIN community_post_comments c ON c.post_id = p.id
@@ -93,7 +97,7 @@ export async function getPosts(groupType: CommunityGroupType, groupKey: string):
 export async function getMyPosts(clerkUserId: string): Promise<CommunityPost[]> {
   const sql = client();
   const rows = (await sql`
-    SELECT p.id, p.clerk_user_id, p.display_name, p.state, p.group_type, p.group_key, p.body, p.image_url, p.created_at,
+    SELECT p.id, p.clerk_user_id, p.display_name, p.state, p.group_type, p.group_key, p.body, p.image_url, p.video_url, p.created_at,
       COUNT(c.id) AS comment_count
     FROM community_posts p
     LEFT JOIN community_post_comments c ON c.post_id = p.id

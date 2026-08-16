@@ -1,7 +1,8 @@
-import { useState } from 'react';
-import { Send, MapPin, MessageSquare } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { Send, MapPin, MessageSquare, ImagePlus, X } from 'lucide-react';
 import { useUser, useClerk } from '@clerk/clerk-react';
 import { postMessage, useCommunityMessages } from '@/lib/community';
+import { compressImageToDataUrl } from '@/lib/imageUpload';
 import { sendFriendRequest, respondToFriendRequest, type UseFriendsResult } from '@/lib/friends';
 import { FriendActionButton } from '@/components/community/FriendActionButton';
 import { timeAgo } from '@/lib/timeAgo';
@@ -74,7 +75,10 @@ function MessageBubble({ message, showState, mine, friends, canAddFriends }: Mes
             <FriendActionButton friendStatus={friendStatus} onSend={handleSend} onAccept={handleAccept} busy={busy} />
           )}
         </div>
-        <p className="mt-0.5 whitespace-pre-line">{message.message}</p>
+        {message.message && <p className="mt-0.5 whitespace-pre-line">{message.message}</p>}
+        {message.imageUrl && (
+          <img src={message.imageUrl} alt="" className="mt-1.5 max-h-52 w-full rounded-xl object-cover" />
+        )}
       </div>
     </div>
   );
@@ -99,14 +103,32 @@ export function GroupChat({ groupType, groupKey, groupLabel, profile, friends }:
   const { openSignIn } = useClerk();
   const { messages, refresh } = useCommunityMessages(groupType, groupKey);
   const [input, setInput] = useState('');
+  const [imageDataUrl, setImageDataUrl] = useState<string | null>(null);
+  const [compressing, setCompressing] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    setError(null);
+    setCompressing(true);
+    try {
+      setImageDataUrl(await compressImageToDataUrl(file));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not process that image.');
+    } finally {
+      setCompressing(false);
+    }
+  };
 
   const handlePost = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !profile) return;
     const text = input.trim();
-    if (!text || sending) return;
+    if ((!text && !imageDataUrl) || sending) return;
     setSending(true);
     setError(null);
     try {
@@ -117,8 +139,10 @@ export function GroupChat({ groupType, groupKey, groupLabel, profile, friends }:
         groupType,
         groupKey,
         message: text,
+        imageDataUrl,
       });
       setInput('');
+      setImageDataUrl(null);
       await refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not post, please try again.');
@@ -160,24 +184,49 @@ export function GroupChat({ groupType, groupKey, groupLabel, profile, friends }:
       {error && <p className="px-4 pb-1 text-xs text-red-500">{error}</p>}
 
       {isSignedIn && profile ? (
-        <form onSubmit={handlePost} className="flex gap-2 border-t border-gray-100 p-3 dark:border-gray-700">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder={`Message ${groupLabel}...`}
-            maxLength={500}
-            disabled={sending}
-            className="flex-1 rounded-full border-0 bg-gray-100 px-4 py-2.5 text-sm text-gray-900 outline-none ring-1 ring-transparent transition focus:ring-orange-500 disabled:opacity-60 dark:bg-gray-700 dark:text-white"
-          />
-          <button
-            type="submit"
-            disabled={!input.trim() || sending}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-orange-500 text-white transition-all duration-300 hover:bg-orange-600 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
-            aria-label="Send"
-          >
-            <Send className="h-4 w-4" />
-          </button>
+        <form onSubmit={handlePost} className="border-t border-gray-100 p-3 dark:border-gray-700">
+          {imageDataUrl && (
+            <div className="relative mb-2 inline-block">
+              <img src={imageDataUrl} alt="" className="h-20 rounded-xl object-cover" />
+              <button
+                type="button"
+                onClick={() => setImageDataUrl(null)}
+                aria-label="Remove image"
+                className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-gray-900 text-white shadow"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          )}
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={compressing}
+              aria-label="Attach photo"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-500 transition hover:bg-gray-200 disabled:opacity-60 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+            >
+              <ImagePlus className="h-4 w-4" />
+            </button>
+            <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFile} className="hidden" />
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder={compressing ? 'Processing photo...' : `Message ${groupLabel}...`}
+              maxLength={500}
+              disabled={sending}
+              className="flex-1 rounded-full border-0 bg-gray-100 px-4 py-2.5 text-sm text-gray-900 outline-none ring-1 ring-transparent transition focus:ring-orange-500 disabled:opacity-60 dark:bg-gray-700 dark:text-white"
+            />
+            <button
+              type="submit"
+              disabled={(!input.trim() && !imageDataUrl) || sending || compressing}
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-orange-500 text-white transition-all duration-300 hover:bg-orange-600 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+              aria-label="Send"
+            >
+              <Send className="h-4 w-4" />
+            </button>
+          </div>
         </form>
       ) : (
         <div className="border-t border-gray-100 p-3 dark:border-gray-700">

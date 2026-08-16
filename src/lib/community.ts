@@ -42,6 +42,7 @@ interface MessageRow {
   group_type: CommunityGroupType;
   group_key: string;
   message: string;
+  image_url: string | null;
   created_at: string;
 }
 
@@ -96,18 +97,20 @@ export interface PostMessageParams {
   groupType: CommunityGroupType;
   groupKey: string;
   message: string;
+  /** Base64 data URI from compressImageToDataUrl, or omitted for a text-only message. */
+  imageDataUrl?: string | null;
 }
 
 export async function postMessage(params: PostMessageParams): Promise<void> {
   const trimmed = params.message.trim();
-  if (!trimmed) throw new Error('Message cannot be empty.');
+  if (!trimmed && !params.imageDataUrl) throw new Error('Write something or attach a photo before sending.');
   if (trimmed.length > 500) throw new Error('Keep it under 500 characters.');
   if (containsBlockedWord(trimmed)) throw new Error('Please keep the community board respectful.');
 
   const sql = client();
   await sql`
-    INSERT INTO community_messages (clerk_user_id, display_name, state, group_type, group_key, message)
-    VALUES (${params.clerkUserId}, ${params.displayName}, ${params.state}, ${params.groupType}, ${params.groupKey}, ${trimmed})
+    INSERT INTO community_messages (clerk_user_id, display_name, state, group_type, group_key, message, image_url)
+    VALUES (${params.clerkUserId}, ${params.displayName}, ${params.state}, ${params.groupType}, ${params.groupKey}, ${trimmed}, ${params.imageDataUrl ?? null})
   `;
 }
 
@@ -116,7 +119,7 @@ const MESSAGE_LIMIT = 50;
 export async function getMessages(groupType: CommunityGroupType, groupKey: string): Promise<CommunityMessage[]> {
   const sql = client();
   const rows = (await sql`
-    SELECT id, clerk_user_id, display_name, state, group_type, group_key, message, created_at
+    SELECT id, clerk_user_id, display_name, state, group_type, group_key, message, image_url, created_at
     FROM community_messages
     WHERE group_type = ${groupType} AND group_key = ${groupKey}
     ORDER BY created_at DESC
@@ -132,6 +135,7 @@ export async function getMessages(groupType: CommunityGroupType, groupKey: strin
       groupType: row.group_type,
       groupKey: row.group_key,
       message: row.message,
+      imageUrl: row.image_url,
       createdAt: row.created_at,
     }))
     .reverse(); // oldest first, so the feed reads top-to-bottom like a chat

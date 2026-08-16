@@ -101,6 +101,15 @@ CREATE TABLE IF NOT EXISTS community_profiles (
 -- (WHERE group_type = ... AND group_key = ...) — notably 'india' is its own
 -- real room with its own messages now, not just an unfiltered view over
 -- every state's posts the way it worked before this column existed.
+--
+-- `image_url` is an optional base64 data URI (src/lib/imageUpload.ts) — same
+-- "no backend to sign a real object-storage upload with" tradeoff as
+-- community_posts' image_url below. Chat does NOT support video: it polls
+-- every 7s (see useCommunityMessages), so any large inline media there
+-- would be re-fetched by every open chat window every 7 seconds — fine for
+-- a compressed <900KB photo, not fine for multi-MB video. Video is
+-- deliberately posts-only (community_posts.video_url), which polls only
+-- every 15s and is a browse-when-you-open-it feed, not a live one.
 CREATE TABLE IF NOT EXISTS community_messages (
   id bigserial PRIMARY KEY,
   clerk_user_id text NOT NULL,
@@ -109,6 +118,7 @@ CREATE TABLE IF NOT EXISTS community_messages (
   group_type text NOT NULL DEFAULT 'state',
   group_key text NOT NULL DEFAULT '',
   message text NOT NULL,
+  image_url text,
   created_at timestamptz NOT NULL DEFAULT now()
 );
 
@@ -121,22 +131,28 @@ CREATE TABLE IF NOT EXISTS community_messages (
 ALTER TABLE community_messages ADD COLUMN IF NOT EXISTS group_type text NOT NULL DEFAULT 'state';
 ALTER TABLE community_messages ADD COLUMN IF NOT EXISTS group_key text NOT NULL DEFAULT '';
 UPDATE community_messages SET group_type = 'state', group_key = state WHERE group_key = '';
+ALTER TABLE community_messages ADD COLUMN IF NOT EXISTS image_url text;
 
 CREATE INDEX IF NOT EXISTS community_messages_group_idx ON community_messages (group_type, group_key, created_at DESC);
 
 -- Community board posts — a separate, slower-paced feed from the live chat
--- above, supporting an optional image. `display_name`/`state` snapshot the
+-- above, supporting an optional image OR video (never both — the composer
+-- enforces that, not a DB constraint). `display_name`/`state` snapshot the
 -- same way community_messages does; `group_type`/`group_key` scope a post
 -- to whichever room it was posted in, same model as community_messages.
 --
--- The image is stored inline as a base64 data URI in `image_url` rather
--- than in real object storage (S3, Cloudinary, etc.) — this project has no
--- backend to sign such an upload with, and no third-party image-host
--- credentials exist for it either, so this reuses the same "ship it
--- straight from the browser" tradeoff already made for
--- VITE_NEON_CONTACT_URL/VITE_GROQ_API_KEY (see CLAUDE.md, "No backend, by
--- design"). src/lib/imageUpload.ts downscales/compresses every image
--- client-side before it's ever sent, to keep these rows small.
+-- Both are stored inline as base64 data URIs rather than in real object
+-- storage (S3, Cloudinary, etc.) — this project has no backend to sign such
+-- an upload with, and no third-party host credentials exist for it either,
+-- so this reuses the same "ship it straight from the browser" tradeoff
+-- already made for VITE_NEON_CONTACT_URL/VITE_GROQ_API_KEY (see CLAUDE.md,
+-- "No backend, by design"). `image_url`: src/lib/imageUpload.ts downscales/
+-- compresses every image client-side before it's ever sent, keeping rows
+-- small (~900KB cap). `video_url`: no such compression is possible without
+-- a real encoder (no ffmpeg.wasm etc. in this stack) — src/lib/
+-- videoUpload.ts only enforces a hard ~8MB input cap, so a video row can be
+-- meaningfully larger than an image row; that tradeoff (and why video isn't
+-- also in community_messages) is discussed on that table above.
 CREATE TABLE IF NOT EXISTS community_posts (
   id bigserial PRIMARY KEY,
   clerk_user_id text NOT NULL,
@@ -146,8 +162,13 @@ CREATE TABLE IF NOT EXISTS community_posts (
   group_key text NOT NULL,
   body text NOT NULL,
   image_url text,
+  video_url text,
   created_at timestamptz NOT NULL DEFAULT now()
 );
+
+-- Backfill for databases created before video_url existed — no-op on a
+-- fresh database (the column above already exists).
+ALTER TABLE community_posts ADD COLUMN IF NOT EXISTS video_url text;
 
 CREATE INDEX IF NOT EXISTS community_posts_group_idx ON community_posts (group_type, group_key, created_at DESC);
 CREATE INDEX IF NOT EXISTS community_posts_user_idx ON community_posts (clerk_user_id, created_at DESC);

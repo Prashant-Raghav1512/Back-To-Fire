@@ -1,8 +1,9 @@
 import { useRef, useState } from 'react';
-import { ImagePlus, MessageCircle, Sparkles, X } from 'lucide-react';
+import { ImagePlus, MessageCircle, Sparkles, Video, X } from 'lucide-react';
 import { useUser, useClerk } from '@clerk/clerk-react';
 import { createPost, usePosts } from '@/lib/communityPosts';
 import { compressImageToDataUrl } from '@/lib/imageUpload';
+import { videoFileToDataUrl } from '@/lib/videoUpload';
 import { timeAgo } from '@/lib/timeAgo';
 import { sendFriendRequest, respondToFriendRequest, type UseFriendsResult } from '@/lib/friends';
 import { FriendActionButton } from '@/components/community/FriendActionButton';
@@ -17,23 +18,30 @@ interface GroupPostsProps {
   friends: UseFriendsResult;
 }
 
-// A slower-paced feed alongside GroupChat's live chat — supports an
-// optional image (compressed client-side, see src/lib/imageUpload.ts) and
-// opens CommentsModal for replies. Posts are never seeded/mocked here: the
-// feed only ever shows what usePosts() actually returns from Neon.
+// A slower-paced feed alongside GroupChat's live chat — supports one
+// optional attachment per post, either an image (compressed client-side,
+// see src/lib/imageUpload.ts) or a video (size-capped only, no compression
+// possible client-side — see src/lib/videoUpload.ts; video is deliberately
+// posts-only, not also in GroupChat, since chat polls every 7s vs. posts'
+// 15s, see db/schema.sql's community_messages comment) — and opens
+// CommentsModal for replies. Posts are never seeded/mocked here: the feed
+// only ever shows what usePosts() actually returns from Neon.
 export function GroupPosts({ groupType, groupKey, groupLabel, profile, friends }: GroupPostsProps) {
   const { user, isSignedIn } = useUser();
   const { openSignIn } = useClerk();
   const { posts, refresh } = usePosts(groupType, groupKey);
   const [body, setBody] = useState('');
   const [imageDataUrl, setImageDataUrl] = useState<string | null>(null);
-  const [imageError, setImageError] = useState<string | null>(null);
+  const [videoDataUrl, setVideoDataUrl] = useState<string | null>(null);
+  const [mediaError, setMediaError] = useState<string | null>(null);
   const [compressing, setCompressing] = useState(false);
+  const [processingVideo, setProcessingVideo] = useState(false);
   const [posting, setPosting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activePost, setActivePost] = useState<CommunityPost | null>(null);
   const [friendBusyId, setFriendBusyId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const videoInputRef = useRef<HTMLInputElement>(null);
 
   const handleSendFriendRequest = async (toUserId: string, toDisplayName: string) => {
     if (!user || friendBusyId) return;
@@ -68,14 +76,33 @@ export function GroupPosts({ groupType, groupKey, groupLabel, profile, friends }
     const file = e.target.files?.[0];
     e.target.value = '';
     if (!file) return;
-    setImageError(null);
+    setMediaError(null);
     setCompressing(true);
     try {
-      setImageDataUrl(await compressImageToDataUrl(file));
+      const dataUrl = await compressImageToDataUrl(file);
+      setImageDataUrl(dataUrl);
+      setVideoDataUrl(null); // a post carries at most one attachment
     } catch (err) {
-      setImageError(err instanceof Error ? err.message : 'Could not process that image.');
+      setMediaError(err instanceof Error ? err.message : 'Could not process that image.');
     } finally {
       setCompressing(false);
+    }
+  };
+
+  const handleVideoFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    setMediaError(null);
+    setProcessingVideo(true);
+    try {
+      const dataUrl = await videoFileToDataUrl(file);
+      setVideoDataUrl(dataUrl);
+      setImageDataUrl(null); // a post carries at most one attachment
+    } catch (err) {
+      setMediaError(err instanceof Error ? err.message : 'Could not process that video.');
+    } finally {
+      setProcessingVideo(false);
     }
   };
 
@@ -93,9 +120,11 @@ export function GroupPosts({ groupType, groupKey, groupLabel, profile, friends }
         groupKey,
         body,
         imageDataUrl,
+        videoDataUrl,
       });
       setBody('');
       setImageDataUrl(null);
+      setVideoDataUrl(null);
       await refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not post, please try again.');
@@ -129,21 +158,45 @@ export function GroupPosts({ groupType, groupKey, groupLabel, profile, friends }
               </button>
             </div>
           )}
-          {imageError && <p className="text-xs text-red-500">{imageError}</p>}
+          {videoDataUrl && (
+            <div className="relative inline-block">
+              <video src={videoDataUrl} controls className="h-28 rounded-xl" />
+              <button
+                type="button"
+                onClick={() => setVideoDataUrl(null)}
+                aria-label="Remove video"
+                className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-gray-900 text-white shadow"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          )}
+          {mediaError && <p className="text-xs text-red-500">{mediaError}</p>}
           {error && <p className="text-xs text-red-500">{error}</p>}
           <div className="flex items-center justify-between">
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={compressing}
-              className="flex items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1.5 text-xs font-semibold text-gray-600 transition hover:bg-gray-200 disabled:opacity-60 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
-            >
-              <ImagePlus className="h-3.5 w-3.5" /> {compressing ? 'Processing...' : 'Photo'}
-            </button>
-            <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFile} className="hidden" />
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={compressing || processingVideo}
+                className="flex items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1.5 text-xs font-semibold text-gray-600 transition hover:bg-gray-200 disabled:opacity-60 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+              >
+                <ImagePlus className="h-3.5 w-3.5" /> {compressing ? 'Processing...' : 'Photo'}
+              </button>
+              <button
+                type="button"
+                onClick={() => videoInputRef.current?.click()}
+                disabled={compressing || processingVideo}
+                className="flex items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1.5 text-xs font-semibold text-gray-600 transition hover:bg-gray-200 disabled:opacity-60 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+              >
+                <Video className="h-3.5 w-3.5" /> {processingVideo ? 'Processing...' : 'Video'}
+              </button>
+              <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFile} className="hidden" />
+              <input ref={videoInputRef} type="file" accept="video/*" onChange={handleVideoFile} className="hidden" />
+            </div>
             <button
               type="submit"
-              disabled={(!body.trim() && !imageDataUrl) || posting}
+              disabled={(!body.trim() && !imageDataUrl && !videoDataUrl) || posting}
               className="btn-primary !py-2 text-xs disabled:cursor-not-allowed disabled:opacity-50"
             >
               {posting ? 'Posting...' : 'Post'}
@@ -169,7 +222,7 @@ export function GroupPosts({ groupType, groupKey, groupLabel, profile, friends }
                 No posts in {groupLabel} yet
               </p>
               <p className="mt-1 max-w-xs text-sm text-gray-500 dark:text-gray-400">
-                Share a win, a question, or a photo — yours could be the first thing people see here.
+                Share a win, a question, or a photo/video — yours could be the first thing people see here.
               </p>
             </div>
           </div>
@@ -209,6 +262,14 @@ export function GroupPosts({ groupType, groupKey, groupLabel, profile, friends }
                 <p className="mt-1 line-clamp-3 whitespace-pre-line text-sm text-gray-600 dark:text-gray-300">{p.body}</p>
               )}
               {p.imageUrl && <img src={p.imageUrl} alt="" className="mt-2 max-h-52 w-full rounded-xl object-cover" />}
+              {p.videoUrl && (
+                <video
+                  src={p.videoUrl}
+                  controls
+                  onClick={(e) => e.stopPropagation()}
+                  className="mt-2 max-h-52 w-full rounded-xl bg-black"
+                />
+              )}
               <p className="mt-2 flex items-center gap-1 text-xs text-gray-400 dark:text-gray-500">
                 <MessageCircle className="h-3.5 w-3.5" /> {p.commentCount} comment{p.commentCount === 1 ? '' : 's'}
               </p>

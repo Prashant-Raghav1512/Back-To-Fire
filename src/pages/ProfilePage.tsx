@@ -149,6 +149,7 @@ function MyPostCard({
         <p className="mt-4 line-clamp-3 whitespace-pre-line text-sm text-gray-700 dark:text-gray-300">{post.body}</p>
       )}
       {post.imageUrl && <img src={post.imageUrl} alt="" className="mt-3 h-32 w-full rounded-xl object-cover" />}
+      {post.videoUrl && <video src={post.videoUrl} controls className="mt-3 h-32 w-full rounded-xl bg-black" />}
       <p className="mt-3 text-xs text-gray-400 dark:text-gray-500">
         {timeAgo(post.createdAt)} &middot; {post.commentCount} comment{post.commentCount === 1 ? '' : 's'}
       </p>
