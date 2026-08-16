@@ -271,6 +271,22 @@ CREATE TABLE IF NOT EXISTS article_translations (
   PRIMARY KEY (article_id, language_code)
 );
 
+-- Same cache-forever pattern as article_translations above, for the
+-- exercise guide's translate option (ExerciseModal.tsx's "View full guide"
+-- popup and ExerciseGuide.tsx's inline panel on /exercises — both call
+-- src/lib/exerciseTranslate.ts). muscle_group/difficulty are never
+-- translated (short fixed labels, not prose), so only name/description/
+-- steps are cached here.
+CREATE TABLE IF NOT EXISTS exercise_translations (
+  exercise_id text NOT NULL,
+  language_code text NOT NULL,
+  name text NOT NULL,
+  description text NOT NULL,
+  steps text[] NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (exercise_id, language_code)
+);
+
 -- One row per member — joining any of the three membership types
 -- (src/data/membershipTypes.ts: normal/corporate/family) is what actually
 -- grants someone a member_id; browsing the site or even having a

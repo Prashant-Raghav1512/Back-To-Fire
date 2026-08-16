@@ -1,7 +1,9 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Target, Dumbbell } from 'lucide-react';
 import { DifficultyBadge } from '@/components/DifficultyBadge';
+import { LanguageSelector, ENGLISH } from '@/components/LanguageSelector';
+import { translateExercise, type TranslatedExercise } from '@/lib/exerciseTranslate';
 import type { Exercise } from '@/data/types';
 
 interface ExerciseModalProps {
@@ -10,6 +12,11 @@ interface ExerciseModalProps {
 }
 
 export function ExerciseModal({ exercise, onClose }: ExerciseModalProps) {
+  const [languageCode, setLanguageCode] = useState(ENGLISH);
+  const [translating, setTranslating] = useState(false);
+  const [translationError, setTranslationError] = useState<string | null>(null);
+  const [cache, setCache] = useState<Record<string, TranslatedExercise>>({});
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -22,6 +29,34 @@ export function ExerciseModal({ exercise, onClose }: ExerciseModalProps) {
       document.body.style.overflow = overflow;
     };
   }, [onClose]);
+
+  useEffect(() => {
+    if (languageCode === ENGLISH || cache[languageCode]) return;
+    let cancelled = false;
+    setTranslating(true);
+    setTranslationError(null);
+    translateExercise(exercise.id, { name: exercise.name, description: exercise.description, steps: exercise.steps }, languageCode)
+      .then((translated) => {
+        if (!cancelled) setCache((prev) => ({ ...prev, [languageCode]: translated }));
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        setTranslationError(err instanceof Error ? err.message : 'Could not translate, please try again.');
+        setLanguageCode(ENGLISH);
+      })
+      .finally(() => {
+        if (!cancelled) setTranslating(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [languageCode, exercise.id]);
+
+  const displayed: TranslatedExercise =
+    languageCode !== ENGLISH && cache[languageCode]
+      ? cache[languageCode]
+      : { name: exercise.name, description: exercise.description, steps: exercise.steps };
 
   // Rendered via a portal straight to <body> — this page nests it inside an
   // ancestor with a scroll-reveal animation, and a CSS `transform` on any
@@ -43,7 +78,7 @@ export function ExerciseModal({ exercise, onClose }: ExerciseModalProps) {
         <div className="group relative h-64 shrink-0 overflow-hidden">
           <img
             src={exercise.image}
-            alt={exercise.name}
+            alt={displayed.name}
             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-gray-900/80 to-transparent" />
@@ -58,23 +93,32 @@ export function ExerciseModal({ exercise, onClose }: ExerciseModalProps) {
             <DifficultyBadge level={exercise.difficulty} />
           </div>
           <h2 className="absolute bottom-5 left-5 right-5 font-display text-3xl font-bold text-white">
-            {exercise.name}
+            {displayed.name}
           </h2>
         </div>
         <div className="p-6 sm:p-7">
-          <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-            <Target className="h-4 w-4 text-orange-500" />
-            {exercise.muscleGroup}
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+              <Target className="h-4 w-4 text-orange-500" />
+              {exercise.muscleGroup}
+            </div>
+            <LanguageSelector
+              value={languageCode}
+              onChange={setLanguageCode}
+              translating={translating}
+              label="Translate these instructions"
+            />
           </div>
+          {translationError && <p className="mt-2 text-xs text-red-500">{translationError}</p>}
           <p className="mt-3 text-sm leading-relaxed text-gray-600 dark:text-gray-400">
-            {exercise.description}
+            {displayed.description}
           </p>
           <div className="mt-5 rounded-2xl bg-gray-50 p-5 dark:bg-gray-700/50">
             <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
               <Dumbbell className="h-3.5 w-3.5" /> How to perform
             </p>
             <ol className="mt-3 space-y-3">
-              {exercise.steps.map((step, i) => (
+              {displayed.steps.map((step, i) => (
                 <li key={i} className="flex gap-3 text-sm text-gray-700 dark:text-gray-300">
                   <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-green-500 text-xs font-bold text-white">
                     {i + 1}

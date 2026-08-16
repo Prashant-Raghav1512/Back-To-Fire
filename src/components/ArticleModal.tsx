@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Clock, Sunrise, Flame, Sparkles, Zap, Dumbbell, Apple, Salad, Utensils, Languages, Loader2 } from 'lucide-react';
-import { indianLanguages } from '@/data/indianLanguages';
+import { X, Clock, Sunrise, Flame, Sparkles, Zap, Dumbbell, Apple, Salad, Utensils } from 'lucide-react';
+import { LanguageSelector, ENGLISH } from '@/components/LanguageSelector';
 import { translateArticle, type TranslatedArticle } from '@/lib/articleTranslate';
 import type { Article } from '@/data/types';
 
@@ -21,33 +21,34 @@ interface ArticleModalProps {
 // Mirrors EventModal.tsx: portal straight to <body> so this modal's
 // `position: fixed` isn't hijacked by a `transform` on an ancestor (e.g. the
 // scroll-reveal animation on the grid it was opened from).
-const ENGLISH = 'en';
-
 export function ArticleModal({ article, onClose }: ArticleModalProps) {
   const [languageCode, setLanguageCode] = useState(ENGLISH);
   const [translating, setTranslating] = useState(false);
   const [translationError, setTranslationError] = useState<string | null>(null);
   const [cache, setCache] = useState<Record<string, TranslatedArticle>>({});
 
-  const handleLanguageChange = async (code: string) => {
-    setLanguageCode(code);
-    setTranslationError(null);
-    if (code === ENGLISH || cache[code]) return;
-
-    const language = indianLanguages.find((l) => l.code === code);
-    if (!language) return;
-
+  useEffect(() => {
+    if (languageCode === ENGLISH || cache[languageCode]) return;
+    let cancelled = false;
     setTranslating(true);
-    try {
-      const translated = await translateArticle(article.id, { title: article.title, content: article.content }, language.code);
-      setCache((prev) => ({ ...prev, [code]: translated }));
-    } catch (err) {
-      setTranslationError(err instanceof Error ? err.message : 'Could not translate, please try again.');
-      setLanguageCode(ENGLISH);
-    } finally {
-      setTranslating(false);
-    }
-  };
+    setTranslationError(null);
+    translateArticle(article.id, { title: article.title, content: article.content }, languageCode)
+      .then((translated) => {
+        if (!cancelled) setCache((prev) => ({ ...prev, [languageCode]: translated }));
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        setTranslationError(err instanceof Error ? err.message : 'Could not translate, please try again.');
+        setLanguageCode(ENGLISH);
+      })
+      .finally(() => {
+        if (!cancelled) setTranslating(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [languageCode]);
 
   const displayed: TranslatedArticle =
     languageCode !== ENGLISH && cache[languageCode]
@@ -106,24 +107,12 @@ export function ArticleModal({ article, onClose }: ArticleModalProps) {
               <span className={`badge ${categoryStyles[article.category]}`}>{article.category}</span>
             </div>
 
-            <label className="flex items-center gap-1.5 text-gray-400 dark:text-gray-500">
-              <Languages className="h-4 w-4 shrink-0" />
-              <select
-                value={languageCode}
-                onChange={(e) => handleLanguageChange(e.target.value)}
-                disabled={translating}
-                aria-label="Translate this article"
-                className="rounded-full border-0 bg-gray-100 py-1.5 pl-3 pr-7 text-xs font-semibold text-gray-700 outline-none ring-1 ring-transparent transition focus:ring-green-500 disabled:opacity-60 dark:bg-gray-700 dark:text-gray-200"
-              >
-                <option value={ENGLISH}>English (Original)</option>
-                {indianLanguages.map((l) => (
-                  <option key={l.code} value={l.code}>
-                    {l.name} ({l.nativeName})
-                  </option>
-                ))}
-              </select>
-              {translating && <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin" />}
-            </label>
+            <LanguageSelector
+              value={languageCode}
+              onChange={setLanguageCode}
+              translating={translating}
+              label="Translate this article"
+            />
           </div>
 
           {translationError && <p className="mt-2 text-xs text-red-500">{translationError}</p>}
