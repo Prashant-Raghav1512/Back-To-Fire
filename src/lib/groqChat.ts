@@ -7,7 +7,14 @@ import { searchKnowledgeBase } from '@/lib/search';
 // GroqCloud (console.groq.com/keys) and update the VITE_GROQ_API_KEY secret
 // if it's ever abused.
 const API_KEY = import.meta.env.VITE_GROQ_API_KEY;
-const MODEL = 'llama-3.3-70b-versatile';
+// llama-3.3-70b-versatile was retired from Groq's catalog (confirmed via
+// GET /v1/models — it no longer appears at all) and started failing every
+// request with a 404 model_not_found. gpt-oss-120b is a reasoning model —
+// unlike llama-3.3, it spends some of its token budget "thinking" before
+// answering, silently returning empty content if max_tokens is too tight
+// for that (confirmed by testing) — reasoning_effort: 'low' keeps that
+// overhead small enough to fit the budget below reliably.
+const MODEL = 'openai/gpt-oss-120b';
 const CONTEXT_CHUNKS = 3;
 const HISTORY_TURNS = 6;
 
@@ -50,6 +57,7 @@ export async function generateChatResponse(
       messages,
       temperature: 0.3,
       max_tokens: 300,
+      reasoning_effort: 'low',
     }),
   });
 

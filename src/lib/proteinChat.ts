@@ -5,7 +5,9 @@
 // abused. See groqChat.ts's SECURITY NOTE for the full reasoning — it
 // applies unchanged here.
 const API_KEY = import.meta.env.VITE_GROQ_PROTEIN_API_KEY;
-const MODEL = 'llama-3.3-70b-versatile';
+// See groqChat.ts's comment on MODEL — same retirement, same replacement,
+// same reasoning-effort tradeoff.
+const MODEL = 'openai/gpt-oss-120b';
 const HISTORY_TURNS = 6;
 
 const SYSTEM_PROMPT = `You are a nutrition assistant on Born to Fire, a calisthenics and home fitness platform. The visitor will describe what they ate (a meal, a whole day, or just one food item, in any amount of detail). Your job:
@@ -47,6 +49,7 @@ export async function estimateProteinFromFood(
       messages,
       temperature: 0.2,
       max_tokens: 400,
+      reasoning_effort: 'low',
     }),
   });
 
