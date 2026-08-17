@@ -31,7 +31,7 @@ export function Logo({ onClick, onHero }: LogoProps) {
         <img
           src={`${import.meta.env.BASE_URL}logo.png`}
           alt="Born to Fire"
-          className="relative h-12 w-auto transition-transform duration-300 group-hover:rotate-6 group-hover:scale-110"
+          className="relative h-12 w-auto scale-[2] transition-transform duration-300 group-hover:rotate-6 group-hover:scale-[2.2]"
         />
       </span>
       <span className="flex flex-col leading-none">
