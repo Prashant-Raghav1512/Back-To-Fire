@@ -1,14 +1,7 @@
-import { neon } from '@neondatabase/serverless';
-
-// SECURITY NOTE: this connection string is shipped in the client bundle and
-// is visible to anyone who opens devtools. Neon's connection proxy only
-// authenticates roles created through its own control plane, and every such
-// role is automatically a member of `neon_superuser` (full read/write/DDL on
-// the whole database) — there is no way on this Neon project to scope a
-// browser-connectable role down to insert-only. This was a deliberate,
-// informed tradeoff, not an oversight: anyone can read or delete everything
-// in this database via this credential.
-const connectionString = import.meta.env.VITE_NEON_CONTACT_URL;
+// Goes through the data API Worker (see cloudflare-worker-data/) rather
+// than connecting to Neon directly from the browser — the real database
+// credential lives server-side now. See cloudflare-worker-data/README.md.
+const API_URL = import.meta.env.VITE_DATA_API_URL;
 
 export type ContactPurpose = 'Membership' | 'Program' | 'Event' | 'Others';
 
@@ -23,19 +16,25 @@ export interface ContactPayload {
 }
 
 export async function submitContact(payload: ContactPayload): Promise<void> {
-  if (!connectionString) {
-    throw new Error('Contact form is not configured (VITE_NEON_CONTACT_URL is unset).');
+  if (!API_URL) {
+    throw new Error('Contact form is not configured (VITE_DATA_API_URL is unset).');
   }
-  const sql = neon(connectionString);
-  await sql`
-    INSERT INTO contact_submissions (name, email, phone, purpose, purpose_detail, message)
-    VALUES (
-      ${payload.name.trim()},
-      ${payload.email.trim()},
-      ${payload.phone.trim() || null},
-      ${payload.purpose},
-      ${payload.purpose === 'Others' ? payload.purposeDetail.trim() || null : null},
-      ${payload.message.trim()}
-    )
-  `;
+
+  const res = await fetch(`${API_URL}/contact`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      name: payload.name.trim(),
+      email: payload.email.trim(),
+      phone: payload.phone.trim() || undefined,
+      purpose: payload.purpose,
+      purposeDetail: payload.purpose === 'Others' ? payload.purposeDetail.trim() || undefined : undefined,
+      message: payload.message.trim(),
+    }),
+  });
+
+  if (!res.ok) {
+    const body: { error?: { message?: string } } = await res.json().catch(() => ({}));
+    throw new Error(body.error?.message ?? `Request failed with status ${res.status}`);
+  }
 }

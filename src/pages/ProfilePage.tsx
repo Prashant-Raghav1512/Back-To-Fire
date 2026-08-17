@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ArrowRight, Calendar, Check, Copy, Dumbbell, IdCard, Loader2, LogIn, MessageCircle, Trash2, UserRound } from 'lucide-react';
-import { useUser, useClerk } from '@clerk/clerk-react';
+import { useUser, useClerk, useAuth } from '@clerk/clerk-react';
 import { SectionHeading } from '@/components/SectionHeading';
 import { EventStatusBadge } from '@/components/EventStatusBadge';
 import { EventModal } from '@/components/EventModal';
@@ -196,6 +196,7 @@ function MyPostCard({
 
 export function ProfilePage() {
   const { user, isSignedIn, isLoaded } = useUser();
+  const { getToken } = useAuth();
   const { openSignIn } = useClerk();
   const { navigate } = useRouter();
   const ref = useReveal<HTMLDivElement>();
@@ -217,7 +218,7 @@ export function ProfilePage() {
 
   const handleDeletePost = async (postId: number) => {
     if (!user) return;
-    await deletePost(postId, user.id);
+    await deletePost(postId, await getToken());
     await refreshPosts();
   };
 

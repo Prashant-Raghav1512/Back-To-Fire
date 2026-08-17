@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { Check, X, Clock, Search, Loader2 } from 'lucide-react';
-import { useUser } from '@clerk/clerk-react';
+import { useUser, useAuth } from '@clerk/clerk-react';
 import { cancelFriendRequest, respondToFriendRequest, sendFriendRequest, type UseFriendsResult } from '@/lib/friends';
 import { findUserByFriendId, type FriendIdSearchResult } from '@/lib/friendId';
 import { FriendActionButton } from '@/components/community/FriendActionButton';
 
 export function FriendRequestsPanel({ friends }: { friends: UseFriendsResult }) {
   const { user } = useUser();
+  const { getToken } = useAuth();
   const [busyId, setBusyId] = useState<number | null>(null);
 
   const [searchId, setSearchId] = useState('');
@@ -19,7 +20,7 @@ export function FriendRequestsPanel({ friends }: { friends: UseFriendsResult }) 
     if (!user || busyId !== null) return;
     setBusyId(requestId);
     try {
-      await respondToFriendRequest(requestId, user.id, accept);
+      await respondToFriendRequest(requestId, accept, await getToken());
       await friends.refresh();
     } finally {
       setBusyId(null);
@@ -30,7 +31,7 @@ export function FriendRequestsPanel({ friends }: { friends: UseFriendsResult }) 
     if (!user || busyId !== null) return;
     setBusyId(requestId);
     try {
-      await cancelFriendRequest(requestId, user.id);
+      await cancelFriendRequest(requestId, await getToken());
       await friends.refresh();
     } finally {
       setBusyId(null);
@@ -61,12 +62,14 @@ export function FriendRequestsPanel({ friends }: { friends: UseFriendsResult }) 
     if (!user || !searchResult || searchFriendBusy) return;
     setSearchFriendBusy(true);
     try {
-      await sendFriendRequest({
-        fromUserId: user.id,
-        fromDisplayName: user.fullName ?? user.username ?? 'A Born to Fire member',
-        toUserId: searchResult.clerkUserId,
-        toDisplayName: searchResult.displayName,
-      });
+      await sendFriendRequest(
+        {
+          fromDisplayName: user.fullName ?? user.username ?? 'A Born to Fire member',
+          toUserId: searchResult.clerkUserId,
+          toDisplayName: searchResult.displayName,
+        },
+        await getToken()
+      );
       await friends.refresh();
     } catch {
       // Button reflects the current state - not worth a dedicated error UI for a secondary action.
@@ -79,7 +82,7 @@ export function FriendRequestsPanel({ friends }: { friends: UseFriendsResult }) 
     if (!user || searchFriendBusy) return;
     setSearchFriendBusy(true);
     try {
-      await respondToFriendRequest(requestId, user.id, true);
+      await respondToFriendRequest(requestId, true, await getToken());
       await friends.refresh();
     } finally {
       setSearchFriendBusy(false);

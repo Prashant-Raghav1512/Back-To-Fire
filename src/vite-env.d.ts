@@ -2,11 +2,13 @@
 
 interface ImportMetaEnv {
   /**
-   * Neon connection string used directly from the browser to insert contact
-   * form submissions. This is intentionally public (baked into the client
-   * bundle) — see src/lib/contact.ts for why, and what that means.
+   * Base URL of the data API Cloudflare Worker (see cloudflare-worker-data/)
+   * that every src/lib/*.ts file which used to connect to Neon directly
+   * from the browser now calls instead — the real Neon credential lives
+   * server-side as a Worker secret, and the Worker verifies each visitor's
+   * actual Clerk session before trusting any user-scoped request.
    */
-  readonly VITE_NEON_CONTACT_URL?: string;
+  readonly VITE_DATA_API_URL?: string;
 
   /**
    * Base URL of the Groq proxy Cloudflare Worker (see cloudflare-worker/)

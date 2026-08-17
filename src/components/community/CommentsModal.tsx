@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Send, Trash2, Loader2 } from 'lucide-react';
-import { useUser, useClerk } from '@clerk/clerk-react';
+import { useUser, useClerk, useAuth } from '@clerk/clerk-react';
 import { addComment, deleteComment, deletePost, getComments } from '@/lib/communityPosts';
 import { timeAgo } from '@/lib/timeAgo';
 import type { CommunityComment, CommunityPost } from '@/data/types';
@@ -19,6 +19,7 @@ interface CommentsModalProps {
 // portal/escape-key/scroll-lock structure.
 export function CommentsModal({ post, onClose, onChanged }: CommentsModalProps) {
   const { user, isSignedIn } = useUser();
+  const { getToken } = useAuth();
   const { openSignIn } = useClerk();
   const [comments, setComments] = useState<CommunityComment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -64,12 +65,14 @@ export function CommentsModal({ post, onClose, onChanged }: CommentsModalProps) 
     setSending(true);
     setError(null);
     try {
-      await addComment({
-        postId: post.id,
-        clerkUserId: user.id,
-        displayName: user.fullName ?? user.username ?? 'A Born to Fire member',
-        body: text,
-      });
+      await addComment(
+        {
+          postId: post.id,
+          displayName: user.fullName ?? user.username ?? 'A Born to Fire member',
+          body: text,
+        },
+        await getToken()
+      );
       setInput('');
       await refresh();
       onChanged();
@@ -84,7 +87,7 @@ export function CommentsModal({ post, onClose, onChanged }: CommentsModalProps) 
     if (!user) return;
     setDeletingPost(true);
     try {
-      await deletePost(post.id, user.id);
+      await deletePost(post.id, await getToken());
       onChanged();
       onClose();
     } finally {
@@ -94,7 +97,7 @@ export function CommentsModal({ post, onClose, onChanged }: CommentsModalProps) 
 
   const handleDeleteComment = async (commentId: number) => {
     if (!user) return;
-    await deleteComment(commentId, user.id);
+    await deleteComment(commentId, await getToken());
     setConfirmDeleteCommentId(null);
     await refresh();
     onChanged();

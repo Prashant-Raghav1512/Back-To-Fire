@@ -23,7 +23,7 @@ import {
   UserRound,
   UserMinus,
 } from 'lucide-react';
-import { useUser, useClerk } from '@clerk/clerk-react';
+import { useUser, useClerk, useAuth } from '@clerk/clerk-react';
 import { SectionHeading } from '@/components/SectionHeading';
 import { AnimatedPageBackground } from '@/components/AnimatedPageBackground';
 import { GroupChat } from '@/components/community/GroupChat';
@@ -105,6 +105,7 @@ function SidebarSection({ title, children }: { title: string; children: React.Re
 
 export function CommunityPage() {
   const { user, isSignedIn } = useUser();
+  const { getToken } = useAuth();
   const { openSignIn } = useClerk();
   const { profile, saveState } = useCommunityProfile();
   const friends = useFriends();
@@ -135,7 +136,7 @@ export function CommunityPage() {
     if (!user || panel.kind !== 'dm') return;
     setRemovingFriend(true);
     try {
-      await removeFriend(panel.friend.requestId, user.id);
+      await removeFriend(panel.friend.requestId, await getToken());
       await friends.refresh();
       setPanel({ kind: 'group', group: INDIA_GROUP });
     } finally {

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Send } from 'lucide-react';
-import { useUser } from '@clerk/clerk-react';
+import { useAuth, useUser } from '@clerk/clerk-react';
 import { sendDirectMessage, useDirectMessages } from '@/lib/directMessages';
 import { timeAgo } from '@/lib/timeAgo';
 import type { FriendView } from '@/lib/friends';
@@ -19,6 +19,7 @@ interface DirectMessageChatProps {
 // check needed here.
 export function DirectMessageChat({ friend, profile }: DirectMessageChatProps) {
   const { user } = useUser();
+  const { getToken } = useAuth();
   const { messages, refresh } = useDirectMessages(user?.id, friend.clerkUserId);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
@@ -32,12 +33,14 @@ export function DirectMessageChat({ friend, profile }: DirectMessageChatProps) {
     setSending(true);
     setError(null);
     try {
-      await sendDirectMessage({
-        senderClerkUserId: user.id,
-        senderDisplayName: profile.displayName,
-        recipientClerkUserId: friend.clerkUserId,
-        message: text,
-      });
+      await sendDirectMessage(
+        {
+          senderDisplayName: profile.displayName,
+          recipientClerkUserId: friend.clerkUserId,
+          message: text,
+        },
+        await getToken()
+      );
       setInput('');
       await refresh();
     } catch (err) {

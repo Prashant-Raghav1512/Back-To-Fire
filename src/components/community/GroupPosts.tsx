@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { ImagePlus, MessageCircle, Sparkles, Video, X } from 'lucide-react';
-import { useUser, useClerk } from '@clerk/clerk-react';
+import { useUser, useClerk, useAuth } from '@clerk/clerk-react';
 import { createPost, usePosts } from '@/lib/communityPosts';
 import { compressImageToDataUrl } from '@/lib/imageUpload';
 import { videoFileToDataUrl } from '@/lib/videoUpload';
@@ -28,6 +28,7 @@ interface GroupPostsProps {
 // only ever shows what usePosts() actually returns from Neon.
 export function GroupPosts({ groupType, groupKey, groupLabel, profile, friends }: GroupPostsProps) {
   const { user, isSignedIn } = useUser();
+  const { getToken } = useAuth();
   const { openSignIn } = useClerk();
   const { posts, refresh } = usePosts(groupType, groupKey);
   const [body, setBody] = useState('');
@@ -47,12 +48,14 @@ export function GroupPosts({ groupType, groupKey, groupLabel, profile, friends }
     if (!user || friendBusyId) return;
     setFriendBusyId(toUserId);
     try {
-      await sendFriendRequest({
-        fromUserId: user.id,
-        fromDisplayName: user.fullName ?? user.username ?? 'A Born to Fire member',
-        toUserId,
-        toDisplayName,
-      });
+      await sendFriendRequest(
+        {
+          fromDisplayName: user.fullName ?? user.username ?? 'A Born to Fire member',
+          toUserId,
+          toDisplayName,
+        },
+        await getToken()
+      );
       await friends.refresh();
     } catch {
       // Button just stays in its current state - not worth a dedicated error UI for a secondary action.
@@ -65,7 +68,7 @@ export function GroupPosts({ groupType, groupKey, groupLabel, profile, friends }
     if (!user || friendBusyId) return;
     setFriendBusyId(fromUserId);
     try {
-      await respondToFriendRequest(requestId, user.id, true);
+      await respondToFriendRequest(requestId, true, await getToken());
       await friends.refresh();
     } finally {
       setFriendBusyId(null);
@@ -112,16 +115,18 @@ export function GroupPosts({ groupType, groupKey, groupLabel, profile, friends }
     setPosting(true);
     setError(null);
     try {
-      await createPost({
-        clerkUserId: user.id,
-        displayName: profile.displayName,
-        state: profile.state,
-        groupType,
-        groupKey,
-        body,
-        imageDataUrl,
-        videoDataUrl,
-      });
+      await createPost(
+        {
+          displayName: profile.displayName,
+          state: profile.state,
+          groupType,
+          groupKey,
+          body,
+          imageDataUrl,
+          videoDataUrl,
+        },
+        await getToken()
+      );
       setBody('');
       setImageDataUrl(null);
       setVideoDataUrl(null);

@@ -22,12 +22,13 @@
          ignored in a meta tag per spec, HTTP-header-only), but everything
          else below is real. Origins are scoped to exactly what this app
          talks to: Clerk (auth, dynamic *.clerk.accounts.dev subdomain +
-         img.clerk.com avatars + clerk-telemetry.com), Neon (*.neon.tech,
-         the browser-direct DB calls documented in CLAUDE.md's "No backend,
-         by design"), the Groq proxy Cloudflare Worker (*.workers.dev in
-         production, localhost:8787 for local `wrangler dev` — see
+         img.clerk.com avatars + clerk-telemetry.com), two Cloudflare
+         Workers — the data API (*.workers.dev in production, localhost:8788
+         for local `wrangler dev` — see cloudflare-worker-data/; the client
+         no longer connects to Neon directly, see CLAUDE.md's "No backend,
+         by design") and the Groq proxy (*.workers.dev, localhost:8787 — see
          cloudflare-worker/; the client no longer talks to api.groq.com
-         directly, see groqChat.ts/proteinChat.ts), Google Translate's
+         directly, see groqChat.ts/proteinChat.ts) — Google Translate's
          keyless endpoint (articles), and Google Fonts. 'unsafe-inline'
          stays on script-src and style-src because Clerk's embedded widget
          injects both at runtime — blocking it would break sign-in
@@ -39,7 +40,7 @@
          covers photos fine. -->
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'unsafe-inline' https://*.clerk.accounts.dev https://*.clerk.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' data: blob:; connect-src 'self' https://*.neon.tech https://*.workers.dev http://localhost:8787 https://translate.googleapis.com https://*.clerk.accounts.dev https://*.clerk.com https://clerk-telemetry.com; frame-src https://*.clerk.accounts.dev https://*.clerk.com; worker-src 'self' blob:;"
+      content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'unsafe-inline' https://*.clerk.accounts.dev https://*.clerk.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' data: blob:; connect-src 'self' https://*.workers.dev http://localhost:8787 http://localhost:8788 https://translate.googleapis.com https://*.clerk.accounts.dev https://*.clerk.com https://clerk-telemetry.com; frame-src https://*.clerk.accounts.dev https://*.clerk.com; worker-src 'self' blob:;"
     />
   </head>
   <body>

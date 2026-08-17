@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { Send, MapPin, MessageSquare, ImagePlus, X } from 'lucide-react';
-import { useUser, useClerk } from '@clerk/clerk-react';
+import { useUser, useClerk, useAuth } from '@clerk/clerk-react';
 import { postMessage, useCommunityMessages } from '@/lib/community';
 import { compressImageToDataUrl } from '@/lib/imageUpload';
 import { sendFriendRequest, respondToFriendRequest, type UseFriendsResult } from '@/lib/friends';
@@ -18,6 +18,7 @@ interface MessageBubbleProps {
 
 function MessageBubble({ message, showState, mine, friends, canAddFriends }: MessageBubbleProps) {
   const { user } = useUser();
+  const { getToken } = useAuth();
   const [busy, setBusy] = useState(false);
   const friendStatus = friends.statusFor(message.clerkUserId);
 
@@ -25,12 +26,14 @@ function MessageBubble({ message, showState, mine, friends, canAddFriends }: Mes
     if (!user || busy) return;
     setBusy(true);
     try {
-      await sendFriendRequest({
-        fromUserId: user.id,
-        fromDisplayName: user.fullName ?? user.username ?? 'A Born to Fire member',
-        toUserId: message.clerkUserId,
-        toDisplayName: message.displayName,
-      });
+      await sendFriendRequest(
+        {
+          fromDisplayName: user.fullName ?? user.username ?? 'A Born to Fire member',
+          toUserId: message.clerkUserId,
+          toDisplayName: message.displayName,
+        },
+        await getToken()
+      );
       await friends.refresh();
     } catch {
       // Button just stays in its current state - not worth a dedicated error UI for a secondary action.
@@ -43,7 +46,7 @@ function MessageBubble({ message, showState, mine, friends, canAddFriends }: Mes
     if (!user || busy) return;
     setBusy(true);
     try {
-      await respondToFriendRequest(requestId, user.id, true);
+      await respondToFriendRequest(requestId, true, await getToken());
       await friends.refresh();
     } finally {
       setBusy(false);
@@ -100,6 +103,7 @@ interface GroupChatProps {
 // and home state to snapshot onto the message).
 export function GroupChat({ groupType, groupKey, groupLabel, profile, friends }: GroupChatProps) {
   const { user, isSignedIn } = useUser();
+  const { getToken } = useAuth();
   const { openSignIn } = useClerk();
   const { messages, refresh } = useCommunityMessages(groupType, groupKey);
   const [input, setInput] = useState('');
@@ -132,15 +136,17 @@ export function GroupChat({ groupType, groupKey, groupLabel, profile, friends }:
     setSending(true);
     setError(null);
     try {
-      await postMessage({
-        clerkUserId: user.id,
-        displayName: profile.displayName,
-        state: profile.state,
-        groupType,
-        groupKey,
-        message: text,
-        imageDataUrl,
-      });
+      await postMessage(
+        {
+          displayName: profile.displayName,
+          state: profile.state,
+          groupType,
+          groupKey,
+          message: text,
+          imageDataUrl,
+        },
+        await getToken()
+      );
       setInput('');
       setImageDataUrl(null);
       await refresh();

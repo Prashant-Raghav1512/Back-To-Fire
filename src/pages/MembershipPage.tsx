@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { User, Building2, Users, Check, Loader2, Search, Trash2, IdCard, XCircle } from 'lucide-react';
-import { useUser, useClerk } from '@clerk/clerk-react';
+import { useUser, useClerk, useAuth } from '@clerk/clerk-react';
 import { SectionHeading } from '@/components/SectionHeading';
 import { AnimatedPageBackground } from '@/components/AnimatedPageBackground';
 import { PaymentMethodSelector } from '@/components/PaymentMethodSelector';
@@ -142,6 +142,7 @@ function TypePickerCard({
 // MembershipPlans.tsx's selector on /programs.
 export function MembershipPage() {
   const { user, isSignedIn, isLoaded } = useUser();
+  const { getToken } = useAuth();
   const { openSignIn } = useClerk();
   const { membership, loading, refresh } = useMembership();
   const friends = useFriends();
@@ -186,15 +187,17 @@ export function MembershipPage() {
     setJoining(true);
     setJoinError(null);
     try {
-      await createMembership({
-        clerkUserId: user.id,
-        displayName: user.fullName ?? user.username ?? 'Born to Fire member',
-        membershipType: selectedType,
-        companyName: selectedType === 'corporate' ? companyName.trim() : undefined,
-        price: selectedPrice,
-        billingCycle: selectedTypeIsPaid ? billingCycle : undefined,
-        paymentMethod: selectedTypeIsPaid ? selectedMethod : undefined,
-      });
+      await createMembership(
+        {
+          displayName: user.fullName ?? user.username ?? 'Born to Fire member',
+          membershipType: selectedType,
+          companyName: selectedType === 'corporate' ? companyName.trim() : undefined,
+          price: selectedPrice,
+          billingCycle: selectedTypeIsPaid ? billingCycle : undefined,
+          paymentMethod: selectedTypeIsPaid ? selectedMethod : undefined,
+        },
+        await getToken()
+      );
       await refresh();
     } catch (err) {
       setJoinError(err instanceof Error ? err.message : 'Could not join, please try again.');
@@ -209,12 +212,15 @@ export function MembershipPage() {
     setAddingFamily(true);
     setFamilyError(null);
     try {
-      await addFamilyMember({
-        membershipId: membership.id,
-        name: familyName,
-        relation: familyRelation.trim() || undefined,
-        age: familyAge ? Number(familyAge) : undefined,
-      });
+      await addFamilyMember(
+        {
+          membershipId: membership.id,
+          name: familyName,
+          relation: familyRelation.trim() || undefined,
+          age: familyAge ? Number(familyAge) : undefined,
+        },
+        await getToken()
+      );
       setFamilyName('');
       setFamilyRelation('');
       setFamilyAge('');
@@ -228,7 +234,7 @@ export function MembershipPage() {
 
   const handleRemoveFamilyMember = async (id: number) => {
     if (!membership) return;
-    await removeFamilyMember(id, membership.id);
+    await removeFamilyMember(id, await getToken());
     await refresh();
   };
 
@@ -256,12 +262,14 @@ export function MembershipPage() {
     if (!user || !searchResult || friendBusy) return;
     setFriendBusy(true);
     try {
-      await sendFriendRequest({
-        fromUserId: user.id,
-        fromDisplayName: user.fullName ?? user.username ?? 'A Born to Fire member',
-        toUserId: searchResult.clerkUserId,
-        toDisplayName: searchResult.displayName,
-      });
+      await sendFriendRequest(
+        {
+          fromDisplayName: user.fullName ?? user.username ?? 'A Born to Fire member',
+          toUserId: searchResult.clerkUserId,
+          toDisplayName: searchResult.displayName,
+        },
+        await getToken()
+      );
       await friends.refresh();
     } catch {
       // Button reflects the current state - not worth a dedicated error UI for a secondary action.
@@ -274,7 +282,7 @@ export function MembershipPage() {
     if (!user || friendBusy) return;
     setFriendBusy(true);
     try {
-      await respondToFriendRequest(requestId, user.id, true);
+      await respondToFriendRequest(requestId, true, await getToken());
       await friends.refresh();
     } finally {
       setFriendBusy(false);
@@ -286,7 +294,7 @@ export function MembershipPage() {
     setCancelling(true);
     setCancelError(null);
     try {
-      await cancelMembership(user.id);
+      await cancelMembership(await getToken());
       await refresh();
       setConfirmCancel(false);
     } catch (err) {

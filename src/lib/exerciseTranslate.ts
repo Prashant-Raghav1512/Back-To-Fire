@@ -1,18 +1,5 @@
-import { neon } from '@neondatabase/serverless';
 import { translateBatch } from '@/lib/googleTranslate';
-
-// SECURITY NOTE: same browser-exposed Neon connection as every other
-// Community/contact feature — see contact.ts's SECURITY NOTE for why a
-// separate role wouldn't add real access restriction on this project. This
-// table is just a shared translation cache, not user data.
-const connectionString = import.meta.env.VITE_NEON_CONTACT_URL;
-
-function client() {
-  if (!connectionString) {
-    throw new Error('Translation is not configured (VITE_NEON_CONTACT_URL is unset).');
-  }
-  return neon(connectionString);
-}
+import { apiFetch } from '@/lib/dataApi';
 
 export interface TranslatableExercise {
   name: string;
@@ -26,20 +13,10 @@ export interface TranslatedExercise {
   steps: string[];
 }
 
-interface TranslationRow {
-  name: string;
-  description: string;
-  steps: string[];
-}
-
 async function getCachedTranslation(exerciseId: string, languageCode: string): Promise<TranslatedExercise | null> {
-  const sql = client();
-  const rows = (await sql`
-    SELECT name, description, steps FROM exercise_translations
-    WHERE exercise_id = ${exerciseId} AND language_code = ${languageCode}
-  `) as TranslationRow[];
-  const row = rows[0];
-  return row ? { name: row.name, description: row.description, steps: row.steps } : null;
+  return apiFetch<TranslatedExercise | null>(
+    `/translations/exercise?exerciseId=${encodeURIComponent(exerciseId)}&lang=${encodeURIComponent(languageCode)}`
+  );
 }
 
 async function saveCachedTranslation(
@@ -47,19 +24,19 @@ async function saveCachedTranslation(
   languageCode: string,
   translated: TranslatedExercise
 ): Promise<void> {
-  const sql = client();
-  await sql`
-    INSERT INTO exercise_translations (exercise_id, language_code, name, description, steps)
-    VALUES (${exerciseId}, ${languageCode}, ${translated.name}, ${translated.description}, ${translated.steps})
-    ON CONFLICT (exercise_id, language_code) DO UPDATE SET
-      name = ${translated.name},
-      description = ${translated.description},
-      steps = ${translated.steps},
-      created_at = now()
-  `;
+  await apiFetch('/translations/exercise', {
+    method: 'POST',
+    body: JSON.stringify({
+      exerciseId,
+      languageCode,
+      name: translated.name,
+      description: translated.description,
+      steps: translated.steps,
+    }),
+  });
 }
 
-// Checks Neon's cache first - the common case after the very first reader
+// Checks the cache first - the common case after the very first reader
 // of a given (exercise, language) pair, which never touches the network
 // translation endpoint at all (see src/lib/googleTranslate.ts). Only a
 // cache miss actually calls Google and then persists the result for every

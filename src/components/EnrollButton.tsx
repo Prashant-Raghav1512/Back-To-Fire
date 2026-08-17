@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ArrowRight, Check, Loader2 } from 'lucide-react';
-import { useUser, useClerk } from '@clerk/clerk-react';
+import { useUser, useClerk, useAuth } from '@clerk/clerk-react';
 import { enroll, type EnrollmentItemType } from '@/lib/enrollments';
 
 interface EnrollButtonProps {
@@ -28,6 +28,7 @@ export function EnrollButton({
   disabled,
 }: EnrollButtonProps) {
   const { user, isSignedIn } = useUser();
+  const { getToken } = useAuth();
   const { openSignIn } = useClerk();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -44,14 +45,16 @@ export function EnrollButton({
     setSubmitting(true);
     setError(null);
     try {
-      await enroll({
-        clerkUserId: user.id,
-        userEmail: user.primaryEmailAddress?.emailAddress ?? '',
-        itemType,
-        itemId,
-        itemTitle,
-        itemDetail,
-      });
+      await enroll(
+        {
+          userEmail: user.primaryEmailAddress?.emailAddress ?? '',
+          itemType,
+          itemId,
+          itemTitle,
+          itemDetail,
+        },
+        await getToken()
+      );
       onEnrolled();
       // Brief confirmation bounce so the "Enrolled" state reads as an event
       // that just happened, not just a label that silently changed.

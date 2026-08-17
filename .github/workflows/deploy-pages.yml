@@ -34,10 +34,13 @@ jobs:
           # shipped to the browser. Set as a repository secret (Settings ->
           # Secrets and variables -> Actions -> Secrets).
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          # Neon connection string used directly from the browser by the
-          # contact form. Deliberately baked into the public JS bundle —
-          # see src/lib/contact.ts for why.
-          VITE_NEON_CONTACT_URL: ${{ secrets.VITE_NEON_CONTACT_URL }}
+          # URL of the data API Cloudflare Worker that every browser-side
+          # Neon call (contact form, enrollments, membership, Community,
+          # friends, DMs, translation cache) now goes through instead of
+          # connecting to Neon directly. Not a secret itself (just an
+          # endpoint address) — the real Neon credential and Clerk secret
+          # key live server-side as Worker secrets. See cloudflare-worker-data/.
+          VITE_DATA_API_URL: ${{ secrets.VITE_DATA_API_URL }}
           # URL of the Cloudflare Worker that proxies both Groq-backed chat
           # features (main chatbot + Tools page protein estimator). Not a
           # secret itself (just an endpoint address) — the real Groq keys
@@ -45,7 +48,7 @@ jobs:
           VITE_GROQ_PROXY_URL: ${{ secrets.VITE_GROQ_PROXY_URL }}
           # Note: the Articles page's translator (src/lib/articleTranslate.ts)
           # needs no key of its own — it calls Google Translate's free
-          # endpoint directly and caches results via VITE_NEON_CONTACT_URL
+          # endpoint directly and caches results via VITE_DATA_API_URL
           # above.
           # Clerk publishable key powering sign-in/sign-up. Public by
           # design — see src/main.tsx.

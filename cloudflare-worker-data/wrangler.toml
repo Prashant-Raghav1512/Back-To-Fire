@@ -1,0 +1,8 @@
+name = "born-to-fire-data-api"
+main = "index.ts"
+compatibility_date = "2026-08-01"
+
+# Non-secret config. DATABASE_URL / CLERK_SECRET_KEY are NOT here — they're
+# set via `wrangler secret put`, see ../README.md in this directory.
+[vars]
+ALLOWED_ORIGIN = "https://prashant-raghav1512.github.io,http://localhost:5173,http://localhost:5174,http://localhost:4173,http://localhost:4174"
