@@ -109,10 +109,10 @@ export function Navbar() {
       {/* Mobile menu */}
       <div
         className={`xl:hidden overflow-hidden transition-all duration-300 ${
-          open ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+          open ? 'max-h-[80vh] opacity-100' : 'max-h-0 opacity-0'
         }`}
       >
-        <div className="mx-4 mb-4 rounded-3xl bg-white p-4 shadow-xl ring-1 ring-gray-100 dark:bg-gray-800 dark:ring-gray-700">
+        <div className="mx-4 mb-4 max-h-[calc(80vh-2rem)] overflow-y-auto rounded-3xl bg-white p-4 shadow-xl ring-1 ring-gray-100 dark:bg-gray-800 dark:ring-gray-700">
           {navLinks.map((link) => {
             const active = path === link.path;
             return (
