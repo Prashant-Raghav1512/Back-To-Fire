@@ -42,14 +42,14 @@ export function Navbar() {
       <nav className="container-x mx-auto flex h-16 items-center justify-between px-5 sm:h-20 sm:px-8">
         <Logo onClick={() => go('/')} onHero={path === '/' && !scrolled} />
 
-        <div className="hidden items-center gap-1 md:flex">
+        <div className="hidden items-center gap-0.5 xl:flex">
           {navLinks.map((link) => {
             const active = path === link.path;
             return (
               <button
                 key={link.path}
                 onClick={() => go(link.path)}
-                className={`relative rounded-full px-4 py-2 text-sm font-medium transition-colors duration-200 ${
+                className={`relative whitespace-nowrap rounded-full px-3 py-2 text-sm font-medium transition-colors duration-200 ${
                   active
                     ? 'text-green-700 dark:text-green-400'
                     : 'nav-link-hover text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white'
@@ -99,7 +99,7 @@ export function Navbar() {
           <button
             onClick={() => setOpen((o) => !o)}
             aria-label="Toggle menu"
-            className="flex h-10 w-10 items-center justify-center rounded-full text-gray-700 transition-colors hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800 md:hidden"
+            className="flex h-10 w-10 items-center justify-center rounded-full text-gray-700 transition-colors hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800 xl:hidden"
           >
             {open ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </button>
@@ -108,7 +108,7 @@ export function Navbar() {
 
       {/* Mobile menu */}
       <div
-        className={`md:hidden overflow-hidden transition-all duration-300 ${
+        className={`xl:hidden overflow-hidden transition-all duration-300 ${
           open ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
         }`}
       >
