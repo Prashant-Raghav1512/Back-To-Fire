@@ -73,6 +73,8 @@ export function usePosts(groupType: CommunityGroupType, groupKey: string) {
     setLoading(true);
     try {
       setPosts(await getPosts(groupType, keyRef.current));
+    } catch (err) {
+      console.error('Failed to load Community posts:', err);
     } finally {
       setLoading(false);
     }
@@ -104,6 +106,8 @@ export function useMyPosts() {
     setLoading(true);
     try {
       setPosts(await getMyPosts(await getToken()));
+    } catch (err) {
+      console.error('Failed to load your posts:', err);
     } finally {
       setLoading(false);
     }

@@ -50,6 +50,8 @@ export function useDirectMessages(me: string | undefined, otherUserId: string | 
     setLoading(true);
     try {
       setMessages(await getConversation(otherUserId, await getToken()));
+    } catch (err) {
+      console.error('Failed to load direct messages:', err);
     } finally {
       setLoading(false);
     }

@@ -87,6 +87,9 @@ export function useFriendId() {
       .then((id) => {
         if (!cancelled) setFriendId(id);
       })
+      .catch((err) => {
+        console.error('Failed to load Friend ID:', err);
+      })
       .finally(() => {
         if (!cancelled) setLoading(false);
       });

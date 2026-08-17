@@ -88,6 +88,8 @@ export function useFriends() {
     setLoading(true);
     try {
       setRows(await fetchMyFriendRows(await getToken()));
+    } catch (err) {
+      console.error('Failed to load friends:', err);
     } finally {
       setLoading(false);
     }

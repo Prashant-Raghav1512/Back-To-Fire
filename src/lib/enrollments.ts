@@ -47,6 +47,8 @@ export function useMyEnrollments() {
     setLoading(true);
     try {
       setEnrollments(await getMyEnrollments(await getToken()));
+    } catch (err) {
+      console.error('Failed to load enrollments:', err);
     } finally {
       setLoading(false);
     }

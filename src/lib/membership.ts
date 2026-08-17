@@ -93,6 +93,8 @@ export function useMembership() {
     setLoading(true);
     try {
       setMembership(await getMyMembership(await getToken()));
+    } catch (err) {
+      console.error('Failed to load membership:', err);
     } finally {
       setLoading(false);
     }

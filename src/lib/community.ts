@@ -58,6 +58,8 @@ export function useCommunityProfile() {
     setLoading(true);
     try {
       setProfile(await getMyProfile(await getToken()));
+    } catch (err) {
+      console.error('Failed to load Community profile:', err);
     } finally {
       setLoading(false);
     }
@@ -118,6 +120,8 @@ export function useCommunityMessages(groupType: CommunityGroupType, groupKey: st
     setLoading(true);
     try {
       setMessages(await getMessages(groupType, keyRef.current));
+    } catch (err) {
+      console.error('Failed to load Community messages:', err);
     } finally {
       setLoading(false);
     }
