@@ -31,12 +31,12 @@ export function Logo({ onClick, onHero }: LogoProps) {
         <img
           src={`${import.meta.env.BASE_URL}logo.png`}
           alt="Born to Fire"
-          className="relative h-10 w-auto transition-transform duration-300 group-hover:rotate-6 group-hover:scale-110"
+          className="relative h-12 w-auto transition-transform duration-300 group-hover:rotate-6 group-hover:scale-110"
         />
       </span>
       <span className="flex flex-col leading-none">
         <span
-          className={`font-display text-lg font-extrabold tracking-tight ${
+          className={`font-display text-xl font-extrabold tracking-tight ${
             onHero ? 'text-white' : 'text-gray-900 dark:text-white'
           }`}
         >
@@ -59,7 +59,7 @@ export function Logo({ onClick, onHero }: LogoProps) {
             specifically in that one Home-hero scenario, so it's frozen to
             its original value there and only fixed for every other case. */}
         <span
-          className={`text-[10px] font-medium uppercase tracking-[0.18em] ${
+          className={`text-[11px] font-medium uppercase tracking-[0.18em] ${
             onHero ? 'text-gray-400 dark:text-gray-500' : 'text-gray-500 dark:text-gray-400'
           }`}
         >
