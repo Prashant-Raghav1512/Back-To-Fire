@@ -113,6 +113,8 @@ export interface GymBranch {
   hours: string;
   lat: number;
   lng: number;
+  /** True for exactly one branch — the head branch. See src/data/gymBranches.ts. */
+  isHeadquarters?: boolean;
 }
 
 export type Gender = 'Male' | 'Female' | 'Other' | 'Prefer not to say';

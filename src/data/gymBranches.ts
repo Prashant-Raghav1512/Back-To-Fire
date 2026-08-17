@@ -2,7 +2,10 @@ import type { GymBranch } from '@/data/types';
 
 // Static, like `events`/`paidPlans` — not Neon-backed. Coordinates are
 // locality-level approximations (fine for "which branch is closest", not
-// survey-grade), used by src/lib/gymBranches.ts's distance sort.
+// survey-grade), used by src/lib/gymBranches.ts's distance sort. Every
+// branch here is in Bengaluru — Indiranagar is the head branch
+// (`isHeadquarters: true`), called out explicitly on ContactPage.tsx's
+// "Our Branches" card rather than left implicit in the "(HQ)" in its name.
 export const gymBranches: GymBranch[] = [
   {
     id: 'indiranagar',
@@ -13,6 +16,7 @@ export const gymBranches: GymBranch[] = [
     hours: 'Mon–Sat, 5:30 AM – 9:30 PM',
     lat: 12.9716,
     lng: 77.6412,
+    isHeadquarters: true,
   },
   {
     id: 'koramangala',

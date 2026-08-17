@@ -53,7 +53,15 @@ function ContactInfoCard({ Icon, label, value, href, onClick }: ContactInfoCardP
   );
 }
 
-const branchLocalities = gymBranches.map((b) => b.locality).join(' · ');
+// Leads with the head branch and calls out the city explicitly — the
+// underlying gym branches are all in Bengaluru, but that context was
+// previously implicit (only in each branch's full street address), not
+// stated on this card itself.
+const headBranch = gymBranches.find((b) => b.isHeadquarters);
+const otherLocalities = gymBranches.filter((b) => !b.isHeadquarters).map((b) => b.locality).join(' · ');
+const branchLocalities = headBranch
+  ? `Head branch: ${headBranch.locality}, Bengaluru · ${otherLocalities}`
+  : gymBranches.map((b) => b.locality).join(' · ');
 
 export function ContactPage() {
   const ref = useReveal<HTMLDivElement>();
