@@ -15,7 +15,7 @@ export function Logo({ onClick, onHero }: LogoProps) {
   return (
     <button
       onClick={onClick}
-      className="group flex items-center gap-2.5 outline-none"
+      className="group flex items-center gap-2 outline-none"
       aria-label="Born to Fire - home"
     >
       <span className="relative flex shrink-0 items-center">
@@ -36,7 +36,7 @@ export function Logo({ onClick, onHero }: LogoProps) {
       </span>
       <span className="flex flex-col leading-none">
         <span
-          className={`font-display text-xl font-extrabold tracking-tight ${
+          className={`whitespace-nowrap font-display text-xl font-extrabold tracking-tight ${
             onHero ? 'text-white' : 'text-gray-900 dark:text-white'
           }`}
         >

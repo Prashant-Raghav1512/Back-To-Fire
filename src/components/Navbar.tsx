@@ -49,7 +49,7 @@ export function Navbar() {
               <button
                 key={link.path}
                 onClick={() => go(link.path)}
-                className={`relative whitespace-nowrap rounded-full px-2.5 py-2 text-sm font-medium transition-colors duration-200 ${
+                className={`relative whitespace-nowrap rounded-full px-2 py-2 text-sm font-medium transition-colors duration-200 ${
                   active
                     ? 'text-green-700 dark:text-green-400'
                     : 'nav-link-hover text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white'
@@ -74,7 +74,7 @@ export function Navbar() {
           </button>
           <button
             onClick={() => go('/programs')}
-            className="hidden btn-primary !px-5 !py-2.5 text-sm sm:inline-flex lg:!px-4"
+            className="hidden btn-primary !px-5 !py-2.5 text-sm sm:inline-flex lg:hidden xl:inline-flex"
           >
             Start Training
           </button>
