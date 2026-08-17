@@ -39,10 +39,10 @@ export function Navbar() {
           : 'bg-transparent'
       }`}
     >
-      <nav className="container-x mx-auto flex h-16 items-center justify-between px-5 sm:h-20 sm:px-8">
+      <nav className="container-x mx-auto flex h-16 items-center px-5 sm:h-20 sm:px-8">
         <Logo onClick={() => go('/')} onHero={path === '/' && !scrolled} />
 
-        <div className="hidden items-center gap-0 lg:flex">
+        <div className="hidden flex-1 items-center justify-between px-6 lg:flex">
           {navLinks.map((link) => {
             const active = path === link.path;
             return (
@@ -64,7 +64,7 @@ export function Navbar() {
           })}
         </div>
 
-        <div className="flex items-center gap-1 lg:gap-2">
+        <div className="ml-auto flex items-center gap-1 lg:gap-2">
           <button
             onClick={toggle}
             aria-label="Toggle dark mode"
