@@ -18,6 +18,12 @@ import type { FitnessEvent } from '@/data/types';
 
 const iconMap = { Dumbbell, Activity, Calendar, Move } as const;
 
+// Manual cache-busting — see HomeVideoBackground.tsx's identical comment for
+// why: this file lives in public/ and is referenced by a literal path, so
+// it's never content-hashed by Vite the way src/ assets are. Bump this
+// number whenever btf-showcase.mp4 is re-exported/re-encoded.
+const SHOWCASE_VIDEO_SRC = `${import.meta.env.BASE_URL}videos/btf-showcase.mp4?v=2`;
+
 export function HomePage() {
   const { navigate } = useRouter();
   const heroRef = useReveal<HTMLDivElement>();
@@ -165,7 +171,7 @@ export function HomePage() {
               <div className="group relative aspect-[9/16] w-full overflow-hidden rounded-[2rem] bg-gray-900 shadow-2xl ring-4 ring-white/10">
                 {videoInView && (
                   <video
-                    src={`${import.meta.env.BASE_URL}videos/btf-showcase.mp4`}
+                    src={SHOWCASE_VIDEO_SRC}
                     autoPlay
                     muted={videoMuted}
                     loop

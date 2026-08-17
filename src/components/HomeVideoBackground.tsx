@@ -12,6 +12,16 @@ import { useEffect, useRef, useState } from 'react';
 // interaction. `object-contain` (not `cover`) keeps the whole video visible
 // within the fixed viewport box, "windowed" rather than cropped edge to
 // edge — the same fit the old canvas frames used.
+//
+// The `?v=` query string is manual cache-busting: this file lives in
+// public/ and is referenced by a plain literal path, not a JS import, so
+// Vite never fingerprints it with a content hash the way it does src/
+// assets/JS/CSS bundles — a browser (or GitHub Pages' CDN) that already
+// cached this exact URL has no signal that the file changed underneath it
+// and can keep serving the old, larger video indefinitely. Bump this
+// number whenever home-background.mp4 is re-exported/re-encoded.
+const VIDEO_SRC = `${import.meta.env.BASE_URL}videos/home-background.mp4?v=2`;
+
 export function HomeVideoBackground() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [reducedMotion, setReducedMotion] = useState(false);
@@ -33,7 +43,7 @@ export function HomeVideoBackground() {
     <div className="fixed inset-0 z-0 overflow-hidden bg-gray-900" aria-hidden="true">
       <video
         ref={videoRef}
-        src={`${import.meta.env.BASE_URL}videos/home-background.mp4`}
+        src={VIDEO_SRC}
         className="h-full w-full object-contain"
         muted
         loop
