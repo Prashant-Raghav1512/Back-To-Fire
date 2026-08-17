@@ -64,9 +64,9 @@ export function Footer() {
           </div>
 
           <div>
-            <h4 className="font-display text-sm font-bold uppercase tracking-wider text-white">
+            <h3 className="font-display text-sm font-bold uppercase tracking-wider text-white">
               Quick Links
-            </h4>
+            </h3>
             <ul className="mt-4 space-y-3 text-sm">
               {navLinks.map((link) => (
                 <li key={link.path}>
@@ -82,9 +82,9 @@ export function Footer() {
           </div>
 
           <div>
-            <h4 className="font-display text-sm font-bold uppercase tracking-wider text-white">
+            <h3 className="font-display text-sm font-bold uppercase tracking-wider text-white">
               Programs
-            </h4>
+            </h3>
             <ul className="mt-4 space-y-3 text-sm">
               {['Foundation Starter', 'Strength Builder', 'Calisthenics Mastery'].map((p) => (
                 <li key={p}>
@@ -118,9 +118,9 @@ export function Footer() {
           </div>
 
           <div>
-            <h4 className="font-display text-sm font-bold uppercase tracking-wider text-white">
+            <h3 className="font-display text-sm font-bold uppercase tracking-wider text-white">
               Get in Touch
-            </h4>
+            </h3>
             <ul className="mt-4 space-y-3 text-sm text-gray-400">
               <li className="flex items-start gap-3">
                 <Mail className="mt-0.5 h-4 w-4 shrink-0 text-green-500" />

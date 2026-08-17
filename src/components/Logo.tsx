@@ -16,7 +16,6 @@ export function Logo({ onClick, onHero }: LogoProps) {
     <button
       onClick={onClick}
       className="group flex items-center gap-2 outline-none"
-      aria-label="Born to Fire - home"
     >
       <span className="relative flex shrink-0 items-center">
         {/* Soft brand-gradient glow behind the mark, reusing the same
@@ -30,7 +29,7 @@ export function Logo({ onClick, onHero }: LogoProps) {
         />
         <img
           src={`${import.meta.env.BASE_URL}logo.png`}
-          alt="Born to Fire"
+          alt=""
           className="relative h-12 w-auto scale-[2] transition-transform duration-300 group-hover:rotate-6 group-hover:scale-[2.2]"
         />
       </span>
