@@ -15,6 +15,7 @@ const advantages = [
 ];
 
 export function AboutPage() {
+  const founderRef = useReveal<HTMLDivElement>();
   const introRef = useReveal<HTMLDivElement>();
   const whyRef = useReveal<HTMLDivElement>();
   const mvRef = useReveal<HTMLDivElement>();
@@ -47,6 +48,76 @@ export function AboutPage() {
             We believe fitness should be accessible to every Indian - no expensive memberships, no
             intimidating gyms. Just the most powerful machine you will ever own: your body.
           </p>
+        </div>
+      </section>
+
+      {/* Meet the founder */}
+      <section className="relative overflow-hidden section-pad bg-white dark:bg-gray-900">
+        <AnimatedPageBackground
+          blobs={[
+            {
+              color: 'bg-red-300',
+              size: 'h-96 w-96',
+              position: { top: '-6rem', right: '-8rem' },
+              x: [0, -50, 0],
+              y: [0, 35, 0],
+              scale: [1, 1.12, 1],
+              duration: 25,
+            },
+            {
+              color: 'bg-blue-200',
+              size: 'h-64 w-64',
+              position: { bottom: '-3rem', left: '8%' },
+              x: [0, 35, 0],
+              y: [0, -25, 0],
+              duration: 21,
+            },
+          ]}
+        />
+        <div ref={founderRef} className="reveal relative z-10 container-x mx-auto">
+          <div className="grid items-center gap-12 lg:grid-cols-2">
+            {/* Red/blue glow behind the portrait is a quiet nod to the
+                Spider-Man motif in the copy below - not literal, just the
+                two colors most associated with the character. */}
+            <div className="relative mx-auto w-full max-w-xs">
+              <div className="absolute -inset-4 rounded-full bg-gradient-to-br from-red-500/30 to-blue-500/25 blur-xl" />
+              <div className="group relative aspect-square w-full overflow-hidden rounded-full shadow-2xl ring-4 ring-white dark:ring-gray-800">
+                <img
+                  src={`${import.meta.env.BASE_URL}founder-prashant-raghav.jpg`}
+                  alt="Prashant Raghav, founder of Born to Fire"
+                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                />
+              </div>
+            </div>
+            <div>
+              <SectionHeading
+                eyebrow="Meet the founder"
+                title="It started with Spider-Man"
+                subtitle="Prashant Raghav, a college student with a lifelong obsession with Spider-Man, founded Born to Fire to bring that kind of strength - controlled, agile, built from nothing but bodyweight - to every Indian, not just the ones who can afford a gym."
+                center={false}
+              />
+              <p className="mt-4 text-gray-600 dark:text-gray-400">
+                Growing up, Prashant was not chasing size in a mirror - he was chasing the way
+                Spider-Man moved: total command over his own bodyweight, strength that looked more
+                like art than effort. That fascination pulled him away from traditional gym
+                routines and into calisthenics, training on hostel railings, park bars, and
+                whatever he could find between classes.
+              </p>
+              <p className="mt-4 text-gray-600 dark:text-gray-400">
+                What started as one student's personal training became Born to Fire - built on the
+                belief that you do not need a radioactive spider bite, an expensive membership, or
+                a fancy gym to move like that. You just need your own body, and somewhere to start.
+              </p>
+              <div className="mt-6 flex items-center gap-3">
+                <div>
+                  <p className="font-display text-base font-bold text-gray-900 dark:text-white">
+                    Prashant Raghav
+                  </p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Founder, Born to Fire</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
