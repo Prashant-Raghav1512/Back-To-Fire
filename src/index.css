@@ -285,7 +285,8 @@
   .btn-ripple,
   .modal-overlay-in,
   .modal-panel-in,
-  .animate-float {
+  .animate-float,
+  .hero-glow {
     animation: none !important;
   }
 }

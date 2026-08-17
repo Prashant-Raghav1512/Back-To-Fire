@@ -18,11 +18,22 @@ export function Logo({ onClick, onHero }: LogoProps) {
       className="group flex items-center gap-2.5 outline-none"
       aria-label="Born to Fire - home"
     >
-      <img
-        src={`${import.meta.env.BASE_URL}logo.png`}
-        alt="Born to Fire"
-        className="h-10 w-auto shrink-0 transition-transform duration-300 group-hover:rotate-6 group-hover:scale-110"
-      />
+      <span className="relative flex shrink-0 items-center">
+        {/* Soft brand-gradient glow behind the mark, reusing the same
+            green-to-orange pairing as buttons/hero text elsewhere and the
+            existing `hero-glow` pulse (index.css) rather than inventing a
+            new animation — makes the logo read as the anchor of the navbar
+            instead of blending into it. */}
+        <span
+          className="hero-glow absolute -inset-1.5 rounded-full bg-gradient-to-br from-green-400/60 to-orange-400/50 blur-md"
+          aria-hidden="true"
+        />
+        <img
+          src={`${import.meta.env.BASE_URL}logo.png`}
+          alt="Born to Fire"
+          className="relative h-10 w-auto transition-transform duration-300 group-hover:rotate-6 group-hover:scale-110"
+        />
+      </span>
       <span className="flex flex-col leading-none">
         <span
           className={`font-display text-lg font-extrabold tracking-tight ${
