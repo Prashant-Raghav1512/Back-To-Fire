@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react';
 import { motion, useReducedMotion } from 'motion/react';
 
 interface Blob {
@@ -27,11 +28,33 @@ interface AnimatedPageBackgroundProps {
 // untouched) — this is the lighter-weight, per-section treatment used on
 // every other page. Respects prefers-reduced-motion by freezing the blobs in
 // their starting position instead of animating them.
+//
+// Every page mounts several of these (2-3 sections each), so continuously
+// animating a blur-3xl element - one of the more expensive things to
+// composite - well outside the viewport adds up to real, sustained scroll
+// jank across the whole site for no visible benefit. An IntersectionObserver
+// pauses each instance's animation the moment it scrolls out of view (same
+// "costs nothing while idle" contract used elsewhere in this app, e.g.
+// useTilt/useMagnetic) and resumes it slightly before it scrolls back in.
+const ROOT_MARGIN = '200px 0px';
+
 export function AnimatedPageBackground({ blobs }: AnimatedPageBackgroundProps) {
   const reduceMotion = useReducedMotion();
+  const ref = useRef<HTMLDivElement>(null);
+  const [inView, setInView] = useState(true);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(([entry]) => setInView(entry.isIntersecting), {
+      rootMargin: ROOT_MARGIN,
+    });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
 
   return (
-    <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
+    <div ref={ref} className="absolute inset-0 overflow-hidden" aria-hidden="true">
       {/* Dot-grid texture, faded toward the edges via a radial mask so it
           reads as depth rather than a hard-edged tile — the same "pro SaaS"
           background technique used underneath gradient blobs on sites like
@@ -51,7 +74,7 @@ export function AnimatedPageBackground({ blobs }: AnimatedPageBackgroundProps) {
           key={i}
           className={`absolute rounded-full opacity-40 blur-3xl dark:opacity-20 ${b.color} ${b.size}`}
           style={b.position}
-          animate={reduceMotion ? undefined : { x: b.x, y: b.y, scale: b.scale }}
+          animate={reduceMotion || !inView ? undefined : { x: b.x, y: b.y, scale: b.scale }}
           transition={{ duration: b.duration, repeat: Infinity, repeatType: 'mirror', ease: 'easeInOut' }}
         />
       ))}
