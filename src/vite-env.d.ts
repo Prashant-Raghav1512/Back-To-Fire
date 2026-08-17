@@ -9,10 +9,11 @@ interface ImportMetaEnv {
   readonly VITE_NEON_CONTACT_URL?: string;
 
   /**
-   * Groq API key used directly from the browser to power the chatbot.
-   * Also intentionally public — see src/lib/groqChat.ts.
+   * Base URL of the Groq proxy Cloudflare Worker (see cloudflare-worker/)
+   * that both src/lib/groqChat.ts and proteinChat.ts call — the actual
+   * Groq API keys live server-side as Worker secrets now, not here.
    */
-  readonly VITE_GROQ_API_KEY?: string;
+  readonly VITE_GROQ_PROXY_URL?: string;
 
   /**
    * Clerk publishable key. Unlike the other VITE_ vars above, this one is

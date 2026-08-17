@@ -1,20 +1,12 @@
 import { searchKnowledgeBase } from '@/lib/search';
 
-// SECURITY NOTE: this key is shipped in the client bundle and is visible to
-// anyone who opens devtools — there is no backend on this static site to
-// hide it behind. It's a Groq free-tier key, so the realistic worst case is
-// someone burning your rate limit rather than a real bill, but rotate it via
-// GroqCloud (console.groq.com/keys) and update the VITE_GROQ_API_KEY secret
-// if it's ever abused.
-const API_KEY = import.meta.env.VITE_GROQ_API_KEY;
-// llama-3.3-70b-versatile was retired from Groq's catalog (confirmed via
-// GET /v1/models — it no longer appears at all) and started failing every
-// request with a 404 model_not_found. gpt-oss-120b is a reasoning model —
-// unlike llama-3.3, it spends some of its token budget "thinking" before
-// answering, silently returning empty content if max_tokens is too tight
-// for that (confirmed by testing) — reasoning_effort: 'low' keeps that
-// overhead small enough to fit the budget below reliably.
-const MODEL = 'openai/gpt-oss-120b';
+// The Groq API key itself lives server-side now, as a Cloudflare Worker
+// secret (see cloudflare-worker/) — this only needs the Worker's own URL,
+// which isn't a secret (it's just an endpoint address). See
+// cloudflare-worker/README.md for how the Worker is deployed/configured.
+// Model choice and reasoning_effort tuning live in the Worker now too (see
+// worker.ts) — the client no longer picks the model.
+const PROXY_URL = import.meta.env.VITE_GROQ_PROXY_URL;
 const CONTEXT_CHUNKS = 3;
 const HISTORY_TURNS = 6;
 
@@ -31,8 +23,8 @@ export async function generateChatResponse(
   userMessage: string,
   history: ChatTurn[]
 ): Promise<string> {
-  if (!API_KEY) {
-    throw new Error('Chat is not configured (VITE_GROQ_API_KEY is unset).');
+  if (!PROXY_URL) {
+    throw new Error('Chat is not configured (VITE_GROQ_PROXY_URL is unset).');
   }
 
   const matches = searchKnowledgeBase(userMessage, CONTEXT_CHUNKS);
@@ -46,28 +38,19 @@ export async function generateChatResponse(
     { role: 'user', content: userMessage },
   ];
 
-  const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+  const res = await fetch(`${PROXY_URL}/chat`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${API_KEY}`,
-    },
-    body: JSON.stringify({
-      model: MODEL,
-      messages,
-      temperature: 0.3,
-      max_tokens: 300,
-      reasoning_effort: 'low',
-    }),
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ messages, temperature: 0.3, max_tokens: 300 }),
   });
 
   if (!res.ok) {
     const body: { error?: { message?: string } } = await res.json().catch(() => ({}));
-    throw new Error(body.error?.message ?? `Groq request failed with status ${res.status}`);
+    throw new Error(body.error?.message ?? `Chat service request failed with status ${res.status}`);
   }
 
   const data: { choices: { message: { content: string } }[] } = await res.json();
   const reply = data.choices[0]?.message.content?.trim();
-  if (!reply) throw new Error('Groq returned an empty response.');
+  if (!reply) throw new Error('Chat service returned an empty response.');
   return reply;
 }
