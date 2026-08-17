@@ -5,12 +5,21 @@ import { Logo } from './Logo';
 import { navLinks } from '@/data/content';
 import { useRouter } from '@/lib/router';
 import { useTheme } from '@/lib/useTheme';
+import { useIsIPad } from '@/lib/useIsIPad';
 
 export function Navbar() {
   const { path, navigate } = useRouter();
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const { theme, toggle } = useTheme();
+  // An iPad Pro's own viewport width can't be reliably targeted with a CSS
+  // breakpoint alone (see useIsIPad.ts) - it's wide enough in landscape to
+  // pass for a laptop, so a pure width-based fix would either miss it or
+  // wrongly rope in real desktop screens at the same width. On a confirmed
+  // iPad, `forceMobile` overrides every `lg:` class below so the touch-
+  // friendly hamburger menu shows regardless of orientation/width.
+  const isIPad = useIsIPad();
+  const forceMobile = isIPad;
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
@@ -42,7 +51,7 @@ export function Navbar() {
       <nav className="container-x mx-auto flex h-16 items-center px-5 sm:h-20 sm:px-8">
         <Logo onClick={() => go('/')} onHero={path === '/' && !scrolled} />
 
-        <div className="hidden flex-1 items-center justify-between px-6 lg:flex">
+        <div className={`hidden flex-1 items-center justify-between px-6 ${forceMobile ? '' : 'lg:flex'}`}>
           {navLinks.map((link) => {
             const active = path === link.path;
             return (
@@ -64,7 +73,7 @@ export function Navbar() {
           })}
         </div>
 
-        <div className="ml-auto flex items-center gap-1 lg:gap-2">
+        <div className={`ml-auto flex items-center gap-1 ${forceMobile ? '' : 'lg:gap-2'}`}>
           <button
             onClick={toggle}
             aria-label="Toggle dark mode"
@@ -74,7 +83,7 @@ export function Navbar() {
           </button>
           <button
             onClick={() => go('/programs')}
-            className="hidden btn-primary !px-5 !py-2.5 text-sm sm:inline-flex lg:hidden xl:inline-flex"
+            className={`hidden btn-primary !px-5 !py-2.5 text-sm sm:inline-flex ${forceMobile ? '' : 'lg:hidden xl:inline-flex'}`}
           >
             Start Training
           </button>
@@ -99,7 +108,7 @@ export function Navbar() {
           <button
             onClick={() => setOpen((o) => !o)}
             aria-label="Toggle menu"
-            className="flex h-10 w-10 items-center justify-center rounded-full text-gray-700 transition-colors hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800 lg:hidden"
+            className={`flex h-10 w-10 items-center justify-center rounded-full text-gray-700 transition-colors hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800 ${forceMobile ? '' : 'lg:hidden'}`}
           >
             {open ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </button>
@@ -108,7 +117,7 @@ export function Navbar() {
 
       {/* Mobile menu */}
       <div
-        className={`lg:hidden overflow-hidden transition-all duration-300 ${
+        className={`overflow-hidden transition-all duration-300 ${forceMobile ? '' : 'lg:hidden'} ${
           open ? 'max-h-[80vh] opacity-100' : 'max-h-0 opacity-0'
         }`}
       >
