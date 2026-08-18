@@ -1,5 +1,6 @@
 import { lazy, Suspense } from 'react';
 import { Loader2 } from 'lucide-react';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { ChatWidget } from '@/components/ChatWidget';
@@ -84,7 +85,9 @@ function Routes() {
       <ScrollProgressBar />
       <Navbar />
       <main key={path} className="page-transition flex-1">
-        <Suspense fallback={<PageLoadingFallback />}>{page}</Suspense>
+        <ErrorBoundary key={path}>
+          <Suspense fallback={<PageLoadingFallback />}>{page}</Suspense>
+        </ErrorBoundary>
       </main>
       <Footer />
       <ChatWidget />

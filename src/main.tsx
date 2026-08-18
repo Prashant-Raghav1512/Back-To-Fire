@@ -27,6 +27,19 @@ if (!clerkPublishableKey) {
 // production, matching whatever this build was actually deployed under.
 const baseUrl = import.meta.env.BASE_URL;
 
+// Every route but Home is a separately-fetched, content-hashed chunk (see
+// CLAUDE.md's "Route-based code splitting") and GitHub Pages replaces every
+// file on each deploy rather than keeping old hashed filenames around — so a
+// browser holding a cached index.html from before the latest deploy tries to
+// lazy-load a page chunk that's already 404ing, React throws, and with
+// nothing to catch it the visitor gets a blank white screen with zero
+// explanation. Vite fires this event specifically for that case; reloading
+// picks up the current index.html/chunk manifest and recovers automatically
+// instead of leaving the visitor stuck.
+window.addEventListener('vite:preloadError', () => {
+  window.location.reload();
+});
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ClerkProvider
