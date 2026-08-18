@@ -14,6 +14,9 @@ import {
   Users,
   Video,
   PartyPopper,
+  PlayCircle,
+  MessageCircle,
+  TrendingUp,
 } from 'lucide-react';
 import { SectionHeading } from '@/components/SectionHeading';
 import { DifficultyBadge } from '@/components/DifficultyBadge';
@@ -153,6 +156,7 @@ function EventGrid({ eventList, onSelect, isEnrolledIn, onEnrolled }: EventGridP
 export function ProgramsPage() {
   const programsRef = useReveal<HTMLDivElement>();
   const eventsRef = useReveal<HTMLDivElement>();
+  const howItWorksRef = useReveal<HTMLDivElement>();
   const { isEnrolledIn, refresh } = useMyEnrollments();
   const heroImgRef = useParallax<HTMLImageElement>();
   const { ongoing, upcoming, ended } = groupEventsByStatus();
@@ -328,7 +332,7 @@ export function ProgramsPage() {
           </div>
 
           {/* How it works */}
-          <div className="mt-20">
+          <div ref={howItWorksRef} className="reveal mt-20">
             <SectionHeading
               eyebrow="How it works"
               title="Simple, structured, sustainable"
@@ -336,8 +340,11 @@ export function ProgramsPage() {
             <div className="mt-10 grid gap-6 sm:grid-cols-3 stagger-children">
               {[
                 { icon: BarChart3, step: '01', title: 'Assess your level', text: 'Take a quick self-test to find the right starting tier.' },
-                { icon: Clock, step: '02', title: 'Follow the plan', text: 'Train 3-5 days a week with guided sessions and built-in rest.' },
-                { icon: ArrowRight, step: '03', title: 'Progress & level up', text: 'Hit your milestones, then move to the next progression.' },
+                { icon: PlayCircle, step: '02', title: 'Pick & start a program', text: 'Browse the tiers and hit "Start" to enroll - sign-in takes a few seconds.' },
+                { icon: Clock, step: '03', title: 'Follow the plan', text: 'Train 3-5 days a week with guided sessions and built-in rest.' },
+                { icon: MessageCircle, step: '04', title: 'Ask Uncle Baiyanpuria', text: 'Stuck on something? Open the chat widget for quick answers, any time.' },
+                { icon: TrendingUp, step: '05', title: 'Track your progress', text: 'Everything you\'ve joined is saved under My Programs on your Profile.' },
+                { icon: ArrowRight, step: '06', title: 'Progress & level up', text: 'Hit your milestones, then move to the next progression.' },
               ].map((s) => (
                 <TiltCard key={s.step} className="card card-hover p-6">
                   <div className="flex items-center justify-between">

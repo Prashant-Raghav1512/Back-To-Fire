@@ -31,7 +31,7 @@ export function Footer() {
               <img
                 src={`${import.meta.env.BASE_URL}logo.png`}
                 alt="Born to Fire"
-                className="h-10 w-auto shrink-0 transition-transform duration-300 group-hover:scale-105"
+                className="h-16 w-auto shrink-0 transition-transform duration-300 group-hover:scale-105"
               />
               <span className="font-display text-lg font-extrabold text-white">
                 Born to <span className="text-green-500">fire</span>

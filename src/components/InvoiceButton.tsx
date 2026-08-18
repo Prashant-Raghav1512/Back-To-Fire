@@ -13,10 +13,10 @@ export function InvoiceButton({
 }) {
   const [generating, setGenerating] = useState(false);
 
-  const handleClick = () => {
+  const handleClick = async () => {
     setGenerating(true);
     try {
-      downloadInvoicePdf(invoice);
+      await downloadInvoicePdf(invoice);
     } finally {
       setGenerating(false);
     }

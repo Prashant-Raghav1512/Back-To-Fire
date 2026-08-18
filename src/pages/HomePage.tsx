@@ -197,7 +197,7 @@ export function HomePage() {
       <section className="section-pad relative z-10">
         <div ref={introRef} className="reveal container-x mx-auto">
           <div className="grid items-center gap-12 lg:grid-cols-2">
-            <div>
+            <div className="lg:self-start lg:pt-4">
               <SectionHeading
                 eyebrow="Welcome to Born to Fire"
                 title="Your body is the only gym you'll ever need"

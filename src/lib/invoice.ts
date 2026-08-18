@@ -28,22 +28,61 @@ function formatInr(amount: number): string {
   return `Rs. ${amount.toLocaleString('en-IN')}`;
 }
 
-export function downloadInvoicePdf(input: InvoiceInput): void {
+// Loads public/logo.png as a base64 data URL jsPDF's addImage() can embed,
+// plus its natural pixel dimensions so it's drawn at the right aspect ratio
+// instead of stretched into a square.
+async function loadLogoForPdf(): Promise<{ dataUrl: string; width: number; height: number } | null> {
+  try {
+    const res = await fetch(`${import.meta.env.BASE_URL}logo.png`);
+    const blob = await res.blob();
+    const dataUrl = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = () => reject(reader.error);
+      reader.readAsDataURL(blob);
+    });
+    const { width, height } = await new Promise<{ width: number; height: number }>((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve({ width: img.naturalWidth, height: img.naturalHeight });
+      img.onerror = () => reject(new Error('Could not read logo dimensions.'));
+      img.src = dataUrl;
+    });
+    return { dataUrl, width, height };
+  } catch {
+    // Offline, blocked request, etc. — invoice still generates, just without the logo.
+    return null;
+  }
+}
+
+export async function downloadInvoicePdf(input: InvoiceInput): Promise<void> {
   const doc = new jsPDF({ unit: 'pt', format: 'a4' });
   const pageWidth = doc.internal.pageSize.getWidth();
   const marginX = 48;
   let y = 56;
 
+  const logo = await loadLogoForPdf();
+  let textX = marginX;
+  if (logo) {
+    const logoHeight = 74;
+    const logoWidth = logoHeight * (logo.width / logo.height);
+    doc.addImage(logo.dataUrl, 'PNG', marginX, y - 40, logoWidth, logoHeight);
+    textX = marginX + logoWidth + 14;
+  }
+
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(20);
   doc.setTextColor(17, 24, 39);
-  doc.text('Born to Fire', marginX, y);
+  doc.text('Born to Fire', textX, y);
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
   doc.setTextColor(107, 114, 128);
-  doc.text('Calisthenics for India - train anywhere', marginX, y + 14);
-  doc.text('hello@borntofire.in', marginX, y + 27);
+  doc.text('Calisthenics for India - train anywhere', textX, y + 14);
+  doc.text('hello@borntofire.in', textX, y + 27);
+  // Placeholder until Born to Fire actually registers for GST — kept as a
+  // fixed string here rather than an InvoiceInput field since it's a
+  // business-level detail, not something that varies per invoice.
+  doc.text('GSTIN: XXXXXXXXXX', textX, y + 40);
 
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(16);
@@ -137,19 +176,41 @@ export function downloadInvoicePdf(input: InvoiceInput): void {
     doc.setFontSize(10);
     doc.setTextColor(75, 85, 99);
     doc.text(`Payment method: ${input.paymentMethod}`, marginX, y);
+    y += 20;
   }
 
-  const footerY = doc.internal.pageSize.getHeight() - 70;
+  y += 20;
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9);
+  doc.setTextColor(107, 114, 128);
+  doc.text('TERMS & GUIDELINES', marginX, y);
+  y += 16;
+
+  const terms = [
+    'This invoice is a record of the plan and payment method you selected, not a payment receipt - Born to Fire does not process real payments through a gateway on this site.',
+    'No refund applies to this document, since no charge was made against it.',
+    "To change your plan, cancel your current one from your Profile or Membership page and rejoin - there's no direct switch flow.",
+    'Full Terms & Conditions and Privacy Policy are available at borntofire.in. For any questions, write to hello@borntofire.in.',
+  ];
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8.5);
+  doc.setTextColor(107, 114, 128);
+  for (const term of terms) {
+    const lines = doc.splitTextToSize(`- ${term}`, tableRight - marginX);
+    doc.text(lines, marginX, y);
+    y += lines.length * 11 + 4;
+  }
+
+  // Defaults to the fixed near-bottom position for a typical short invoice,
+  // but never overlaps the terms block above it if that content ever grows
+  // (more line items, longer terms text) past where the fixed position sits.
+  const footerY = Math.max(doc.internal.pageSize.getHeight() - 70, y + 20);
   doc.setDrawColor(229, 231, 235);
   doc.line(marginX, footerY, tableRight, footerY);
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8);
   doc.setTextColor(156, 163, 175);
-  const disclaimer = doc.splitTextToSize(
-    'This invoice records the plan and payment method you selected with Born to Fire. Born to Fire does not process payments through a payment gateway on this site, so no real charge has been made against this document. Questions? Write to hello@borntofire.in.',
-    tableRight - marginX
-  );
-  doc.text(disclaimer, marginX, footerY + 16);
+  doc.text('Thank you for training with Born to Fire.', marginX, footerY + 16);
 
   doc.save(`${input.invoiceNumber}.pdf`);
 }
