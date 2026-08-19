@@ -20,7 +20,7 @@ import { useEffect, useRef, useState } from 'react';
 // cached this exact URL has no signal that the file changed underneath it
 // and can keep serving the old, larger video indefinitely. Bump this
 // number whenever home-background.mp4 is re-exported/re-encoded.
-const VIDEO_SRC = `${import.meta.env.BASE_URL}videos/home-background.mp4?v=2`;
+const VIDEO_SRC = `${import.meta.env.BASE_URL}videos/home-background.mp4?v=3`;
 
 export function HomeVideoBackground() {
   const videoRef = useRef<HTMLVideoElement>(null);
